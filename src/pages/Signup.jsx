@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 function friendlyError(msg) {
@@ -12,7 +12,6 @@ function friendlyError(msg) {
 
 export default function Signup() {
   const { signUp } = useAuth()
-  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -40,10 +39,12 @@ export default function Signup() {
     if (error) {
       setError(friendlyError(error.message))
     } else if (data.session) {
-      // Email confirmation is disabled — signed in immediately
-      navigate('/onboarding')
+      // Email confirmation is disabled — session created immediately.
+      // PublicRoute will detect the new session, check the users table
+      // (no row yet → onboardingComplete = false), and redirect to /onboarding.
+      // Nothing to do here.
     } else {
-      // Email confirmation is enabled — user must verify before signing in
+      // Email confirmation is enabled — show "check your email" message
       setSuccess(true)
     }
   }

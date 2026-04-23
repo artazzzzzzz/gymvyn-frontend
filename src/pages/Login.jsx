@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 function friendlyError(msg) {
@@ -11,7 +11,6 @@ function friendlyError(msg) {
 
 export default function Login() {
   const { signIn } = useAuth()
-  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -23,10 +22,10 @@ export default function Login() {
     setLoading(true)
     const { error } = await signIn(email, password)
     setLoading(false)
+    // No navigate() here — PublicRoute detects the new session and routes
+    // to /home or /onboarding based on whether the user is in the users table
     if (error) {
       setError(friendlyError(error.message))
-    } else {
-      navigate('/home')
     }
   }
 
