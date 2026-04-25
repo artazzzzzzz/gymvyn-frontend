@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { House, Dumbbell, Apple, TrendingUp, Users } from 'lucide-react'
+import { House, Dumbbell, Apple, TrendingUp, ScanLine } from 'lucide-react'
 
 const tabs = [
-  { to: '/home',      icon: House,      label: 'Home'      },
-  { to: '/workout',   icon: Dumbbell,   label: 'Workout'   },
-  { to: '/diet',      icon: Apple,      label: 'Diet'      },
-  { to: '/progress',  icon: TrendingUp, label: 'Progress'  },
-  { to: '/community', icon: Users,      label: 'Community' },
+  { to: '/home',       icon: House,      label: 'Home'     },
+  { to: '/workout',    icon: Dumbbell,   label: 'Workout'  },
+  { to: '/diet',       icon: Apple,      label: 'Diet'     },
+  { to: '/progress',   icon: TrendingUp, label: 'Progress' },
+  { to: '/form-coach', icon: ScanLine,   label: 'Form'     },
 ]
 
 export default function BottomNav() {

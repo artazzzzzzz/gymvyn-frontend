@@ -245,23 +245,31 @@ export default function Workout() {
   const [activeDay, setActiveDay] = useState(getTodayIndex())
 
   useEffect(() => {
+    console.log('[Workout] mounted — VITE_BACKEND_URL:', API)
+    console.log('[Workout] user:', user?.id ?? 'null')
     if (!user) return
     loadPlan()
   }, [user])
 
   async function loadPlan() {
+    console.log('[loadPlan] fetching plan for user:', user.id)
     setStatus('loading')
     try {
-      const { data } = await axios.get(`${API}/workout-plan/${user.id}`)
+      const url = `${API}/workout-plan/${user.id}`
+      console.log('[loadPlan] GET', url)
+      const { data } = await axios.get(url)
+      console.log('[loadPlan] response:', data)
       if (data?.days?.length) {
         setPlan(data)
         setStatus('ready')
       } else {
+        console.log('[loadPlan] no days in response → showing empty state')
         setStatus('empty')
       }
     } catch (err) {
-      // 404 = no plan yet (expected)
+      console.error('[loadPlan] error:', err.response?.status, err.message)
       if (err.response?.status === 404) {
+        console.log('[loadPlan] 404 → showing empty state')
         setStatus('empty')
       } else {
         setError(err.response?.data?.message || err.message)
@@ -271,30 +279,43 @@ export default function Workout() {
   }
 
   async function handleGenerate() {
+    console.log('[handleGenerate] button clicked')
+    console.log('[handleGenerate] VITE_BACKEND_URL:', API)
+    console.log('[handleGenerate] user:', user?.id)
     setStatus('generating')
     setError('')
     try {
+      console.log('[handleGenerate] fetching user profile from Supabase...')
       const { data: profile, error: profileErr } = await supabase
         .from('users')
         .select('goal, experience, equipment, training_days, injuries')
         .eq('id', user.id)
         .maybeSingle()
 
+      console.log('[handleGenerate] profile:', profile, 'profileErr:', profileErr)
       if (profileErr) throw new Error(profileErr.message)
+      if (!profile) throw new Error('User profile not found in database')
 
-      const { data } = await axios.post(`${API}/generate-workout-plan`, {
+      const payload = {
         userId:      user.id,
         goal:        profile.goal,
         experience:  profile.experience,
         equipment:   profile.equipment,
         daysPerWeek: profile.training_days,
         injuries:    profile.injuries || '',
-      })
+      }
+      const url = `${API}/generate-workout-plan`
+      console.log('[handleGenerate] POST', url, payload)
+
+      const { data } = await axios.post(url, payload)
+      console.log('[handleGenerate] plan received:', data)
 
       setPlan(data)
       setStatus('ready')
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Something went wrong. Please try again.')
+      const msg = err.response?.data?.message || err.message || 'Something went wrong. Please try again.'
+      console.error('[handleGenerate] error:', err.response?.status, msg, err)
+      setError(msg)
       setStatus('error')
     }
   }

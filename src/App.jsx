@@ -11,6 +11,7 @@ import Workout from './pages/Workout'
 import Diet from './pages/Diet'
 import Progress from './pages/Progress'
 import Community from './pages/Community'
+import FormCoach from './pages/FormCoach'
 
 const protected_ = (Page) => (
   <ProtectedRoute><Page /></ProtectedRoute>
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/diet"       element={protected_(Diet)} />
           <Route path="/progress"   element={protected_(Progress)} />
           <Route path="/community"  element={protected_(Community)} />
+          <Route path="/form-coach" element={protected_(FormCoach)} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
