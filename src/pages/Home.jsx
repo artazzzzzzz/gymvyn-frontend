@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
+import { useStreak } from '../hooks/useStreak'
 import BottomNav from '../components/BottomNav'
 
 function todayLabel() {
@@ -22,6 +23,7 @@ export default function Home() {
 
   const [profile, setProfile] = useState(null)
   const { day, date } = todayLabel()
+  const { current: streakDays, best: bestStreak } = useStreak(user?.id)
 
   useEffect(() => {
     if (!user) return
@@ -132,11 +134,14 @@ export default function Home() {
               </div>
               <span className="text-xs font-medium text-zinc-400">Streak</span>
             </div>
-            <p className="text-2xl font-bold text-white mb-1">0</p>
+            <p className="text-2xl font-bold text-white mb-1">{streakDays}</p>
             <p className="text-xs text-zinc-600">days in a row</p>
             <div className="mt-3 flex gap-1">
               {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="flex-1 h-1.5 bg-white/[0.06] rounded-full" />
+                <div
+                  key={i}
+                  className={`flex-1 h-1.5 rounded-full ${i < Math.min(streakDays, 7) ? 'bg-amber-400' : 'bg-white/[0.06]'}`}
+                />
               ))}
             </div>
           </div>
