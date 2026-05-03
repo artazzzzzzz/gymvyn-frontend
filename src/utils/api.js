@@ -8,3 +8,23 @@ export async function apiFetch(path, options = {}) {
   if (!res.ok) throw new Error(`API error ${res.status}`);
   return res.json();
 }
+
+// ── Gym owner ────────────────────────────────────────────────────────────────
+
+export async function createGym({ userId, gymName, address, city, state, pincode, phone, email }) {
+  const res = await fetch(`${BASE_URL}/api/gyms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, gymName, address, city, state, pincode, phone, email }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to create gym (${res.status})`);
+  return data;
+}
+
+export async function getGymByUserId(userId) {
+  const res = await fetch(`${BASE_URL}/api/gyms/${userId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch gym (${res.status})`);
+  return data;
+}

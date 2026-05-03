@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Settings, Flame, Zap, Apple, TrendingUp, Users,
-  Dumbbell, ChevronRight, MessageSquare,
+  Dumbbell, ChevronRight, MessageSquare, Building2,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
@@ -29,11 +29,14 @@ export default function Home() {
     if (!user) return
     supabase
       .from('users')
-      .select('full_name, goal, training_days')
+      .select('full_name, goal, training_days, role')
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data }) => setProfile(data))
   }, [user])
+
+  // Default to consumer if role hasn't loaded yet (most users) — gym staff/owners see no pill
+  const isConsumer = !profile || !profile.role || profile.role === 'consumer'
 
   const firstName = profile?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'Athlete'
 
@@ -61,13 +64,34 @@ export default function Home() {
           <p className="text-zinc-500 text-sm">Hey {firstName} 👋</p>
           <h1 className="text-xl font-bold text-white mt-0.5">Good{getGreeting()}</h1>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-          aria-label="Settings / Sign out"
-        >
-          <Settings size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          {isConsumer && (
+            <button
+              onClick={() => navigate('/become-gym-owner')}
+              className="hidden sm:inline-flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-full px-3 py-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+            >
+              <Building2 size={12} className="text-emerald-400" />
+              Are you a gym owner?
+              <ChevronRight size={12} />
+            </button>
+          )}
+          {isConsumer && (
+            <button
+              onClick={() => navigate('/become-gym-owner')}
+              className="sm:hidden w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-emerald-400 hover:text-emerald-300 transition-colors"
+              aria-label="Become a gym owner"
+            >
+              <Building2 size={16} />
+            </button>
+          )}
+          <button
+            onClick={handleSignOut}
+            className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+            aria-label="Settings / Sign out"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
       </header>
 
       {/* ── Date pill ───────────────────────────────────────────── */}

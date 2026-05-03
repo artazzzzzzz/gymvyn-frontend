@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../utils/supabase'
 
 function Spinner() {
   return (
@@ -11,6 +13,28 @@ function Spinner() {
 
 export default function PublicRoute({ children }) {
   const { user, loading, onboardingComplete } = useAuth()
+  const [role, setRole] = useState(null)
+  const [roleChecked, setRoleChecked] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    if (!user || !onboardingComplete) {
+      setRole(null)
+      setRoleChecked(false)
+      return
+    }
+    ;(async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (cancelled) return
+      setRole(data?.role ?? null)
+      setRoleChecked(true)
+    })()
+    return () => { cancelled = true }
+  }, [user, onboardingComplete])
 
   // Wait for initial session check
   if (loading) return <Spinner />
@@ -19,7 +43,10 @@ export default function PublicRoute({ children }) {
   if (user && onboardingComplete === null) return <Spinner />
 
   if (user) {
-    return <Navigate to={onboardingComplete ? '/home' : '/onboarding'} replace />
+    if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+    if (!roleChecked) return <Spinner />
+    if (role === 'gym_owner') return <Navigate to="/gym/dashboard" replace />
+    return <Navigate to="/home" replace />
   }
 
   return children
