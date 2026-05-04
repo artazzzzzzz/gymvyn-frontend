@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Search, Users as UsersIcon, UserPlus, Filter, MoreVertical, Eye,
   Pause, Ban, ChevronLeft, ChevronRight, Copy, Check, X, AlertTriangle,
@@ -309,6 +310,7 @@ function SkeletonCard() {
 
 export default function GymMembers() {
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   const [gym, setGym]               = useState(null)
   const [members, setMembers]       = useState([])
@@ -435,12 +437,11 @@ export default function GymMembers() {
 
   function onView(member) {
     setOpenMenuId(null)
-    console.log('Member view:', member)
-    showToast(`Viewing ${member.users?.full_name ?? 'member'} (detail page coming soon)`)
+    if (member?.user_id) navigate(`/gym/members/${member.user_id}`)
   }
 
   function onRowClick(member) {
-    console.log('Member row:', member)
+    if (member?.user_id) navigate(`/gym/members/${member.user_id}`)
   }
 
   function onFreezeStart(member) {
