@@ -16,6 +16,7 @@ import FormCoach from './pages/FormCoach'
 import BecomeGymOwner from './pages/BecomeGymOwner'
 import GymOnboarding from './pages/GymOnboarding'
 import GymDashboard from './pages/GymDashboard'
+import GymComingSoon from './pages/GymComingSoon'
 
 const protected_ = (Page) => (
   <ProtectedRoute><Page /></ProtectedRoute>
@@ -39,6 +40,10 @@ export default function App() {
           <Route path="/become-gym-owner" element={protected_(BecomeGymOwner)} />
           <Route path="/gym-onboarding"   element={protected_(GymOnboarding)} />
           <Route path="/gym/dashboard"    element={<GymOwnerRoute><GymDashboard /></GymOwnerRoute>} />
+          <Route path="/gym/members"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
+          <Route path="/gym/checkins"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
+          <Route path="/gym/insights"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
+          <Route path="/gym/profile"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
