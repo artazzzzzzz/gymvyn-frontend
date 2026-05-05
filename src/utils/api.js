@@ -28,3 +28,29 @@ export async function getGymByUserId(userId) {
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch gym (${res.status})`);
   return data;
 }
+
+// ── Gym member management ────────────────────────────────────────────────────
+
+export async function addGymMember({
+  gymId, fullName, phone, membershipType, monthlyFee,
+  startDate, assignedTrainerId, notes,
+}) {
+  const res = await fetch(`${BASE_URL}/api/gym-members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      gymId, fullName, phone, membershipType, monthlyFee,
+      startDate, assignedTrainerId, notes,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to add member (${res.status})`);
+  return data;
+}
+
+export async function getGymTrainers(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-trainers/${gymId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch trainers (${res.status})`);
+  return data || [];
+}

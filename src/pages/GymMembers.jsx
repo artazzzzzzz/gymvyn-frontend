@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import GymOwnerNav from '../components/GymOwnerNav'
+import AddMemberModal from '../components/AddMemberModal'
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -331,6 +332,9 @@ export default function GymMembers() {
   const [confirm, setConfirm]   = useState(null) // { kind, member }
   const [busy, setBusy]         = useState(false)
 
+  // Add Member modal
+  const [addOpen, setAddOpen]   = useState(false)
+
   // Debounce search input
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 300)
@@ -432,7 +436,12 @@ export default function GymMembers() {
   function clearToast()    { setToast('') }
 
   function onAddMemberClick() {
-    showToast('Coming in next prompt — for now seed data via SQL')
+    setAddOpen(true)
+  }
+
+  async function onMemberAdded(name) {
+    showToast(`${name || 'Member'} added to your gym`)
+    await load()
   }
 
   function onView(member) {
@@ -793,6 +802,15 @@ export default function GymMembers() {
         onConfirm={onConfirmAction}
         onCancel={() => !busy && setConfirm(null)}
         busy={busy}
+      />
+
+      <AddMemberModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        gymId={gym?.id}
+        gymName={gym?.name}
+        joinCode={gym?.join_code}
+        onAdded={onMemberAdded}
       />
 
       <GymOwnerNav />
