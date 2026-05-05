@@ -447,7 +447,7 @@ function ManualForm({
           >
             <option value="">None</option>
             {trainers.map(t => (
-              <option key={t.id} value={t.id}>{t.full_name}</option>
+              <option key={t.user_id} value={t.user_id}>{t.full_name}</option>
             ))}
           </select>
         )}
