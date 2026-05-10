@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, ClipboardCheck, BarChart3, UserCog } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, CalendarDays, UserCheck, Settings } from 'lucide-react'
 
 const tabs = [
   { to: '/gym/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/gym/members',   icon: Users,           label: 'Members'   },
-  { to: '/gym/checkins',  icon: ClipboardCheck,  label: 'Check-ins' },
-  { to: '/gym/insights',  icon: BarChart3,       label: 'Insights'  },
-  { to: '/gym/profile',   icon: UserCog,         label: 'Profile'   },
+  { to: '/gym/payments',  icon: Wallet,          label: 'Payments'  },
+  { to: '/gym/schedule',  icon: CalendarDays,    label: 'Schedule'  },
+  { to: '/gym/trainers',  icon: UserCheck,       label: 'Trainers'  },
 ]
 
 export default function GymOwnerNav() {
@@ -28,6 +28,17 @@ export default function GymOwnerNav() {
             <span className="text-[10px] font-medium tracking-wide">{label}</span>
           </NavLink>
         ))}
+        <NavLink
+          to="/gym/settings"
+          className={({ isActive }) =>
+            `w-14 flex flex-col items-center justify-center gap-1 transition-colors duration-150 border-l border-white/[0.06] ${
+              isActive ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'
+            }`
+          }
+        >
+          <Settings size={18} strokeWidth={1.8} />
+          <span className="text-[10px] font-medium tracking-wide">Settings</span>
+        </NavLink>
       </div>
     </nav>
   )

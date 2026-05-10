@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Search, Users as UsersIcon, UserPlus, Filter, MoreVertical, Eye,
   Pause, Ban, ChevronLeft, ChevronRight, Copy, Check, X, AlertTriangle,
-  Loader2, User as UserIcon,
+  Loader2, User as UserIcon, Upload,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
@@ -512,14 +512,24 @@ export default function GymMembers() {
               {loading ? 'Loading…' : `${counts.total} ${counts.total === 1 ? 'member' : 'members'} in ${gym?.name ?? 'your gym'}`}
             </p>
           </div>
-          <button
-            onClick={onAddMemberClick}
-            className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
-          >
-            <UserPlus size={14} />
-            <span className="hidden sm:inline">Add Member</span>
-            <span className="sm:hidden">Add</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/gym/import')}
+              className="inline-flex items-center gap-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors active:scale-[0.98]"
+            >
+              <Upload size={14} />
+              <span className="hidden sm:inline">Import Members</span>
+              <span className="sm:hidden">Import</span>
+            </button>
+            <button
+              onClick={onAddMemberClick}
+              className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+            >
+              <UserPlus size={14} />
+              <span className="hidden sm:inline">Add Member</span>
+              <span className="sm:hidden">Add</span>
+            </button>
+          </div>
         </header>
 
         {error && (

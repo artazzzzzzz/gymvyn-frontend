@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
+import { getGymTrainers, assignTrainer } from '../utils/api'
 import GymOwnerNav from '../components/GymOwnerNav'
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -247,6 +248,10 @@ export default function GymMemberDetail() {
   const [membership, setMembership]   = useState(null)
   const [payments, setPayments]       = useState([])
   const [checkins, setCheckins]       = useState([])
+  const [gymTrainers, setGymTrainers] = useState([])
+  const [selectedTrainerId, setSelectedTrainerId] = useState('')
+  const [assignBusy, setAssignBusy]   = useState(false)
+  const [assignMsg, setAssignMsg]     = useState('')
 
   // UI state
   const [loading, setLoading]                 = useState(true)
@@ -343,6 +348,9 @@ export default function GymMemberDetail() {
         if (cancelled) return
         setOwnerGymId(gymRow.id)
 
+        // Load trainers for assignment dropdown (non-blocking)
+        getGymTrainers(gymRow.id).then(t => { if (!cancelled) setGymTrainers(t) }).catch(() => {})
+
         // Parallel fetch
         const [memberRes, membershipData, paymentsRes, checkinsRes] = await Promise.all([
           supabase.from('users').select('*').eq('id', memberId).maybeSingle(),
@@ -370,6 +378,7 @@ export default function GymMemberDetail() {
 
         setMember(memberRes.data)
         setMembership(membershipData)
+        setSelectedTrainerId(membershipData?.assigned_trainer_id || '')
 
         if (paymentsRes.error) {
           console.error('Payments error:', paymentsRes.error)
@@ -711,7 +720,40 @@ export default function GymMemberDetail() {
                           )}
                         </span>
                       } />
-                      <Field label="Trainer"     value={membership.trainer?.full_name || <span className="text-zinc-500">Not assigned</span>} />
+                      <div className="flex items-baseline justify-between gap-3 py-2 border-b border-white/[0.04] last:border-b-0">
+                        <span className="text-xs text-zinc-500 flex-shrink-0">Trainer</span>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={selectedTrainerId}
+                            onChange={e => { setSelectedTrainerId(e.target.value); setAssignMsg('') }}
+                            className="bg-[#1c1c1f] border border-white/[0.08] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-emerald-500/60 max-w-[140px]"
+                          >
+                            <option value="">Not assigned</option>
+                            {gymTrainers.map(t => (
+                              <option key={t.user_id} value={t.user_id}>{t.full_name}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={async () => {
+                              setAssignBusy(true); setAssignMsg('')
+                              try {
+                                await assignTrainer(memberId, selectedTrainerId || null)
+                                setMembership(m => ({ ...m, assigned_trainer_id: selectedTrainerId || null }))
+                                setAssignMsg('Saved')
+                                setTimeout(() => setAssignMsg(''), 2000)
+                              } catch {
+                                setAssignMsg('Error')
+                              } finally {
+                                setAssignBusy(false)
+                              }
+                            }}
+                            disabled={assignBusy}
+                            className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-40 transition-colors flex-shrink-0"
+                          >
+                            {assignBusy ? <Loader2 size={12} className="animate-spin" /> : assignMsg || 'Save'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-zinc-500 py-6 text-center">No membership record.</p>

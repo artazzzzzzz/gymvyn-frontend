@@ -54,3 +54,198 @@ export async function getGymTrainers(gymId) {
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch trainers (${res.status})`);
   return data || [];
 }
+
+export async function inviteTrainer({ gymId, fullName, phone, bio, specialties, hourlyRate }) {
+  const res = await fetch(`${BASE_URL}/api/gym-trainers/invite`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      gym_id: gymId, full_name: fullName, phone, bio, specialties,
+      hourly_rate: hourlyRate,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to invite trainer (${res.status})`);
+  return data;
+}
+
+export async function removeTrainer(trainerId) {
+  const res = await fetch(`${BASE_URL}/api/gym-trainers/${trainerId}`, { method: 'DELETE' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to remove trainer (${res.status})`);
+  return data;
+}
+
+export async function assignTrainer(memberId, trainerId) {
+  const res = await fetch(`${BASE_URL}/api/gym-members/${memberId}/assign-trainer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ trainer_id: trainerId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to assign trainer (${res.status})`);
+  return data;
+}
+
+// ── Gym payments ─────────────────────────────────────────────────────────────
+
+export async function getGymPayments(gymId, status) {
+  const qs = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await fetch(`${BASE_URL}/api/gym-payments/${gymId}${qs}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch payments (${res.status})`);
+  return data || [];
+}
+
+export async function markPaymentPaid(paymentId, method, notes) {
+  const res = await fetch(`${BASE_URL}/api/gym-payments/${paymentId}/mark-paid`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ payment_method: method, notes }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to mark paid (${res.status})`);
+  return data;
+}
+
+export async function recordPayment({ gymId, userId, membershipId, amount, dueDate, notes }) {
+  const res = await fetch(`${BASE_URL}/api/gym-payments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      gym_id: gymId,
+      user_id: userId,
+      membership_id: membershipId,
+      amount,
+      due_date: dueDate,
+      notes,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to record payment (${res.status})`);
+  return data;
+}
+
+// ── Class schedule ───────────────────────────────────────────────────────────
+
+export async function getGymSchedule(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${gymId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch schedule (${res.status})`);
+  return data || [];
+}
+
+export async function addGymClass({
+  gymId, className, description, trainerId,
+  dayOfWeek, startTime, endTime, capacity,
+}) {
+  const res = await fetch(`${BASE_URL}/api/gym-schedule`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      gym_id: gymId,
+      class_name: className,
+      description,
+      trainer_id: trainerId,
+      day_of_week: dayOfWeek,
+      start_time: startTime,
+      end_time: endTime,
+      capacity,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to add class (${res.status})`);
+  return data;
+}
+
+export async function deleteGymClass(classId) {
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${classId}`, { method: 'DELETE' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to delete class (${res.status})`);
+  return data;
+}
+
+// ── Announcements ────────────────────────────────────────────────────────────
+
+export async function getGymAnnouncements(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-announcements/${gymId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch announcements (${res.status})`);
+  return data || [];
+}
+
+export async function postAnnouncement({ gymId, postedBy, title, body, priority }) {
+  const res = await fetch(`${BASE_URL}/api/gym-announcements`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      gym_id: gymId,
+      posted_by: postedBy,
+      title,
+      body,
+      priority,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to post announcement (${res.status})`);
+  return data;
+}
+
+export async function deleteAnnouncement(announcementId) {
+  const res = await fetch(`${BASE_URL}/api/gym-announcements/${announcementId}`, { method: 'DELETE' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to delete announcement (${res.status})`);
+  return data;
+}
+
+// ── Gym settings ─────────────────────────────────────────────────────────────
+
+export async function getGymSettings(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/settings`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch settings (${res.status})`);
+  return data;
+}
+
+export async function updateGymSettings(gymId, updates) {
+  const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/settings`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to update settings (${res.status})`);
+  return data;
+}
+
+export async function uploadGymLogo(gymId, file) {
+  const form = new FormData();
+  form.append('logo', file);
+  const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/upload-logo`, {
+    method: 'POST',
+    body: form,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to upload logo (${res.status})`);
+  return data;
+}
+
+// ── Consumer side: My Gym ────────────────────────────────────────────────────
+
+export async function getMyGym(userId) {
+  const res = await fetch(`${BASE_URL}/api/my-gym/${userId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch gym (${res.status})`);
+  return data || { linked: false };
+}
+
+export async function joinGym(userId, joinCode) {
+  const res = await fetch(`${BASE_URL}/api/gym-join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId, join_code: joinCode }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `Failed to join gym (${res.status})`);
+  return data;
+}
