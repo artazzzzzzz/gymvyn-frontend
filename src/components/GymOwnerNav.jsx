@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, Wallet, CalendarDays, UserCheck, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, CalendarDays, UserCheck, QrCode, Settings } from 'lucide-react'
 
 const tabs = [
   { to: '/gym/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/gym/members',   icon: Users,           label: 'Members'   },
   { to: '/gym/payments',  icon: Wallet,          label: 'Payments'  },
+  { to: '/gym/checkin',   icon: QrCode,          label: 'Check-in'  },
   { to: '/gym/schedule',  icon: CalendarDays,    label: 'Schedule'  },
   { to: '/gym/trainers',  icon: UserCheck,       label: 'Trainers'  },
 ]

@@ -25,6 +25,7 @@ import GymSchedule from './pages/GymSchedule'
 import GymAnnouncements from './pages/GymAnnouncements'
 import GymTrainers from './pages/GymTrainers'
 import GymSettings from './pages/GymSettings'
+import GymCheckin from './pages/GymCheckin'
 import GymComingSoon from './pages/GymComingSoon'
 
 const protected_ = (Page) => (
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/gym/announcements" element={<GymOwnerRoute><GymAnnouncements /></GymOwnerRoute>} />
           <Route path="/gym/trainers"      element={<GymOwnerRoute><GymTrainers /></GymOwnerRoute>} />
           <Route path="/gym/settings"      element={<GymOwnerRoute><GymSettings /></GymOwnerRoute>} />
+          <Route path="/gym/checkin"       element={<GymOwnerRoute><GymCheckin /></GymOwnerRoute>} />
           <Route path="/gym/checkins"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
           <Route path="/gym/insights"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
           <Route path="/gym/profile"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />

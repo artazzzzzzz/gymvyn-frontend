@@ -230,6 +230,44 @@ export async function uploadGymLogo(gymId, file) {
   return data;
 }
 
+// ── QR check-in ──────────────────────────────────────────────────────────────
+
+export async function getGymQR(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-qr/${gymId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && (data.error || data.message)) || `Failed to fetch QR (${res.status})`);
+  return data;
+}
+
+export async function checkInMember(userId, gymId, method = 'manual') {
+  const res = await fetch(`${BASE_URL}/api/checkin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, gymId, method }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `Failed to check in (${res.status})`);
+  return data;
+}
+
+export async function checkOutMember(userId, gymId) {
+  const res = await fetch(`${BASE_URL}/api/checkout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, gymId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `Failed to check out (${res.status})`);
+  return data;
+}
+
+export async function getGymOccupancy(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-occupancy/${gymId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && (data.error || data.message)) || `Failed to fetch occupancy (${res.status})`);
+  return data;
+}
+
 // ── Consumer side: My Gym ────────────────────────────────────────────────────
 
 export async function getMyGym(userId) {
