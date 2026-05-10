@@ -268,6 +268,25 @@ export async function getGymOccupancy(gymId) {
   return data;
 }
 
+// ── Churn insights ───────────────────────────────────────────────────────────
+
+export async function runChurnAnalysis(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-churn/score/${gymId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `Failed to run analysis (${res.status})`);
+  return data;
+}
+
+export async function getChurnScores(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-churn/${gymId}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && (data.error || data.message)) || `Failed to fetch churn scores (${res.status})`);
+  return data || [];
+}
+
 // ── Consumer side: My Gym ────────────────────────────────────────────────────
 
 export async function getMyGym(userId) {

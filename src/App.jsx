@@ -26,6 +26,7 @@ import GymAnnouncements from './pages/GymAnnouncements'
 import GymTrainers from './pages/GymTrainers'
 import GymSettings from './pages/GymSettings'
 import GymCheckin from './pages/GymCheckin'
+import GymInsights from './pages/GymInsights'
 import GymComingSoon from './pages/GymComingSoon'
 
 const protected_ = (Page) => (
@@ -61,7 +62,7 @@ export default function App() {
           <Route path="/gym/settings"      element={<GymOwnerRoute><GymSettings /></GymOwnerRoute>} />
           <Route path="/gym/checkin"       element={<GymOwnerRoute><GymCheckin /></GymOwnerRoute>} />
           <Route path="/gym/checkins"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
-          <Route path="/gym/insights"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
+          <Route path="/gym/insights"     element={<GymOwnerRoute><GymInsights /></GymOwnerRoute>} />
           <Route path="/gym/profile"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
         </Routes>
       </AuthProvider>

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, Wallet, CalendarDays, UserCheck, QrCode, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, CalendarDays, UserCheck, QrCode, Sparkles, Settings } from 'lucide-react'
 
 const tabs = [
   { to: '/gym/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -8,12 +8,13 @@ const tabs = [
   { to: '/gym/checkin',   icon: QrCode,          label: 'Check-in'  },
   { to: '/gym/schedule',  icon: CalendarDays,    label: 'Schedule'  },
   { to: '/gym/trainers',  icon: UserCheck,       label: 'Trainers'  },
+  { to: '/gym/insights',  icon: Sparkles,        label: 'Insights'  },
 ]
 
 export default function GymOwnerNav() {
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111113] border-t border-white/[0.06] backdrop-blur-md">
-      <div className="flex items-stretch h-16 max-w-2xl mx-auto">
+      <div className="flex items-stretch h-16 max-w-3xl mx-auto">
         {tabs.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
