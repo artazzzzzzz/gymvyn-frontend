@@ -268,7 +268,7 @@ export async function getGymOccupancy(gymId) {
   return data;
 }
 
-// ── Churn insights ───────────────────────────────────────────────────────────
+// ── Churn insights — legacy rule-based (kept for compatibility) ──────────────
 
 export async function runChurnAnalysis(gymId) {
   const res = await fetch(`${BASE_URL}/api/gym-churn/score/${gymId}`, {
@@ -280,11 +280,27 @@ export async function runChurnAnalysis(gymId) {
   return data;
 }
 
+// ── ML-powered churn (XGBoost) ───────────────────────────────────────────────
+
+export async function getMlStatus() {
+  const res = await fetch(`${BASE_URL}/api/ml/status`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to fetch ML status`);
+  return data;
+}
+
+export async function scoreGym(gymId) {
+  const res = await fetch(`${BASE_URL}/api/ml/score/${gymId}`, { method: 'POST' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to score gym`);
+  return data;
+}
+
 export async function getChurnScores(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-churn/${gymId}`);
-  const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error((data && (data.error || data.message)) || `Failed to fetch churn scores (${res.status})`);
-  return data || [];
+  const res = await fetch(`${BASE_URL}/api/ml/scores/${gymId}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to fetch churn scores`);
+  return data;
 }
 
 // ── Consumer side: My Gym ────────────────────────────────────────────────────

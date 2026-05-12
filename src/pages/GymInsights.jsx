@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Sparkles, AlertTriangle, AlertCircle, CheckCircle2, Loader2, RefreshCw,
-  TrendingDown, ArrowDown,
+  TrendingDown, ArrowDown, Activity, ShieldAlert,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
-import { runChurnAnalysis, getChurnScores } from '../utils/api'
+import { getMlStatus, scoreGym, getChurnScores } from '../utils/api'
 import GymOwnerNav from '../components/GymOwnerNav'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -130,16 +131,52 @@ function ScoreBar({ score }) {
   )
 }
 
+function ModelStatusBanner({ status, statusError }) {
+  if (statusError) {
+    return (
+      <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+        <ShieldAlert size={15} className="flex-shrink-0" />
+        <span>ML service unreachable. {statusError}</span>
+      </div>
+    )
+  }
+  if (!status) return null
+  if (status.trained === false) {
+    return (
+      <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+        <ShieldAlert size={15} className="flex-shrink-0" />
+        <span>Model not trained — contact admin</span>
+      </div>
+    )
+  }
+  const auc = status.metrics?.roc_auc
+  const nTest = status.metrics?.n_test
+  return (
+    <div className="mb-5 px-4 py-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 flex items-center gap-3 flex-wrap">
+      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+        <Activity size={13} className="text-emerald-400" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-widest">XGBoost model loaded</p>
+        <p className="text-xs text-zinc-400 tabular-nums">
+          <span className="text-zinc-300">{status.model_version}</span>
+          {typeof nTest === 'number' && <> · evaluated on {nTest.toLocaleString()} members</>}
+          {typeof auc === 'number' && <> · AUC <span className="text-emerald-400 font-semibold">{auc.toFixed(3)}</span></>}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function EmptyState({ onRun, busy }) {
   return (
     <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-12 text-center">
       <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-5">
         <Sparkles size={28} className="text-emerald-400" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">Run your first churn analysis</h2>
+      <h2 className="text-xl font-bold text-white mb-2">No churn scores yet</h2>
       <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6 leading-relaxed">
-        We'll score every active member on activity, attendance, payments, and expiry to flag
-        who's most likely to leave.
+        Click "Re-run Analysis" to score your active members with the trained XGBoost model.
       </p>
       <button
         onClick={onRun}
@@ -147,8 +184,22 @@ function EmptyState({ onRun, busy }) {
         className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {busy ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
-        {busy ? 'Scoring members…' : 'Run Churn Analysis'}
+        {busy ? 'Scoring members…' : 'Re-run Analysis'}
       </button>
+    </div>
+  )
+}
+
+function SkeletonCards() {
+  return (
+    <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="bg-[#141416] border border-white/[0.06] rounded-2xl p-5 animate-pulse">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] mb-3" />
+          <div className="h-3 w-20 bg-white/[0.04] rounded mb-2" />
+          <div className="h-8 w-16 bg-white/[0.06] rounded" />
+        </div>
+      ))}
     </div>
   )
 }
@@ -157,15 +208,26 @@ function EmptyState({ onRun, busy }) {
 
 export default function GymInsights() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [gymId, setGymId]       = useState(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
 
+  const [status, setStatus]     = useState(null)
+  const [statusError, setStatusError] = useState('')
+
   const [scores, setScores]     = useState([])
+  const [summary, setSummary]   = useState({ total: 0, high: 0, medium: 0, low: 0 })
   const [scoring, setScoring]   = useState(false)
   const [scoreError, setScoreError] = useState('')
 
-  // ── Initial load ─────────────────────────────────────────────────────────
+  const pollRef = useRef(null)
+
+  async function refreshScores(id) {
+    const fresh = await getChurnScores(id)
+    setScores(fresh.scores || [])
+    setSummary(fresh.summary || { total: 0, high: 0, medium: 0, low: 0 })
+  }
 
   useEffect(() => {
     if (!user) return
@@ -183,8 +245,12 @@ export default function GymInsights() {
         if (cancelled) return
         setGymId(gym.id)
 
-        const existing = await getChurnScores(gym.id)
-        if (!cancelled) setScores(existing)
+        // Fetch model status + scores in parallel.
+        const [mlStatus] = await Promise.all([
+          getMlStatus().catch(err => { setStatusError(err.message); return null }),
+          refreshScores(gym.id),
+        ])
+        if (!cancelled) setStatus(mlStatus)
       } catch (err) {
         if (!cancelled) setError(err.message || 'Failed to load.')
       } finally {
@@ -194,32 +260,29 @@ export default function GymInsights() {
     return () => { cancelled = true }
   }, [user])
 
-  // ── Run analysis ─────────────────────────────────────────────────────────
+  // 60-second polling so cron-driven score updates show up without a refresh.
+  useEffect(() => {
+    if (!gymId) return
+    pollRef.current = setInterval(() => {
+      refreshScores(gymId).catch(() => {})
+    }, 60_000)
+    return () => clearInterval(pollRef.current)
+  }, [gymId])
 
   async function runAnalysis() {
     if (!gymId) return
     setScoring(true); setScoreError('')
     try {
-      await runChurnAnalysis(gymId)
-      const refreshed = await getChurnScores(gymId)
-      setScores(refreshed)
+      await scoreGym(gymId)
+      await refreshScores(gymId)
     } catch (err) {
-      setScoreError(err.message || 'Failed to run analysis.')
+      setScoreError(err.message || 'Failed to score members.')
     } finally {
       setScoring(false)
     }
   }
 
-  // ── Derived counts ───────────────────────────────────────────────────────
-
-  const counts = scores.reduce(
-    (acc, s) => {
-      acc[s.risk_label] = (acc[s.risk_label] || 0) + 1
-      return acc
-    },
-    { high: 0, medium: 0, low: 0 }
-  )
-
+  const atRisk = scores.filter(s => s.score >= 31)
   const lastScoredAt = scores.length > 0
     ? scores.reduce((latest, s) => {
         if (!latest) return s.predicted_at
@@ -227,12 +290,14 @@ export default function GymInsights() {
       }, null)
     : null
 
-  // ── Render ───────────────────────────────────────────────────────────────
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0c0c0e] flex items-center justify-center pb-24">
-        <Loader2 size={22} className="text-zinc-500 animate-spin" />
+      <div className="min-h-screen bg-[#0c0c0e] pb-28">
+        <div className="max-w-6xl mx-auto px-5 py-10 sm:py-12">
+          <div className="h-7 w-40 bg-white/[0.04] rounded mb-6 animate-pulse" />
+          <div className="h-12 w-full bg-white/[0.04] rounded-xl mb-5 animate-pulse" />
+          <SkeletonCards />
+        </div>
         <GymOwnerNav />
       </div>
     )
@@ -246,29 +311,30 @@ export default function GymInsights() {
         <header className="mb-7 flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Insights</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">AI Insights</h1>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                <Sparkles size={9} /> AI
+                <Sparkles size={9} /> XGBoost
               </span>
             </div>
             <p className="text-zinc-500 text-sm">
-              {scores.length > 0
-                ? `${scores.length} member${scores.length !== 1 ? 's' : ''} scored · last run ${timeAgo(lastScoredAt)}`
-                : 'Churn risk analysis for your active members.'}
+              Churn predictions powered by XGBoost
+              {summary.total > 0 && lastScoredAt && (
+                <> · last scored {timeAgo(lastScoredAt)}</>
+              )}
             </p>
           </div>
 
-          {scores.length > 0 && (
-            <button
-              onClick={runAnalysis}
-              disabled={scoring}
-              className="inline-flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] border border-white/[0.08] text-zinc-200 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {scoring ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              {scoring ? 'Re-running…' : 'Re-run Analysis'}
-            </button>
-          )}
+          <button
+            onClick={runAnalysis}
+            disabled={scoring}
+            className="inline-flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] border border-white/[0.08] text-zinc-200 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {scoring ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            {scoring ? 'Scoring…' : 'Re-run Analysis'}
+          </button>
         </header>
+
+        <ModelStatusBanner status={status} statusError={statusError} />
 
         {error && (
           <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -282,15 +348,15 @@ export default function GymInsights() {
           </div>
         )}
 
-        {scores.length === 0 ? (
+        {summary.total === 0 ? (
           <EmptyState onRun={runAnalysis} busy={scoring} />
         ) : (
           <>
             {/* Summary cards */}
             <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
-              <SummaryCard risk="high"   count={counts.high}   scoreRange="61–100" />
-              <SummaryCard risk="medium" count={counts.medium} scoreRange="31–60"  />
-              <SummaryCard risk="low"    count={counts.low}    scoreRange="0–30"   />
+              <SummaryCard risk="high"   count={summary.high}   scoreRange="61–100" />
+              <SummaryCard risk="medium" count={summary.medium} scoreRange="31–60"  />
+              <SummaryCard risk="low"    count={summary.low}    scoreRange="0–30"   />
             </div>
 
             {/* Risk table */}
@@ -298,94 +364,112 @@ export default function GymInsights() {
               <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-2">
                 <TrendingDown size={14} className="text-red-400" />
                 <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
-                  Member churn risk
+                  At-risk members ({atRisk.length})
                 </p>
                 <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-zinc-500">
-                  Highest first <ArrowDown size={10} />
+                  Highest score first <ArrowDown size={10} />
                 </span>
               </div>
 
-              {/* Desktop table */}
-              <div className="hidden md:block">
-                <table className="w-full text-sm">
-                  <thead className="bg-white/[0.02] border-b border-white/[0.04]">
-                    <tr>
-                      <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-5 py-3">Member</th>
-                      <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Score</th>
-                      <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Risk</th>
-                      <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Top reasons</th>
-                      <th className="text-right text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-5 py-3">Last scored</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scores.map(s => {
+              {atRisk.length === 0 ? (
+                <div className="px-5 py-10 text-center text-sm text-zinc-500">
+                  No at-risk members. All scores are in the low range.
+                </div>
+              ) : (
+                <>
+                  {/* Desktop table */}
+                  <div className="hidden md:block">
+                    <table className="w-full text-sm">
+                      <thead className="bg-white/[0.02] border-b border-white/[0.04]">
+                        <tr>
+                          <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-5 py-3">Member</th>
+                          <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Phone</th>
+                          <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Score</th>
+                          <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Risk</th>
+                          <th className="text-left text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 py-3">Top reasons</th>
+                          <th className="text-right text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-5 py-3">Last scored</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {atRisk.map(s => {
+                          const av = avatarColor(s.full_name)
+                          return (
+                            <tr
+                              key={s.user_id}
+                              onClick={() => navigate(`/gym/members/${s.user_id}`)}
+                              className="border-b border-white/[0.04] last:border-b-0 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                            >
+                              <td className="px-5 py-3.5">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-lg ${av.bg} flex items-center justify-center flex-shrink-0`}>
+                                    <span className={`text-[11px] font-bold ${av.text}`}>{initials(s.full_name)}</span>
+                                  </div>
+                                  <span className="text-sm font-medium text-white truncate">{s.full_name || 'Unknown'}</span>
+                                </div>
+                              </td>
+                              <td className="px-3 py-3.5 text-xs text-zinc-400 tabular-nums">{s.phone || '—'}</td>
+                              <td className="px-3 py-3.5">
+                                <ScoreBar score={s.score} />
+                              </td>
+                              <td className="px-3 py-3.5">
+                                <RiskBadge risk={s.risk_label} />
+                              </td>
+                              <td className="px-3 py-3.5">
+                                <div className="flex flex-wrap gap-1 max-w-[280px]">
+                                  {(s.top_reasons || []).slice(0, 3).map((r, i) => (
+                                    <ReasonTag key={i}>{r}</ReasonTag>
+                                  ))}
+                                  {(s.top_reasons?.length || 0) === 0 && (
+                                    <span className="text-[11px] text-zinc-600">No risk factors</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-5 py-3.5 text-right text-[11px] text-zinc-500 tabular-nums">
+                                {timeAgo(s.predicted_at)}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile list */}
+                  <ul className="md:hidden divide-y divide-white/[0.04]">
+                    {atRisk.map(s => {
                       const av = avatarColor(s.full_name)
                       return (
-                        <tr key={s.user_id} className="border-b border-white/[0.04] last:border-b-0 hover:bg-white/[0.02] transition-colors">
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 rounded-lg ${av.bg} flex items-center justify-center flex-shrink-0`}>
-                                <span className={`text-[11px] font-bold ${av.text}`}>{initials(s.full_name)}</span>
-                              </div>
-                              <span className="text-sm font-medium text-white truncate">{s.full_name || 'Unknown'}</span>
+                        <li
+                          key={s.user_id}
+                          onClick={() => navigate(`/gym/members/${s.user_id}`)}
+                          className="px-4 py-3.5 active:bg-white/[0.03] transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3 mb-2.5">
+                            <div className={`w-9 h-9 rounded-lg ${av.bg} flex items-center justify-center flex-shrink-0`}>
+                              <span className={`text-xs font-bold ${av.text}`}>{initials(s.full_name)}</span>
                             </div>
-                          </td>
-                          <td className="px-3 py-3.5">
-                            <ScoreBar score={s.score} />
-                          </td>
-                          <td className="px-3 py-3.5">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-white truncate">{s.full_name || 'Unknown'}</p>
+                              <p className="text-[10px] text-zinc-500 tabular-nums">{timeAgo(s.predicted_at)} · {s.phone || 'no phone'}</p>
+                            </div>
                             <RiskBadge risk={s.risk_label} />
-                          </td>
-                          <td className="px-3 py-3.5">
-                            <div className="flex flex-wrap gap-1 max-w-[280px]">
-                              {(s.top_reasons || []).slice(0, 3).map((r, i) => (
+                          </div>
+                          <div className="mb-2.5">
+                            <ScoreBar score={s.score} />
+                          </div>
+                          {(s.top_reasons || []).length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {s.top_reasons.slice(0, 4).map((r, i) => (
                                 <ReasonTag key={i}>{r}</ReasonTag>
                               ))}
-                              {(s.top_reasons?.length || 0) === 0 && (
-                                <span className="text-[11px] text-zinc-600">No risk factors</span>
-                              )}
                             </div>
-                          </td>
-                          <td className="px-5 py-3.5 text-right text-[11px] text-zinc-500 tabular-nums">
-                            {timeAgo(s.predicted_at)}
-                          </td>
-                        </tr>
+                          )}
+                        </li>
                       )
                     })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile list */}
-              <ul className="md:hidden divide-y divide-white/[0.04]">
-                {scores.map(s => {
-                  const av = avatarColor(s.full_name)
-                  return (
-                    <li key={s.user_id} className="px-4 py-3.5">
-                      <div className="flex items-center gap-3 mb-2.5">
-                        <div className={`w-9 h-9 rounded-lg ${av.bg} flex items-center justify-center flex-shrink-0`}>
-                          <span className={`text-xs font-bold ${av.text}`}>{initials(s.full_name)}</span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-white truncate">{s.full_name || 'Unknown'}</p>
-                          <p className="text-[10px] text-zinc-500 tabular-nums">{timeAgo(s.predicted_at)}</p>
-                        </div>
-                        <RiskBadge risk={s.risk_label} />
-                      </div>
-                      <div className="mb-2.5">
-                        <ScoreBar score={s.score} />
-                      </div>
-                      {(s.top_reasons || []).length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {s.top_reasons.slice(0, 4).map((r, i) => (
-                            <ReasonTag key={i}>{r}</ReasonTag>
-                          ))}
-                        </div>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
+                  </ul>
+                </>
+              )}
             </div>
           </>
         )}

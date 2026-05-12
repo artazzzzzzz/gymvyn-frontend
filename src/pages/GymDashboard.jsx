@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, Activity, IndianRupee, AlertCircle, Copy, Check, LogOut,
   Loader2, ArrowUp, ArrowDown, Minus, UserPlus, Receipt, Inbox, Building2,
+  AlertTriangle,
 } from 'lucide-react'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
@@ -10,6 +11,7 @@ import {
 } from 'recharts'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
+import { getChurnScores } from '../utils/api'
 import GymOwnerNav from '../components/GymOwnerNav'
 
 // ── Formatting helpers ──────────────────────────────────────────────────────
@@ -173,6 +175,7 @@ export default function GymDashboard() {
   const [checkinByDay, setCheckinByDay]     = useState([])
   const [revenueByMonth, setRevenueByMonth] = useState([])
   const [activity, setActivity]             = useState([])
+  const [atRiskCount, setAtRiskCount]       = useState(null)
 
   // ── Fetch everything ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -198,6 +201,11 @@ export default function GymDashboard() {
         }
         if (cancelled) return
         setGym(gymRow)
+
+        // Fire-and-forget: load churn-risk summary so the dashboard doesn't block on it.
+        getChurnScores(gymRow.id)
+          .then(res => { if (!cancelled) setAtRiskCount(res?.summary?.high ?? 0) })
+          .catch(() => { if (!cancelled) setAtRiskCount(0) })
 
         const gymId         = gymRow.id
         const todayStart    = startOfTodayISO()
@@ -558,7 +566,7 @@ export default function GymDashboard() {
         )}
 
         {/* ── Stats row ──────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
           <StatCard
             label="Active Members"
             icon={Users}
@@ -602,6 +610,22 @@ export default function GymDashboard() {
             subTone={overdueCount > 0 ? 'warn' : 'pos'}
             valueTone={outstandingTotal > 0 ? 'warn' : 'muted'}
           />
+          <button
+            type="button"
+            onClick={() => navigate('/gym/insights')}
+            className="relative bg-[#141416] border border-white/[0.06] rounded-2xl p-5 hover:border-red-500/40 transition-colors duration-150 text-left col-span-2 lg:col-span-1"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">At-Risk Members</span>
+              <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <AlertTriangle size={13} className="text-red-400" />
+              </div>
+            </div>
+            <p className={`text-3xl font-bold tracking-tight tabular-nums ${atRiskCount && atRiskCount > 0 ? 'text-red-400' : 'text-zinc-400'}`}>
+              {atRiskCount == null ? '—' : inrFormatter.format(atRiskCount)}
+            </p>
+            <p className="text-xs mt-1.5 text-zinc-500">Tap to view details</p>
+          </button>
         </section>
 
         {/* ── Charts row ─────────────────────────────────────────── */}
