@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children }) {
   if (onboardingComplete === null) return <Spinner />
 
   // Logged in but hasn't done onboarding
-  if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+  if (onboardingComplete === false) return <Navigate to="/onboarding" replace />
 
   return children
 }

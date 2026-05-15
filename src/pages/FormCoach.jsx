@@ -8,7 +8,22 @@ const { Pose, POSE_CONNECTIONS } = window
 const { Camera } = window
 const { drawConnectors, drawLandmarks } = window
 
-const EXERCISES = ['Squat', 'Push Up', 'Deadlift', 'Bicep Curl', 'Shoulder Press']
+const EXERCISE_CATEGORIES = [
+  { name: 'Legs', items: [
+    'Squat', 'Lunge', 'Bulgarian Split Squat', 'Goblet Squat', 'Sumo Squat',
+    'Jump Squat', 'Wall Sit', 'Step Up', 'Calf Raise',
+  ]},
+  { name: 'Glutes & Hips', items: ['Glute Bridge', 'Hip Thrust'] },
+  { name: 'Push', items: [
+    'Push Up', 'Incline Push Up', 'Decline Push Up', 'Diamond Push Up',
+    'Pike Push Up', 'Overhead Press', 'Bench Press', 'Arnold Press',
+    'Tricep Extension',
+  ]},
+  { name: 'Pull', items: ['Bent Over Row', 'Bicep Curl', 'Hammer Curl', 'Concentration Curl'] },
+  { name: 'Shoulders', items: ['Lateral Raise', 'Front Raise', 'Reverse Fly'] },
+  { name: 'Hinge', items: ['Deadlift', 'Romanian Deadlift'] },
+  { name: 'Core', items: ['Plank'] },
+]
 const INITIAL_SESSION = { totalReps: 0, repsHistory: [] }
 
 function scoreColor(s) {
@@ -90,7 +105,7 @@ export default function FormCoach() {
 
     try {
       const pose = new Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+        locateFile: (file) => `https://unpkg.com/@mediapipe/pose@0.5.1675469404/${file}`,
       })
       pose.setOptions({
         modelComplexity: 1,
@@ -162,19 +177,26 @@ export default function FormCoach() {
       {/* Exercise selector */}
       <div className="px-5 mb-5">
         <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3 font-medium">Select Exercise</p>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {EXERCISES.map((ex) => (
-            <button
-              key={ex}
-              onClick={() => !active && setSelected(ex)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 border ${
-                selected === ex
-                  ? 'bg-[#00FF88] text-gray-950 border-[#00FF88]'
-                  : 'bg-white/[0.04] text-zinc-400 border-white/[0.08] hover:border-white/20 hover:text-white'
-              } ${active ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {ex}
-            </button>
+        <div className="space-y-4">
+          {EXERCISE_CATEGORIES.map(({ name, items }) => (
+            <div key={name}>
+              <p className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider mb-2">{name}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {items.map((ex) => (
+                  <button
+                    key={ex}
+                    onClick={() => !active && setSelected(ex)}
+                    className={`px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-all duration-150 border ${
+                      selected === ex
+                        ? 'bg-[#00FF88] text-gray-950 border-[#00FF88]'
+                        : 'bg-white/[0.04] text-zinc-300 border-white/[0.08] hover:border-white/20 hover:text-white'
+                    } ${active ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>

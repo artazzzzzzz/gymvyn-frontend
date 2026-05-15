@@ -1,33 +1,39 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { supabase } from '../utils/supabase'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  // null = not yet checked, true = done, false = not done
+  const [user, setUser]                     = useState(null)
+  const [loading, setLoading]               = useState(true)
   const [onboardingComplete, setOnboardingComplete] = useState(null)
+  const checkedRef = useRef(false)
 
   async function checkOnboarding(userId) {
     if (!userId) {
+      checkedRef.current = false
       setOnboardingComplete(null)
       return
     }
+    // Already confirmed this session — do NOT re-check
+    if (checkedRef.current) return
+
     try {
-      const timeout = new Promise((_, rej) =>
-        setTimeout(() => rej(new Error('timeout')), 5000)
-      )
-      const query = supabase
-        .from('users')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle()
-      const { data } = await Promise.race([query, timeout])
-      setOnboardingComplete(!!data)
+      const { data } = await Promise.race([
+        supabase
+          .from('users')
+          .select('id, goal, training_days')
+          .eq('id', userId)
+          .maybeSingle(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000)),
+      ])
+      const done = !!(data?.goal && data?.training_days)
+      if (done) checkedRef.current = true
+      setOnboardingComplete(done)
     } catch {
-      // Table missing, network error, or timeout — treat as not done
-      setOnboardingComplete(false)
+      // Timeout or network error — assume done to prevent redirect loop
+      checkedRef.current = true
+      setOnboardingComplete(true)
     }
   }
 
@@ -45,11 +51,18 @@ export function AuthProvider({ children }) {
       }
     })()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const u = session?.user ?? null
-      setUser(u)
-      await checkOnboarding(u?.id ?? null)
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        const u = session?.user ?? null
+        setUser(u)
+        // Only call checkOnboarding if user changed (login/logout)
+        // NOT on token refresh (same user, same id)
+        if (u?.id !== checkedRef.currentUserId) {
+          checkedRef.currentUserId = u?.id ?? null
+          await checkOnboarding(u?.id ?? null)
+        }
+      }
+    )
 
     return () => {
       mounted = false
@@ -57,19 +70,21 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const signIn = (email, password) =>
-    supabase.auth.signInWithPassword({ email, password })
-
-  const signUp = (email, password) =>
-    supabase.auth.signUp({ email, password })
+  const signIn  = (email, password) => supabase.auth.signInWithPassword({ email, password })
+  const signUp  = (email, password) => supabase.auth.signUp({ email, password })
 
   async function signOut() {
+    checkedRef.current = false
+    checkedRef.currentUserId = null
     setOnboardingComplete(null)
     await supabase.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, onboardingComplete, setOnboardingComplete, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{
+      user, loading, onboardingComplete, setOnboardingComplete,
+      signIn, signUp, signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   )
