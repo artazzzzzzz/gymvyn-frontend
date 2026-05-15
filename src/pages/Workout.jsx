@@ -1,346 +1,297 @@
-import { useEffect, useState } from 'react'
-import axios from 'axios'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-  Dumbbell, Zap, Moon, Play, Clock, RotateCcw, Loader2, AlertCircle,
+  Trophy, Dumbbell, Play, ChevronRight, X,
+  Flame, TrendingUp, BarChart3, Calendar, BookOpen,
 } from 'lucide-react'
-import { useAuth } from '../hooks/useAuth'
-import supabase from '../utils/supabaseClient'
+import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import BottomNav from '../components/BottomNav'
 
-const API = import.meta.env.VITE_BACKEND_URL
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getTodayIndex() {
-  const d = new Date().getDay() // 0 = Sun
-  return d === 0 ? 6 : d - 1   // shift to Mon = 0 … Sun = 6
+function formatVolumeShort(kg) {
+  if (!kg) return '0'
+  if (kg >= 1_000_000) return `${(kg / 1_000_000).toFixed(1)}M`
+  if (kg >= 10_000)    return `${(kg / 1000).toFixed(0)}k`
+  if (kg >= 1_000)     return `${(kg / 1000).toFixed(1)}k`
+  return `${Math.round(kg)}`
 }
 
-// ─── Loading skeleton ────────────────────────────────────────────────────────
+function formatVolume(kg) {
+  return kg > 0 ? `${formatVolumeShort(kg)} kg` : '0 kg'
+}
 
-function LoadingState() {
+function formatDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  if (d.toDateString() === today.toDateString()) return 'Today'
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday'
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function formatShortDate(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
+function formDotClass(score) {
+  if (score == null) return null
+  if (score >= 80) return 'bg-[#00FF88]'
+  if (score >= 50) return 'bg-yellow-400'
+  return 'bg-red-400'
+}
+
+// ─── Skeletons ────────────────────────────────────────────────────────────────
+
+function Skeleton({ className }) {
+  return <div className={`animate-pulse bg-white/[0.06] rounded-2xl ${className}`} />
+}
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, Icon, accent }) {
   return (
-    <div className="flex flex-col items-center justify-center py-36 gap-4">
-      <Loader2 size={30} className="text-orange-500 animate-spin" />
-      <p className="text-gray-400 text-sm">Loading your plan…</p>
+    <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-3 flex flex-col gap-1.5 min-w-0">
+      <Icon size={13} className={accent} />
+      <p className="text-white font-bold text-base leading-none tabular-nums truncate">{value}</p>
+      <p className="text-zinc-500 text-[10px] leading-tight truncate">{label}</p>
     </div>
   )
 }
 
-// ─── AI generating animation ──────────────────────────────────────────────────
+// ─── PR Card ──────────────────────────────────────────────────────────────────
 
-function GeneratingState() {
+function PRCard({ name, maxWeight, date }) {
   return (
-    <div className="flex flex-col items-center justify-center py-36 gap-6">
-      <div className="relative">
-        <div className="w-24 h-24 rounded-3xl bg-orange-500/10 border border-orange-500/25 flex items-center justify-center">
-          <Dumbbell size={36} className="text-orange-500" />
-        </div>
-        <span className="absolute -inset-2 rounded-3xl border border-orange-500/40 animate-ping" />
+    <div className="shrink-0 w-36 bg-white/[0.04] border border-white/[0.07] rounded-2xl p-3.5 space-y-2">
+      <div className="flex items-center gap-1.5">
+        <Trophy size={11} className="text-amber-400 shrink-0" />
+        <p className="text-white text-xs font-semibold truncate">{name}</p>
       </div>
-      <div className="text-center space-y-1">
-        <p className="text-white font-semibold text-base">AI is building your plan…</p>
-        <p className="text-gray-500 text-sm">This usually takes 15–25 seconds</p>
-      </div>
-      <div className="flex gap-2">
-        {[0, 1, 2].map(i => (
-          <span
-            key={i}
-            className="w-2 h-2 rounded-full bg-orange-500/70 animate-bounce"
-            style={{ animationDelay: `${i * 0.18}s` }}
-          />
-        ))}
-      </div>
+      <p className="text-amber-300 font-black text-xl leading-none tabular-nums">{maxWeight} kg</p>
+      <p className="text-zinc-600 text-[10px]">{formatShortDate(date)}</p>
     </div>
   )
 }
 
-// ─── Empty / error state ──────────────────────────────────────────────────────
+// ─── Workout Card ─────────────────────────────────────────────────────────────
 
-function EmptyState({ onGenerate, error }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-2">
-      <div className="w-full bg-gray-900 border border-white/[0.07] rounded-2xl p-8 flex flex-col items-center text-center gap-5">
-        <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-          <Dumbbell size={32} className="text-orange-500" />
-        </div>
-
-        <div className="space-y-1.5">
-          <h2 className="text-white font-bold text-xl">No Workout Plan Yet</h2>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            Let AI build a personalized plan for you
-          </p>
-        </div>
-
-        {error && (
-          <div className="w-full flex items-start gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-left">
-            <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
-            <p className="text-red-400 text-xs leading-relaxed">{error}</p>
-          </div>
-        )}
-
-        <button
-          onClick={onGenerate}
-          className="relative w-full group overflow-hidden bg-orange-500 hover:bg-orange-400 active:scale-[0.97] text-white font-semibold py-3.5 rounded-xl transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(249,115,22,0.35)] hover:shadow-[0_0_28px_rgba(249,115,22,0.5)]"
-        >
-          <Zap size={16} />
-          Generate My Plan
-        </button>
-      </div>
-    </div>
+function WorkoutCard({ workout, onClick }) {
+  const totalSets = workout.exercises.reduce((a, e) => a + e.sets.length, 0)
+  const totalVol  = workout.exercises.reduce(
+    (a, e) => a + e.sets.reduce((b, s) => b + (s.weight_kg ?? 0) * (s.reps_completed ?? 0), 0), 0
   )
-}
+  const names   = workout.exercises.map(e => e.name)
+  const preview = names.length
+    ? names.slice(0, 3).join(', ') + (names.length > 3 ? ` +${names.length - 3} more` : '')
+    : null
 
-// ─── Day pill tab ─────────────────────────────────────────────────────────────
-
-function DayPill({ label, active, isRest, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={[
-        'flex flex-col items-center gap-1.5 px-3.5 py-2.5 rounded-xl shrink-0 transition-all duration-150',
-        active
-          ? 'bg-orange-500 shadow-[0_0_14px_rgba(249,115,22,0.4)]'
-          : 'bg-gray-900 border border-white/[0.07] hover:border-white/[0.15]',
-      ].join(' ')}
+      className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] rounded-2xl p-4 text-left transition-colors"
     >
-      <span className={`text-[11px] font-bold ${active ? 'text-white' : 'text-gray-400'}`}>
-        {label}
-      </span>
-      <span className={[
-        'w-1.5 h-1.5 rounded-full',
-        active ? 'bg-white/70' : isRest ? 'bg-gray-700' : 'bg-orange-500/50',
-      ].join(' ')} />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-white font-semibold text-sm">{formatDate(workout.started_at)}</p>
+            {workout.duration_minutes != null && (
+              <span className="text-zinc-500 text-xs">{workout.duration_minutes} min</span>
+            )}
+          </div>
+          {preview && <p className="text-zinc-400 text-xs truncate">{preview}</p>}
+          <div className="flex items-center gap-3 pt-0.5">
+            <span className="text-zinc-600 text-[11px]">{totalSets} sets</span>
+            {totalVol > 0 && <span className="text-zinc-600 text-[11px]">{formatVolume(totalVol)}</span>}
+          </div>
+        </div>
+        <ChevronRight size={16} className="text-zinc-600 shrink-0 mt-0.5" />
+      </div>
     </button>
   )
 }
 
-// ─── Exercise card ────────────────────────────────────────────────────────────
+// ─── Workout Detail Modal ─────────────────────────────────────────────────────
 
-function ExerciseCard({ ex }) {
+function WorkoutDetailModal({ workout, onClose }) {
+  if (!workout) return null
   return (
-    <div className="bg-gray-900 border border-white/[0.07] rounded-xl p-4 space-y-2">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-white font-medium text-sm leading-snug">{ex.name}</p>
-        <span className="shrink-0 bg-orange-500/15 text-orange-400 text-xs font-bold px-2.5 py-0.5 rounded-full">
-          {ex.sets} × {ex.reps}
-        </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        {ex.rest && (
-          <div className="flex items-center gap-1.5">
-            <Clock size={11} className="text-gray-600" />
-            <span className="text-xs text-gray-500">Rest {ex.rest}</span>
-          </div>
-        )}
-        {ex.notes && (
-          <p className="text-xs text-gray-600 leading-snug">{ex.notes}</p>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─── Plan weekly view ─────────────────────────────────────────────────────────
-
-function PlanView({ plan, activeDay, onDaySelect }) {
-  const day = plan.days?.[activeDay]
-
-  return (
-    <div className="space-y-5">
-      {/* Day tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 scrollbar-hide">
-        {DAY_LABELS.map((label, i) => (
-          <DayPill
-            key={label}
-            label={label}
-            active={activeDay === i}
-            isRest={plan.days?.[i]?.isRest ?? false}
-            onClick={() => onDaySelect(i)}
-          />
-        ))}
-      </div>
-
-      {day ? (
-        <div className="space-y-4">
-          {/* Day header card */}
-          <div className="bg-gray-900 border border-white/[0.07] rounded-2xl p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-1">
-                  {DAY_LABELS[activeDay]}day
-                </p>
-                <h2 className="text-white font-bold text-xl">
-                  {day.isRest ? 'Rest Day' : (day.focus || 'Workout')}
-                </h2>
-              </div>
-              <div className={[
-                'w-12 h-12 rounded-xl flex items-center justify-center',
-                day.isRest
-                  ? 'bg-gray-800 border border-white/[0.06]'
-                  : 'bg-orange-500/10 border border-orange-500/20',
-              ].join(' ')}>
-                {day.isRest
-                  ? <Moon size={20} className="text-gray-500" />
-                  : <Dumbbell size={20} className="text-orange-400" />
-                }
-              </div>
-            </div>
-
-            {!day.isRest && (
-              <div className="mt-4 flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.06] self-start rounded-full px-3 py-1 w-fit">
-                <RotateCcw size={11} className="text-gray-500" />
-                <span className="text-xs text-gray-400">{day.exercises?.length ?? 0} exercises</span>
-              </div>
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <header className="sticky top-0 z-10 bg-gray-950/95 backdrop-blur-sm px-5 pt-12 pb-4 flex items-start justify-between gap-4 border-b border-white/[0.06]">
+          <div>
+            <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-semibold">Workout</p>
+            <h2 className="text-white font-bold text-lg leading-snug">{formatDate(workout.started_at)}</h2>
+            {workout.duration_minutes != null && (
+              <p className="text-zinc-500 text-xs mt-0.5">{workout.duration_minutes} min</p>
             )}
           </div>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-zinc-400 hover:text-white transition-colors shrink-0"
+          >
+            <X size={17} />
+          </button>
+        </header>
 
-          {/* Rest day message */}
-          {day.isRest && (
-            <div className="bg-gray-900 border border-white/[0.07] rounded-2xl p-7 flex flex-col items-center text-center gap-3">
-              <Moon size={28} className="text-gray-600" />
-              <div>
-                <p className="text-gray-300 font-medium text-sm">Recovery day</p>
-                <p className="text-gray-600 text-xs mt-1">
-                  Rest is where gains are made. Stay hydrated and sleep well.
-                </p>
+        <div className="px-5 py-5 space-y-4">
+          {workout.exercises.length === 0 && (
+            <p className="text-zinc-500 text-sm text-center py-8">No exercises logged.</p>
+          )}
+          {workout.exercises.map((ex, i) => (
+            <div key={i} className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 space-y-3">
+              <p className="text-white font-semibold text-sm">{ex.name}</p>
+              <div className="space-y-2">
+                {[...ex.sets]
+                  .sort((a, b) => (a.set_number ?? 0) - (b.set_number ?? 0))
+                  .map((s, j) => (
+                    <div key={j} className="flex items-center gap-3">
+                      <span className="text-zinc-600 text-xs w-5 tabular-nums">{s.set_number ?? j + 1}</span>
+                      <span className="text-white text-sm tabular-nums">
+                        {(s.weight_kg ?? 0) > 0 ? `${s.weight_kg} kg` : 'BW'} × {s.reps_completed}
+                      </span>
+                      {s.form_score != null && (
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 ${formDotClass(s.form_score)}`}
+                          title={`Form: ${s.form_score}/100`}
+                        />
+                      )}
+                    </div>
+                  ))}
               </div>
             </div>
-          )}
-
-          {/* Exercise list */}
-          {!day.isRest && day.exercises?.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Exercises</p>
-              {day.exercises.map((ex, idx) => (
-                <ExerciseCard key={idx} ex={ex} />
-              ))}
-            </div>
-          )}
-
-          {/* Start Workout CTA */}
-          {!day.isRest && (
-            <button className="w-full bg-orange-500 hover:bg-orange-400 active:scale-[0.97] text-white font-semibold py-4 rounded-2xl transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_28px_rgba(249,115,22,0.45)] mt-1">
-              <Play size={16} fill="currentColor" />
-              Start Workout
-            </button>
-          )}
+          ))}
         </div>
-      ) : (
-        <div className="bg-gray-900 border border-white/[0.07] rounded-2xl p-6 text-center">
-          <p className="text-gray-500 text-sm">No data for this day.</p>
-        </div>
-      )}
+      </div>
     </div>
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Workout() {
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const {
+    recentWorkouts, personalRecords, totalWorkouts, totalVolume,
+    thisWeekWorkouts, longestStreak, loading, error,
+  } = useWorkoutHistory()
 
-  const [plan, setPlan]         = useState(null)
-  const [status, setStatus]     = useState('loading') // loading | empty | generating | ready | error
-  const [error, setError]       = useState('')
-  const [activeDay, setActiveDay] = useState(getTodayIndex())
+  const [selectedWorkout, setSelectedWorkout] = useState(null)
 
-  useEffect(() => {
-    console.log('[Workout] mounted — VITE_BACKEND_URL:', API)
-    console.log('[Workout] user:', user?.id ?? 'null')
-    if (!user) return
-    loadPlan()
-  }, [user])
-
-  async function loadPlan() {
-    console.log('[loadPlan] fetching plan for user:', user.id)
-    setStatus('loading')
-    try {
-      const url = `${API}/workout-plan/${user.id}`
-      console.log('[loadPlan] GET', url)
-      const { data } = await axios.get(url)
-      console.log('[loadPlan] response:', data)
-      if (data?.days?.length) {
-        setPlan(data)
-        setStatus('ready')
-      } else {
-        console.log('[loadPlan] no days in response → showing empty state')
-        setStatus('empty')
-      }
-    } catch (err) {
-      console.error('[loadPlan] error:', err.response?.status, err.message)
-      if (err.response?.status === 404) {
-        console.log('[loadPlan] 404 → showing empty state')
-        setStatus('empty')
-      } else {
-        setError(err.response?.data?.message || err.message)
-        setStatus('error')
-      }
-    }
-  }
-
-  async function handleGenerate() {
-    console.log('[handleGenerate] button clicked')
-    console.log('[handleGenerate] VITE_BACKEND_URL:', API)
-    console.log('[handleGenerate] user:', user?.id)
-    setStatus('generating')
-    setError('')
-    try {
-      console.log('[handleGenerate] fetching user profile from Supabase...')
-      const { data: profile, error: profileErr } = await supabase
-        .from('users')
-        .select('goal, experience, equipment, training_days, injuries')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      console.log('[handleGenerate] profile:', profile, 'profileErr:', profileErr)
-      if (profileErr) throw new Error(profileErr.message)
-      if (!profile) throw new Error('User profile not found in database')
-
-      const payload = {
-        userId:      user.id,
-        goal:        profile.goal,
-        experience:  profile.experience,
-        equipment:   profile.equipment,
-        daysPerWeek: profile.training_days,
-        injuries:    profile.injuries || '',
-      }
-      const url = `${API}/generate-workout-plan`
-      console.log('[handleGenerate] POST', url, payload)
-
-      const { data } = await axios.post(url, payload)
-      console.log('[handleGenerate] plan received:', data)
-
-      setPlan(data)
-      setStatus('ready')
-    } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Something went wrong. Please try again.'
-      console.error('[handleGenerate] error:', err.response?.status, msg, err)
-      setError(msg)
-      setStatus('error')
-    }
-  }
+  const topPRs = useMemo(() =>
+    Object.values(personalRecords)
+      .filter(pr => pr.maxWeight > 0)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 6),
+    [personalRecords]
+  )
 
   return (
-    <div className="min-h-screen bg-gray-950 pb-24 overflow-x-hidden">
-      {/* Ambient glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[480px] h-[220px] bg-orange-500/[0.05] blur-[90px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-gray-950 pb-28 overflow-x-hidden">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[480px] h-[220px] bg-orange-500/[0.04] blur-[100px] rounded-full pointer-events-none" />
 
-      {/* Header */}
-      <header className="relative z-10 px-5 pt-12 pb-6">
+      <header className="relative z-10 px-5 pt-12 pb-5">
         <h1 className="text-2xl font-bold text-white">Workout</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Your training plan</p>
+        <p className="text-zinc-500 text-sm mt-0.5">Track, improve, repeat</p>
       </header>
 
-      <div className="relative z-10 px-5">
-        {status === 'loading'    && <LoadingState />}
-        {status === 'generating' && <GeneratingState />}
-        {(status === 'empty' || status === 'error') && (
-          <EmptyState onGenerate={handleGenerate} error={status === 'error' ? error : null} />
+      <div className="relative z-10 px-5 space-y-7">
+
+        {/* Stats strip */}
+        {loading ? (
+          <div className="grid grid-cols-4 gap-2">
+            {[0,1,2,3].map(i => <Skeleton key={i} className="h-20" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            <StatCard label="This week" value={thisWeekWorkouts}            Icon={Calendar}   accent="text-[#00FF88]" />
+            <StatCard label="Total"     value={totalWorkouts}               Icon={BarChart3}   accent="text-blue-400" />
+            <StatCard label="Volume"    value={formatVolumeShort(totalVolume)} Icon={TrendingUp} accent="text-purple-400" />
+            <StatCard label="Best streak" value={`${longestStreak}d`}       Icon={Flame}       accent="text-orange-400" />
+          </div>
         )}
-        {status === 'ready' && plan && (
-          <PlanView plan={plan} activeDay={activeDay} onDaySelect={setActiveDay} />
-        )}
+
+        {/* Quick start */}
+        <div className="space-y-3">
+          <button
+            onClick={() => navigate('/workout/live')}
+            className="w-full bg-orange-500 hover:bg-orange-400 active:scale-[0.98] text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2.5 shadow-[0_0_24px_rgba(249,115,22,0.3)] hover:shadow-[0_0_32px_rgba(249,115,22,0.45)]"
+          >
+            <Play size={18} fill="currentColor" />
+            Start Empty Workout
+          </button>
+          <button
+            onClick={() => navigate('/exercise-library')}
+            className="w-full bg-white/[0.05] hover:bg-white/[0.09] active:scale-[0.98] border border-white/[0.09] text-white font-semibold py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
+          >
+            <BookOpen size={16} />
+            Browse Exercises
+          </button>
+        </div>
+
+        {/* Personal Records */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Trophy size={15} className="text-amber-400" />
+            <h2 className="text-white font-semibold text-sm">Personal Records</h2>
+          </div>
+          {loading ? (
+            <div className="flex gap-3 overflow-hidden">
+              {[0,1,2,3].map(i => <Skeleton key={i} className="h-24 w-36 shrink-0" />)}
+            </div>
+          ) : topPRs.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-1 scrollbar-hide">
+              {topPRs.map((pr, i) => (
+                <PRCard key={i} name={pr.name} maxWeight={pr.maxWeight} date={pr.date} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl px-5 py-8 text-center">
+              <Trophy size={24} className="text-zinc-700 mx-auto mb-2" />
+              <p className="text-zinc-500 text-sm">Complete workouts to track your PRs</p>
+            </div>
+          )}
+        </section>
+
+        {/* Recent Workouts */}
+        <section className="space-y-3 pb-4">
+          <div className="flex items-center gap-2">
+            <Dumbbell size={15} className="text-zinc-400" />
+            <h2 className="text-white font-semibold text-sm">Recent Workouts</h2>
+          </div>
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+          {loading ? (
+            <div className="space-y-3">
+              {[0,1,2].map(i => <Skeleton key={i} className="h-20" />)}
+            </div>
+          ) : recentWorkouts.length > 0 ? (
+            <div className="space-y-2">
+              {recentWorkouts.map(w => (
+                <WorkoutCard key={w.id} workout={w} onClick={() => setSelectedWorkout(w)} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl px-5 py-10 text-center space-y-3">
+              <Dumbbell size={28} className="text-zinc-700 mx-auto" />
+              <div>
+                <p className="text-white font-semibold text-sm">No workouts yet</p>
+                <p className="text-zinc-500 text-xs mt-1">Start your first one!</p>
+              </div>
+            </div>
+          )}
+        </section>
       </div>
+
+      {selectedWorkout && (
+        <WorkoutDetailModal workout={selectedWorkout} onClose={() => setSelectedWorkout(null)} />
+      )}
 
       <BottomNav />
     </div>
