@@ -77,6 +77,12 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
     cameraRef.current = null
     poseRef.current = null
 
+    // Explicitly release the browser MediaStream so the camera light turns off
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop())
+      videoRef.current.srcObject = null
+    }
+
     const canvas = canvasRef.current
     if (canvas) {
       try { canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height) } catch {}
