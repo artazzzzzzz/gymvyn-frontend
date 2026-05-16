@@ -56,6 +56,8 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
   const activeKeyRef = useRef(activeKey)
   const phaseRef = useRef('up')
   const sessionRef = useRef({ ...INITIAL_SESSION })
+  const onFormScoreRef = useRef(onFormScore)
+  useEffect(() => { onFormScoreRef.current = onFormScore }, [onFormScore])
 
   const [running, setRunning] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -92,7 +94,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
       const { totalReps, repsHistory } = sessionRef.current
       if (totalReps > 0) {
         const avg = Math.round(repsHistory.reduce((a, b) => a + b, 0) / repsHistory.length)
-        onFormScore?.(avg)
+        onFormScoreRef.current?.(avg)
       }
     }
 
@@ -102,7 +104,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
     setFeedback('')
     sessionRef.current = { ...INITIAL_SESSION }
     phaseRef.current = 'up'
-  }, [onFormScore])
+  }, []) // stable — no deps change, so the unmount effect doesn't churn
 
   const onResults = useCallback((results) => {
     const canvas = canvasRef.current
@@ -191,6 +193,16 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
       await pose.initialize()
       if (timedOut) return
       poseRef.current = pose
+
+      // Guard: video element may have unmounted if user closed modal during init
+      if (!videoRef.current) {
+        clearTimeout(cameraTimeout)
+        try { pose.close() } catch {}
+        poseRef.current = null
+        setCameraError('generic')
+        setLoading(false)
+        return
+      }
 
       const camera = new Camera(videoRef.current, {
         onFrame: async () => {
