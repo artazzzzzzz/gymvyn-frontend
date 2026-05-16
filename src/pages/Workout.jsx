@@ -116,7 +116,7 @@ function WorkoutCard({ workout, onClick }) {
 
 // ─── Workout Detail Modal ─────────────────────────────────────────────────────
 
-function WorkoutDetailModal({ workout, onClose }) {
+function WorkoutDetailModal({ workout, onClose, onExerciseClick }) {
   if (!workout) return null
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col">
@@ -143,7 +143,9 @@ function WorkoutDetailModal({ workout, onClose }) {
           )}
           {workout.exercises.map((ex, i) => (
             <div key={i} className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 space-y-3">
-              <p className="text-white font-semibold text-sm">{ex.name}</p>
+              <button onClick={() => onExerciseClick(ex.name)} className="text-white font-semibold text-sm hover:text-emerald-300 transition-colors text-left">
+                {ex.name}
+              </button>
               <div className="space-y-2">
                 {[...ex.sets]
                   .sort((a, b) => (a.set_number ?? 0) - (b.set_number ?? 0))
@@ -290,7 +292,11 @@ export default function Workout() {
       </div>
 
       {selectedWorkout && (
-        <WorkoutDetailModal workout={selectedWorkout} onClose={() => setSelectedWorkout(null)} />
+        <WorkoutDetailModal
+          workout={selectedWorkout}
+          onClose={() => setSelectedWorkout(null)}
+          onExerciseClick={(name) => navigate(`/exercise/${encodeURIComponent(name)}`)}
+        />
       )}
 
       <BottomNav />

@@ -29,6 +29,7 @@ import GymCheckin from './pages/GymCheckin'
 import GymInsights from './pages/GymInsights'
 import GymComingSoon from './pages/GymComingSoon'
 import ExerciseLibrary from './pages/ExerciseLibrary'
+import ExerciseDetail from './pages/ExerciseDetail'
 import LiveSession from './pages/LiveSession'
 
 const protected_ = (Page) => (
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/workout"      element={protected_(Workout)} />
           <Route path="/workout/live" element={protected_(LiveSession)} />
           <Route path="/exercise-library" element={protected_(ExerciseLibrary)} />
+          <Route path="/exercise/:name" element={protected_(ExerciseDetail)} />
           <Route path="/diet"       element={protected_(Diet)} />
           <Route path="/progress"   element={protected_(Progress)} />
           <Route path="/community"  element={protected_(Community)} />
