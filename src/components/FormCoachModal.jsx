@@ -152,9 +152,33 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
       return
     }
 
+    // Pre-check camera permissions before heavy WASM init
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      stream.getTracks().forEach(t => t.stop())
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setCameraError('camera_denied')
+      } else {
+        setCameraError('camera_missing')
+      }
+      setLoading(false)
+      return
+    }
+
+    // 10-second timeout for WASM + camera init
+    let timedOut = false
+    const cameraTimeout = setTimeout(() => {
+      timedOut = true
+      setCameraError('generic')
+      setLoading(false)
+      try { poseRef.current?.close() } catch {}
+      poseRef.current = null
+    }, 10000)
+
     try {
       const pose = new Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+        locateFile: (file) => `https://unpkg.com/@mediapipe/pose@0.5.1675469404/${file}`,
       })
       pose.setOptions({
         modelComplexity: 1,
@@ -165,6 +189,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
       })
       pose.onResults(onResults)
       await pose.initialize()
+      if (timedOut) return
       poseRef.current = pose
 
       const camera = new Camera(videoRef.current, {
@@ -177,9 +202,13 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
         height: 480,
       })
       await camera.start()
+      if (timedOut) { camera.stop(); return }
+      clearTimeout(cameraTimeout)
       cameraRef.current = camera
       setRunning(true)
     } catch (err) {
+      if (timedOut) return
+      clearTimeout(cameraTimeout)
       const name = err?.name ?? ''
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
         setCameraError('camera_denied')
@@ -190,20 +219,20 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
       }
       console.error('[FormCoachModal] start failed:', err)
     } finally {
-      setLoading(false)
+      if (!timedOut) {
+        clearTimeout(cameraTimeout)
+        setLoading(false)
+      }
     }
   }, [onResults, running])
 
-  // Auto-start when opened with a resolved key; stop when closed
+  // Stop camera when modal is closed (never auto-start — user must click Start)
   useEffect(() => {
-    if (isOpen && activeKey && !running && !loading) {
-      start()
-    }
     if (!isOpen && (running || loading || poseRef.current || cameraRef.current)) {
       stop({ silent: true })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, activeKey])
+  }, [isOpen])
 
   // Stop on unmount
   useEffect(() => () => stop({ silent: true }), [stop])
@@ -359,7 +388,13 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
             )}
 
             {!running && !loading && !cameraError && (
-              <p className="text-center text-zinc-500 text-xs">Initialising camera…</p>
+              <button
+                onClick={start}
+                className="w-full py-3 rounded-xl bg-[#00FF88]/15 border border-[#00FF88]/30 text-[#00FF88] font-semibold text-sm hover:bg-[#00FF88]/25 transition-colors flex items-center justify-center gap-2"
+              >
+                <CameraIcon size={16} />
+                Start Camera
+              </button>
             )}
           </>
         )}
