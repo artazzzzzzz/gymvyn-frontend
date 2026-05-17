@@ -145,20 +145,20 @@ function SummaryTab({ exercise, stats, chartData }) {
 
   return (
     <div className="space-y-5">
-      {/* Muscle info */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">Primary</p>
-            <p className="text-emerald-400 font-bold text-lg">{exercise.muscle_group}</p>
-          </div>
-          <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.05] text-zinc-400 ring-1 ring-inset ring-white/[0.1]">
-            {category}
+      {/* Muscle info card */}
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
+        <h3 className="text-white font-bold text-lg mb-3">{exercise.name}</h3>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">
+            {exercise.muscle_group}
           </span>
+          {secondary.map(m => (
+            <span key={m} className="px-3 py-1 bg-white/[0.06] text-zinc-400 text-xs rounded-full">
+              {m}
+            </span>
+          ))}
         </div>
-        {secondary.length > 0 && (
-          <p className="text-zinc-400 text-sm">Secondary: {secondary.join(', ')}</p>
-        )}
+        <span className="text-zinc-600 text-xs">{category}</span>
       </div>
 
       {/* Stats grid */}
