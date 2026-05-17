@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Search, Dumbbell } from 'lucide-react'
 import { useExercises } from '../hooks/useExercises'
 import BottomNav from '../components/BottomNav'
+import ExerciseImage from '../components/ExerciseImage'
 
 // ── Category mapping ────────────────────────────────────────────────────────────
 
@@ -20,40 +21,6 @@ function getCategory(ex) {
   return 'Other'
 }
 
-// ── Secondary muscles ────────────────────────────────────────────────────────────
-
-const SECONDARY_MAP = {
-  'Bench Press': ['Triceps', 'Shoulders'],
-  'Squat': ['Glutes', 'Hamstrings'],
-  'Deadlift': ['Glutes', 'Hamstrings'],
-  'Overhead Press': ['Triceps'],
-  'Bent Over Row': ['Biceps'],
-  'Pull Up': ['Biceps'],
-  'Dip': ['Triceps'],
-  'Lunge': ['Glutes'],
-  'Romanian Deadlift': ['Glutes', 'Back'],
-  'Bicep Curl': ['Forearms'],
-  'Tricep Extension': [],
-  'Lateral Raise': [],
-  'Leg Press': ['Glutes'],
-  'Leg Curl': [],
-  'Calf Raise': [],
-  'Face Pull': ['Traps'],
-  'Cable Row': ['Biceps'],
-  'Chest Fly': [],
-  'Incline Bench Press': ['Shoulders', 'Triceps'],
-  'Front Squat': ['Core'],
-  'Hip Thrust': ['Hamstrings'],
-  'Plank': [],
-  'Arnold Press': ['Triceps'],
-  'Hammer Curl': ['Forearms'],
-  'Skull Crusher': [],
-  'Good Morning': ['Back'],
-  'Box Jump': ['Glutes'],
-  'Battle Ropes': ['Core'],
-  'Farmer Walk': ['Traps', 'Core'],
-  'Goblet Squat': ['Glutes', 'Core'],
-}
 
 // ─── Page ───────────────────────────────────────────────────────────────────────
 
@@ -135,28 +102,30 @@ export default function ExerciseLibrary() {
             <p className="text-zinc-500 text-sm">No exercises found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {filtered.map(ex => {
               const category = getCategory(ex)
-              const secondary = SECONDARY_MAP[ex.name] ?? []
               return (
                 <button
                   key={ex.id ?? ex.name}
                   onClick={() => navigate(`/exercise/${encodeURIComponent(ex.name)}`)}
-                  className="text-left bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] rounded-2xl p-4 transition-colors relative overflow-hidden"
+                  className="text-left bg-white/[0.03] hover:bg-white/[0.06] active:scale-[0.97] border border-white/[0.07] rounded-2xl overflow-hidden transition-all"
                 >
-                  <span className="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider text-zinc-600">
-                    {category}
-                  </span>
-                  <h3 className="text-white font-semibold text-sm mb-1.5 pr-12">{ex.name}</h3>
-                  <span className="inline-flex text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
-                    {ex.muscle_group}
-                  </span>
-                  {secondary.length > 0 && (
-                    <p className="text-zinc-500 text-[11px] mt-1.5 truncate">
-                      {secondary.join(', ')}
-                    </p>
-                  )}
+                  <ExerciseImage
+                    exerciseName={ex.name}
+                    className="aspect-[3/2]"
+                  />
+                  <div className="p-3">
+                    <p className="text-white font-semibold text-sm leading-snug truncate">{ex.name}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-emerald-400 text-[11px] font-medium truncate">
+                        {ex.muscle_group}
+                      </span>
+                      <span className="text-zinc-600 text-[9px] font-bold uppercase tracking-wider shrink-0 ml-1">
+                        {category}
+                      </span>
+                    </div>
+                  </div>
                 </button>
               )
             })}

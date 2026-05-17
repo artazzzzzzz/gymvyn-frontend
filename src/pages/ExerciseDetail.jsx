@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useExercises } from '../hooks/useExercises'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { EXERCISE_INSTRUCTIONS } from '../data/exerciseInstructions'
+import ExerciseImage from '../components/ExerciseImage'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
@@ -145,20 +146,27 @@ function SummaryTab({ exercise, stats, chartData }) {
 
   return (
     <div className="space-y-5">
-      {/* Muscle info card */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-        <h3 className="text-white font-bold text-lg mb-3">{exercise.name}</h3>
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">
-            {exercise.muscle_group}
-          </span>
-          {secondary.map(m => (
-            <span key={m} className="px-3 py-1 bg-white/[0.06] text-zinc-400 text-xs rounded-full">
-              {m}
+      {/* Image + muscle info card */}
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <ExerciseImage
+          exerciseName={exercise.name}
+          className="aspect-[4/3]"
+          showToggle
+        />
+        <div className="p-4">
+          <h3 className="text-white font-bold text-lg mb-2">{exercise.name}</h3>
+          <div className="flex flex-wrap gap-2 mb-2">
+            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">
+              {exercise.muscle_group}
             </span>
-          ))}
+            {secondary.map(m => (
+              <span key={m} className="px-3 py-1 bg-white/[0.06] text-zinc-400 text-xs rounded-full">
+                {m}
+              </span>
+            ))}
+          </div>
+          <span className="text-zinc-600 text-xs">{category}</span>
         </div>
-        <span className="text-zinc-600 text-xs">{category}</span>
       </div>
 
       {/* Stats grid */}
