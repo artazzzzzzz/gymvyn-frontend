@@ -31,6 +31,16 @@ import GymComingSoon from './pages/GymComingSoon'
 import ExerciseLibrary from './pages/ExerciseLibrary'
 import ExerciseDetail from './pages/ExerciseDetail'
 import LiveSession from './pages/LiveSession'
+import WorkoutSummary from './pages/WorkoutSummary'
+import BecomeTrainer from './pages/BecomeTrainer'
+import TrainerDashboard from './pages/TrainerDashboard'
+import TrainerClientDetail from './pages/TrainerClientDetail'
+import MyTrainer from './pages/MyTrainer'
+import TrainerTemplates from './pages/TrainerTemplates'
+import TrainerTemplateBuilder from './pages/TrainerTemplateBuilder'
+import TrainerAssignPlan from './pages/TrainerAssignPlan'
+import TrainerChatPage from './pages/TrainerChatPage'
+import ClientChatPage from './pages/ClientChatPage'
 
 const protected_ = (Page) => (
   <ProtectedRoute><Page /></ProtectedRoute>
@@ -47,7 +57,8 @@ export default function App() {
           <Route path="/onboarding" element={<AuthRoute><Onboarding /></AuthRoute>} />
           <Route path="/home"       element={protected_(Home)} />
           <Route path="/workout"      element={protected_(Workout)} />
-          <Route path="/workout/live" element={protected_(LiveSession)} />
+          <Route path="/workout/live"    element={protected_(LiveSession)} />
+          <Route path="/workout/summary" element={protected_(WorkoutSummary)} />
           <Route path="/exercise-library" element={protected_(ExerciseLibrary)} />
           <Route path="/exercise/:name" element={protected_(ExerciseDetail)} />
           <Route path="/diet"       element={protected_(Diet)} />
@@ -70,6 +81,16 @@ export default function App() {
           <Route path="/gym/checkins"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
           <Route path="/gym/insights"     element={<GymOwnerRoute><GymInsights /></GymOwnerRoute>} />
           <Route path="/gym/profile"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
+          <Route path="/become-trainer"                    element={protected_(BecomeTrainer)} />
+          <Route path="/trainer/dashboard"               element={protected_(TrainerDashboard)} />
+          <Route path="/trainer/client/:clientId"        element={protected_(TrainerClientDetail)} />
+          <Route path="/my-trainer"                      element={protected_(MyTrainer)} />
+          <Route path="/trainer/templates"               element={protected_(TrainerTemplates)} />
+          <Route path="/trainer/templates/new"           element={protected_(TrainerTemplateBuilder)} />
+          <Route path="/trainer/templates/:templateId/edit" element={protected_(TrainerTemplateBuilder)} />
+          <Route path="/trainer/assign-plan"             element={protected_(TrainerAssignPlan)} />
+          <Route path="/trainer/chat"                    element={protected_(TrainerChatPage)} />
+          <Route path="/my-trainer/chat"                 element={protected_(ClientChatPage)} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

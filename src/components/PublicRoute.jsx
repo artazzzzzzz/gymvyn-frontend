@@ -46,6 +46,7 @@ export default function PublicRoute({ children }) {
     if (!onboardingComplete) return <Navigate to="/onboarding" replace />
     if (!roleChecked) return <Spinner />
     if (role === 'gym_owner') return <Navigate to="/gym/dashboard" replace />
+    if (role === 'trainer') return <Navigate to="/trainer/dashboard" replace />
     return <Navigate to="/home" replace />
   }
 
