@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../utils/supabase'
 import { useAuth } from './useAuth'
+import { finishWorkout } from '../utils/api'
 
 export function useWorkoutSession() {
   const { user } = useAuth()
@@ -64,24 +65,14 @@ export function useWorkoutSession() {
 
   async function startSession() {
     if (!user) { setError('Not logged in'); return null }
-    try {
-      const now = new Date().toISOString()
-      startedAtRef.current = now
-      const { data, error: err } = await supabase
-        .from('workout_logs')
-        .insert({ user_id: user.id, started_at: now })
-        .select('id')
-        .single()
-      if (err) throw err
-      setSessionId(data.id)
-      setIsActive(true)
-      setElapsedSeconds(0)
-      setExercises([])
-      return data.id
-    } catch (err) {
-      setError(err.message)
-      return null
-    }
+    const now = new Date().toISOString()
+    startedAtRef.current = now
+    const localId = crypto.randomUUID()
+    setSessionId(localId)
+    setIsActive(true)
+    setElapsedSeconds(0)
+    setExercises([])
+    return localId
   }
 
   async function finishSession() {
@@ -92,12 +83,21 @@ export function useWorkoutSession() {
       const startedAt = startedAtRef.current ? new Date(startedAtRef.current) : now
       const durationMinutes = Math.max(1, Math.round((now - startedAt) / 60_000))
 
+      // Create the workout_logs row now (only on finish, never on start).
+      const { data: logRow, error: insertErr } = await supabase
+        .from('workout_logs')
+        .insert({ user_id: user.id, started_at: startedAtRef.current })
+        .select('id')
+        .single()
+      if (insertErr) throw insertErr
+      const realId = logRow.id
+
       // Flatten completed sets for workout_set_logs
       const setRows = []
       for (const ex of exercises) {
         for (const s of ex.sets.filter(s => s.completed)) {
           setRows.push({
-            workout_log_id: sessionId,
+            workout_log_id: realId,
             exercise_id:    ex.exerciseId,
             exercise_name:  ex.exerciseName,
             set_number:     s.setNumber,
@@ -119,36 +119,40 @@ export function useWorkoutSession() {
         })),
       }))
 
-      // Update the workout_logs row
-      const { error: updateErr } = await supabase
-        .from('workout_logs')
-        .update({
-          completed_at:      now.toISOString(),
-          duration_minutes:  durationMinutes,
-          exercises:         exercisesSnapshot,
-        })
-        .eq('id', sessionId)
-      if (updateErr) throw updateErr
-
-      // Insert individual set logs
-      if (setRows.length > 0) {
-        const { error: setsErr } = await supabase
-          .from('workout_set_logs')
-          .insert(setRows)
-        if (setsErr) throw setsErr
-      }
+      // Save via backend (service-role key) to bypass PostgREST schema-cache
+      // issue with workout_logs.exercises JSONB column.
+      await finishWorkout({
+        sessionId: realId,
+        durationMinutes,
+        exercises: exercisesSnapshot,
+        sets:      setRows,
+      })
 
       // Stop timers
       setIsActive(false)
       skipRest()
 
       return {
-        id:             sessionId,
+        id:             realId,
         durationMinutes,
         totalSets:      setRows.length,
         totalVolume:    setRows.reduce((sum, s) => sum + s.weight_kg * s.reps_completed, 0),
         exerciseCount:  exercises.length,
-        exercises:      exercisesSnapshot,
+        // Display-friendly shape for WorkoutSummary (separate from the DB JSONB snapshot)
+        exercises: exercises
+          .map(ex => ({
+            exerciseId:   ex.exerciseId,
+            exerciseName: ex.exerciseName,
+            muscleGroup:  ex.muscleGroup,
+            sets: ex.sets
+              .filter(s => s.completed)
+              .map(s => ({
+                setNumber: s.setNumber,
+                weight:    parseFloat(s.weight)  || 0,
+                reps:      parseInt(s.reps, 10)  || 0,
+              })),
+          }))
+          .filter(ex => ex.sets.length > 0),
       }
     } catch (err) {
       setError(err.message)
@@ -158,22 +162,13 @@ export function useWorkoutSession() {
     }
   }
 
-  async function cancelSession() {
-    try {
-      if (sessionId) {
-        await supabase.from('workout_set_logs').delete().eq('workout_log_id', sessionId)
-        await supabase.from('workout_logs').delete().eq('id', sessionId)
-      }
-    } catch (err) {
-      console.error('[cancelSession]', err)
-    } finally {
-      setIsActive(false)
-      setSessionId(null)
-      setExercises([])
-      setElapsedSeconds(0)
-      clearInterval(elapsedIntervalRef.current)
-      skipRest()
-    }
+  function cancelSession() {
+    setIsActive(false)
+    setSessionId(null)
+    setExercises([])
+    setElapsedSeconds(0)
+    clearInterval(elapsedIntervalRef.current)
+    skipRest()
   }
 
   // ── Exercise management ───────────────────────────────────────────────────
@@ -184,8 +179,8 @@ export function useWorkoutSession() {
       return [...prev, {
         exerciseId:   ex.id,
         exerciseName: ex.name,
-        muscleGroup:  ex.muscle_group ?? '',
-        sets:         [],
+        muscleGroup:  ex.muscle_group ?? ex.muscleGroup ?? '',
+        sets:         [{ setNumber: 1, weight: '', reps: '', completed: false, form_score: null }],
       }]
     })
   }

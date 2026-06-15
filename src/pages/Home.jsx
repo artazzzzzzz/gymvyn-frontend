@@ -1,225 +1,533 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  Settings, Flame, Zap, Apple, TrendingUp, Users,
-  Dumbbell, ChevronRight, MessageSquare, Building2,
-} from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
-import BottomNav from '../components/BottomNav'
+import { apiFetch, getMyGym, getGymOccupancy } from '../utils/api'
 
-function todayLabel() {
-  const now = new Date()
-  return {
-    day:  now.toLocaleDateString('en-US', { weekday: 'long' }),
-    date: now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-  }
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getGreeting(name) {
+  const h = new Date().getHours()
+  if (h < 12) return `Good morning, ${name}`
+  if (h < 17) return `Afternoon, ${name}`
+  return `Good evening, ${name}`
 }
+
+function formatRelativeTime(dateStr) {
+  if (!dateStr) return ''
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Yesterday'
+  return `${diff} days ago`
+}
+
+function startOfWeek() {
+  const d = new Date()
+  d.setDate(d.getDate() - d.getDay())
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function startOfMonth() {
+  const d = new Date()
+  d.setDate(1)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+// ─── Inline SVGs ─────────────────────────────────────────────────────────────
+
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="#111111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+  )
+}
+
+function DumbbellIcon({ color = '#999' }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 6.5h11"/>
+      <path d="M6.5 17.5h11"/>
+      <line x1="3" y1="9" x2="3" y2="15" strokeWidth="3"/>
+      <line x1="21" y1="9" x2="21" y2="15" strokeWidth="3"/>
+      <line x1="6" y1="6" x2="6" y2="18" strokeWidth="2.5"/>
+      <line x1="18" y1="6" x2="18" y2="18" strokeWidth="2.5"/>
+    </svg>
+  )
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
 
+  // ── Existing state ────────────────────────────────────────────────────────
   const [profile, setProfile] = useState(null)
-  const { day, date } = todayLabel()
-  const { current: streakDays, best: bestStreak } = useStreak(user?.id)
+  const { current: streakDays } = useStreak(user?.id)
 
+  // ── New state ─────────────────────────────────────────────────────────────
+  const [todayWorkout,   setTodayWorkout]   = useState(null)
+  const [stats,          setStats]          = useState({ weight: null, calories: 0, prs: 0 })
+  const [weightChange,   setWeightChange]   = useState(null)
+  const [trainerData,    setTrainerData]    = useState(null)
+  const [recentActivity, setRecentActivity] = useState([])
+  const [gymData,        setGymData]        = useState(null)
+
+  const [loading,        setLoading]        = useState(true)
+  const [weekCompleted,  setWeekCompleted]  = useState(0)
+  const [hasNewPlan,     setHasNewPlan]     = useState(false)
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const firstName = profile?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
+  const todayDate = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
+  const totalDays = 6
+  const isActive  = (path) => location.pathname === path
+
+  // ── Profile fetch ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return
-    supabase
-      .from('users')
-      .select('full_name, goal, training_days, role')
-      .eq('id', user.id)
-      .maybeSingle()
+    supabase.from('users').select('full_name, goal, training_days, role, gym_id')
+      .eq('id', user.id).maybeSingle()
       .then(({ data }) => setProfile(data))
   }, [user])
 
-  // Default to consumer if role hasn't loaded yet (most users) — gym staff/owners see no pill
-  const isConsumer = !profile || !profile.role || profile.role === 'consumer'
+  // ── Main data fetch ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function load() {
+      try {
+        const userId    = user.id
+        const weekStart = startOfWeek()
+        const monStart  = startOfMonth()
+        const today     = new Date().toISOString().split('T')[0]
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'Athlete'
+        const [
+          { data: assignedPlans },
+          { data: userPlans },
+          { data: workoutLogs },
+          { data: progress },
+          { data: foodLogs },
+          { data: prs },
+          { data: recentLogs },
+        ] = await Promise.all([
+          supabase.from('assigned_plans').select('*')
+            .eq('client_id', userId).eq('status', 'active').eq('type', 'workout'),
+          supabase.from('user_workout_plans').select('*')
+            .eq('user_id', userId).eq('is_active', true).limit(1),
+          supabase.from('workout_logs').select('started_at, exercises, notes')
+            .eq('user_id', userId).gte('started_at', weekStart.toISOString()),
+          supabase.from('progress_entries').select('weight_kg, created_at')
+            .eq('user_id', userId).order('created_at', { ascending: false }).limit(2),
+          supabase.from('food_logs').select('calories')
+            .eq('user_id', userId).eq('log_date', today),
+          supabase.from('personal_records').select('id')
+            .eq('user_id', userId).gte('achieved_at', monStart.toISOString()),
+          supabase.from('workout_logs').select('started_at, exercises, notes')
+            .eq('user_id', userId).order('started_at', { ascending: false }).limit(5),
+        ])
 
-  async function handleSignOut() {
-    await signOut()
-    navigate('/login')
+        if (cancelled) return
+
+        // Today's workout
+        const activePlan = assignedPlans?.[0] ?? userPlans?.[0] ?? null
+        let workout = null
+        if (activePlan?.plan_data?.days?.length) {
+          const origin = activePlan.starts_at ?? activePlan.created_at ?? new Date().toISOString()
+          const idx = Math.max(0,
+            Math.floor((Date.now() - new Date(origin)) / 86400000) %
+            activePlan.plan_data.days.length
+          )
+          workout = activePlan.plan_data.days[idx] ?? null
+        }
+        setTodayWorkout(workout)
+        setWeekCompleted(workoutLogs?.length ?? 0)
+
+        // Weight
+        const w0 = progress?.[0]?.weight_kg ?? null
+        const w1 = progress?.[1]?.weight_kg ?? null
+        setWeightChange(w0 != null && w1 != null ? +(w0 - w1).toFixed(1) : null)
+        setStats({
+          weight:   w0,
+          calories: (foodLogs ?? []).reduce((s, l) => s + (l.calories ?? 0), 0),
+          prs:      prs?.length ?? 0,
+        })
+
+        // Recent activity
+        setRecentActivity(
+          (recentLogs ?? []).slice(0, 4).map(l => ({
+            label:  l.notes && l.notes !== 'Rest day' ? l.notes : 'Workout completed',
+            date:   l.started_at,
+            xp:     l.notes === 'Rest day' ? null : `+${(l.exercises?.length ?? 0) * 2} XP`,
+            isRest: l.notes === 'Rest day',
+          }))
+        )
+
+        // New plan?
+        if (assignedPlans?.length) {
+          setHasNewPlan(assignedPlans.some(p => new Date(p.created_at) > Date.now() - 86400000))
+        }
+      } catch (err) {
+        console.error('[Home] load error:', err)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [user])
+
+  // ── Trainer fetch ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return
+    apiFetch(`/api/trainer/my-trainer/${user.id}`)
+      .then(d => setTrainerData(d))
+      .catch(() => setTrainerData(null))
+  }, [user])
+
+  // ── Gym fetch ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!profile?.gym_id || !user?.id) return
+    Promise.all([getMyGym(user.id), getGymOccupancy(profile.gym_id)])
+      .then(([gym, occ]) => setGymData({ ...gym, occupancy: occ?.count ?? occ?.occupancy ?? null }))
+      .catch(() => setGymData(null))
+  }, [profile?.gym_id, user?.id])
+
+  async function handleSkip() {
+    if (!user) return
+    await supabase.from('workout_logs').insert({
+      user_id: user.id,
+      started_at: new Date().toISOString(),
+      notes: 'Rest day',
+      duration_minutes: 0,
+      exercises: [],
+    }).catch(console.error)
   }
 
-  // ── Quick actions ───────────────────────────────────────────────────────────
-  const quickActions = [
-    { label: 'Form\nCoach',    icon: MessageSquare, color: 'text-violet-400', bg: 'bg-violet-500/10', to: '/workout'   },
-    { label: 'Diet',           icon: Apple,         color: 'text-emerald-400', bg: 'bg-emerald-500/10', to: '/diet'     },
-    { label: 'Progress',       icon: TrendingUp,    color: 'text-sky-400',    bg: 'bg-sky-500/10',    to: '/progress'  },
-    { label: 'Community',      icon: Users,         color: 'text-amber-400',  bg: 'bg-amber-500/10',  to: '/community' },
-  ]
+  const hasTrainer = trainerData?.status === 'active'
+  const hasGym     = !!profile?.gym_id
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0c0c0e] pb-24 overflow-x-hidden">
-      {/* Ambient glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-emerald-500/[0.07] blur-[100px] rounded-full pointer-events-none" />
+    <div className="min-h-screen overflow-x-hidden" style={{ background: '#F7F7F5', paddingBottom: 96 }}>
 
-      {/* ── Top bar ─────────────────────────────────────────────── */}
-      <header className="relative z-10 flex items-center justify-between px-5 pt-12 pb-2">
-        <div>
-          <p className="text-zinc-500 text-sm">Hey {firstName} 👋</p>
-          <h1 className="text-xl font-bold text-white mt-0.5">Good{getGreeting()}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {isConsumer && (
-            <button
-              onClick={() => navigate('/become-gym-owner')}
-              className="hidden sm:inline-flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-full px-3 py-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
-            >
-              <Building2 size={12} className="text-emerald-400" />
-              Are you a gym owner?
-              <ChevronRight size={12} />
-            </button>
-          )}
-          {isConsumer && (
-            <button
-              onClick={() => navigate('/become-gym-owner')}
-              className="sm:hidden w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-emerald-400 hover:text-emerald-300 transition-colors"
-              aria-label="Become a gym owner"
-            >
-              <Building2 size={16} />
-            </button>
-          )}
-          <button
-            onClick={handleSignOut}
-            className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-            aria-label="Settings / Sign out"
-          >
-            <Settings size={18} />
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 1 — PAGE HEADER
+      ═══════════════════════════════════════════════════════════ */}
+      <div style={{ paddingTop: 56, paddingLeft: 20, paddingRight: 20, paddingBottom: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          {/* Left */}
+          <div>
+            <h1 style={{ fontSize: 26, fontWeight: 600, color: '#111111', lineHeight: 1.2, margin: 0 }}>
+              {getGreeting(firstName)}
+            </h1>
+            <p style={{ fontSize: 13, color: '#999999', marginTop: 2 }}>{todayDate}</p>
+          </div>
+          {/* Bell */}
+          <button style={{ width: 36, height: 36, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
+            <BellIcon />
+            <span style={{ position: 'absolute', top: 0, right: 0, width: 8, height: 8, background: '#E53E3E', borderRadius: '50%', border: '2px solid #F7F7F5' }} />
           </button>
         </div>
-      </header>
-
-      {/* ── Date pill ───────────────────────────────────────────── */}
-      <div className="relative z-10 px-5 mt-3 mb-6">
-        <div className="inline-flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-full px-3.5 py-1.5">
-          <span className="text-emerald-400 text-xs font-semibold">{day}</span>
-          <span className="w-px h-3 bg-white/10" />
-          <span className="text-zinc-400 text-xs">{date}</span>
-        </div>
+        {/* Thick divider */}
+        <div style={{ height: 2, background: '#111111', marginTop: 16, marginBottom: 20, borderRadius: 1 }} />
       </div>
 
-      <div className="relative z-10 px-5 space-y-4">
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 2 — TODAY'S WORKOUT CARD
+      ═══════════════════════════════════════════════════════════ */}
+      <div style={{ margin: '0 20px' }}>
+        <div style={{ background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: 20 }}>
 
-        {/* ── Today's Workout card ─────────────────────────────── */}
-        <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                <Dumbbell size={14} className="text-emerald-400" />
-              </div>
-              <span className="text-sm font-semibold text-white">Today's Workout</span>
-            </div>
-            <span className="text-xs text-zinc-600 capitalize">
-              {profile?.goal?.replace('_', ' ') ?? '—'}
-            </span>
-          </div>
+          {/* A: TODAY label */}
+          <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999999', marginBottom: 8 }}>
+            TODAY
+          </p>
 
-          <div className="flex flex-col items-center py-5 gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
-              <Dumbbell size={22} className="text-zinc-700" />
-            </div>
-            <p className="text-zinc-500 text-sm text-center">No workout generated yet</p>
-            <button className="mt-1 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-all duration-150 flex items-center gap-2">
-              <Zap size={14} />
-              Generate My Plan
-            </button>
-          </div>
-        </div>
+          {/* B: Workout title */}
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111111', lineHeight: 1.2, margin: 0 }}>
+            {todayWorkout?.name || 'Push A — Chest & Shoulders'}
+          </h2>
 
-        {/* ── Stats row ────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-4">
+          {/* C: Meta line */}
+          <p style={{ fontSize: 13, color: '#999999', marginTop: 6 }}>
+            {todayWorkout?.exercise_count || 6} exercises · ~{todayWorkout?.estimated_duration || 45} min · {todayWorkout?.difficulty || 'Intermediate'}
+          </p>
 
-          {/* Calories */}
-          <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-6 h-6 rounded-lg bg-orange-500/15 flex items-center justify-center">
-                <Flame size={12} className="text-orange-400" />
-              </div>
-              <span className="text-xs font-medium text-zinc-400">Calories</span>
-            </div>
-            <p className="text-2xl font-bold text-white mb-1">0</p>
-            <p className="text-xs text-zinc-600 mb-3">/ 2,000 kcal</p>
-            {/* Progress bar */}
-            <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full" style={{ width: '0%' }} />
-            </div>
-          </div>
-
-          {/* Streak */}
-          <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-6 h-6 rounded-lg bg-amber-500/15 flex items-center justify-center">
-                <Flame size={12} className="text-amber-400" />
-              </div>
-              <span className="text-xs font-medium text-zinc-400">Streak</span>
-            </div>
-            <p className="text-2xl font-bold text-white mb-1">{streakDays}</p>
-            <p className="text-xs text-zinc-600">days in a row</p>
-            <div className="mt-3 flex gap-1">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 h-1.5 rounded-full ${i < Math.min(streakDays, 7) ? 'bg-amber-400' : 'bg-white/[0.06]'}`}
-                />
+          {/* D: Week progress */}
+          <div style={{ marginTop: 14 }}>
+            <p style={{ fontSize: 13, color: '#999999', marginBottom: 8 }}>
+              Day {Math.min(weekCompleted + 1, totalDays)} of {totalDays} this week
+            </p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {Array.from({ length: totalDays }).map((_, i) => (
+                <div key={i} style={{
+                  width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                  background: i < weekCompleted ? '#111111' : 'transparent',
+                  border: i < weekCompleted ? 'none' : '1.5px solid #CCCCCC',
+                }} />
               ))}
             </div>
           </div>
-        </div>
 
-        {/* ── Quick Actions ─────────────────────────────────────── */}
-        <div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Quick Actions</p>
-          <div className="grid grid-cols-4 gap-3">
-            {quickActions.map(({ label, icon: Icon, color, bg, to }) => (
-              <button
-                key={to}
-                onClick={() => navigate(to)}
-                className="flex flex-col items-center gap-2 py-4 bg-[#141416] border border-white/[0.06] rounded-2xl hover:border-white/[0.14] transition-all duration-150 active:scale-[0.96]"
-              >
-                <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center`}>
-                  <Icon size={16} className={color} />
-                </div>
-                <span className="text-[10px] font-medium text-zinc-400 text-center leading-tight whitespace-pre-line">
-                  {label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Training schedule banner ───────────────────────────── */}
-        {profile?.training_days && (
+          {/* E: Begin button */}
           <button
-            onClick={() => navigate('/workout')}
-            className="w-full flex items-center justify-between bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20 rounded-2xl px-5 py-4 group"
+            onClick={() => navigate('/workout/live', { state: { plan: todayWorkout } })}
+            style={{
+              width: '100%', height: 52, background: '#111111', borderRadius: 12,
+              border: 'none', cursor: 'pointer', marginTop: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+            onMouseDown={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'scale(0.99)' }}
+            onMouseUp={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = '' }}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                <Dumbbell size={15} className="text-emerald-400" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-semibold text-white">{profile.training_days} days / week</p>
-                <p className="text-xs text-zinc-500">Your training schedule</p>
-              </div>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'white' }}>Begin →</span>
+          </button>
+
+          {/* F: Rest link */}
+          <button
+            onClick={handleSkip}
+            style={{ width: '100%', textAlign: 'center', fontSize: 13, color: '#999999', background: 'none', border: 'none', cursor: 'pointer', marginTop: 12, padding: '4px 0' }}
+          >
+            Rest →
+          </button>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 3 — STATS ROW
+      ═══════════════════════════════════════════════════════════ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, margin: '16px 20px 0' }}>
+
+        {/* Streak */}
+        <div style={{ background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: '12px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#111111' }}>{streakDays}</span>
+            <span style={{ fontSize: 16 }}>🔥</span>
+          </div>
+          <p style={{ fontSize: 11, color: '#999999', marginTop: 4 }}>day streak</p>
+        </div>
+
+        {/* Weight */}
+        <div style={{ background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: '12px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#111111' }}>{stats.weight ?? '—'}</span>
+            {stats.weight != null && <span style={{ fontSize: 11, color: '#999999', marginLeft: 2, marginBottom: 2 }}>kg</span>}
+          </div>
+          <p style={{ fontSize: 11, color: '#999999', marginTop: 4 }}>bodyweight</p>
+          {weightChange != null && (
+            <p style={{ fontSize: 11, fontWeight: 500, marginTop: 2, color: weightChange < 0 ? '#3B6D11' : '#A32D2D' }}>
+              {weightChange < 0 ? '↓' : '↑'} {Math.abs(weightChange)} today
+            </p>
+          )}
+        </div>
+
+        {/* Calories */}
+        <div style={{ background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: '12px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#111111' }}>{stats.calories}</span>
+            <span style={{ fontSize: 11, color: '#999999', marginBottom: 2 }}>kcal</span>
+          </div>
+          <p style={{ fontSize: 11, color: '#999999', marginTop: 4 }}>calories</p>
+          <p style={{ fontSize: 11, color: '#999999' }}>of 2000</p>
+        </div>
+
+        {/* PRs */}
+        <div style={{ background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: '12px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 14 }}>🏆</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#111111' }}>{stats.prs}</span>
+          </div>
+          <p style={{ fontSize: 11, color: '#999999', marginTop: 4 }}>personal</p>
+          <p style={{ fontSize: 11, color: '#999999' }}>records</p>
+          <p style={{ fontSize: 10, color: '#BBBBBB' }}>this month</p>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 4 — QUICK ACTIONS (2×2 grid)
+      ═══════════════════════════════════════════════════════════ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, margin: '16px 20px 0' }}>
+        {[
+          {
+            label: 'Log food', path: '/diet',
+            icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/>
+              </svg>
+            ),
+          },
+          {
+            label: 'View progress', path: '/progress',
+            icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+            ),
+          },
+          {
+            label: 'Community', path: '/community',
+            icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            ),
+          },
+          {
+            label: 'AI Coach', path: '/chat',
+            icon: (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="10" rx="2"/>
+                <path d="M12 11V7"/>
+                <circle cx="12" cy="5" r="2"/>
+                <line x1="8" y1="15" x2="8" y2="15" strokeWidth="2.5"/>
+                <line x1="12" y1="15" x2="12" y2="15" strokeWidth="2.5"/>
+                <line x1="16" y1="15" x2="16" y2="15" strokeWidth="2.5"/>
+              </svg>
+            ),
+          },
+        ].map(({ label, path, icon }) => (
+          <button
+            key={path}
+            onClick={() => navigate(path)}
+            style={{
+              background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12,
+              padding: 16, height: 56, display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {icon}
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#111111' }}>{label}</span>
             </div>
-            <ChevronRight size={16} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+            <span style={{ fontSize: 18, color: '#CCCCCC', lineHeight: 1 }}>›</span>
+          </button>
+        ))}
+
+        {hasGym && (
+          <button
+            onClick={() => navigate('/my-gym')}
+            style={{
+              background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12,
+              padding: 16, height: 56, display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/>
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
+              </svg>
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#111111' }}>My Gym</span>
+            </div>
+            <span style={{ fontSize: 18, color: '#CCCCCC', lineHeight: 1 }}>›</span>
+          </button>
+        )}
+
+        {hasTrainer && (
+          <button
+            onClick={() => navigate('/my-trainer')}
+            style={{
+              background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12,
+              padding: 16, height: 56, display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <polyline points="16 11 18 13 22 9"/>
+              </svg>
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#111111' }}>My Trainer</span>
+            </div>
+            <span style={{ fontSize: 18, color: '#CCCCCC', lineHeight: 1 }}>›</span>
           </button>
         )}
       </div>
 
-      <BottomNav />
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 5 — TRAINER CARD
+      ═══════════════════════════════════════════════════════════ */}
+      {hasTrainer && (
+        <div style={{ margin: '16px 20px 0' }}>
+          <div style={{
+            background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12,
+            padding: '16px 16px 16px 0', display: 'flex',
+          }}>
+            {/* Left accent bar */}
+            <div style={{ width: 3, background: '#0F6E56', borderRadius: 2, flexShrink: 0, alignSelf: 'stretch', marginRight: 14 }} />
+            {/* Content */}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999999', marginBottom: 6 }}>
+                FROM YOUR TRAINER
+              </p>
+              {hasNewPlan ? (
+                <>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: '#111111', lineHeight: 1.3 }}>
+                    New plan assigned by {trainerData?.trainer?.full_name || 'your trainer'}
+                  </p>
+                  <p style={{ fontSize: 13, color: '#999999', marginTop: 3 }}>Starting today</p>
+                  <button
+                    onClick={() => navigate('/my-trainer')}
+                    style={{ fontSize: 13, fontWeight: 500, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 10 }}
+                  >
+                    View plan →
+                  </button>
+                </>
+              ) : (
+                <div onClick={() => navigate('/my-trainer')} style={{ cursor: 'pointer' }}>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: '#111111', lineHeight: 1.3 }}>
+                    {trainerData?.trainer?.full_name || 'Your Trainer'}
+                  </p>
+                  <p style={{ fontSize: 13, color: '#999999', marginTop: 3 }}>View plans & chat</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 6 — RECENT ACTIVITY
+      ═══════════════════════════════════════════════════════════ */}
+      {recentActivity.length > 0 && (
+        <div style={{ margin: '20px 20px 0' }}>
+          <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999999', marginBottom: 10 }}>
+            RECENT ACTIVITY
+          </p>
+          {recentActivity.map((ev, i) => (
+            <div key={i} style={{
+              background: 'white', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: 12,
+              padding: '14px 16px', marginBottom: 8,
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{ width: 36, height: 36, background: '#F1EFE8', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <DumbbellIcon />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: '#111111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.label}</p>
+                <p style={{ fontSize: 12, color: '#999999', marginTop: 2 }}>{formatRelativeTime(ev.date)}</p>
+              </div>
+              {ev.xp && <span style={{ fontSize: 13, fontWeight: 600, color: '#D97706', flexShrink: 0 }}>{ev.xp}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
     </div>
   )
-}
-
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return ' morning'
-  if (h < 17) return ' afternoon'
-  return ' evening'
 }

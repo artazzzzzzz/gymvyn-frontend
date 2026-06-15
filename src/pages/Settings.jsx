@@ -1,0 +1,720 @@
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '../utils/supabase'
+import { getAvatarColor, getInitials } from '../utils/avatarColor'
+import { formatMonthYear } from '../utils/dateHelpers'
+
+const GOALS = ['Lose Weight', 'Build Muscle', 'Stay Fit', 'Athletic Performance', 'Improve Health']
+const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
+const EQUIPMENT_OPTIONS = ['Full Gym', 'Home Gym', 'Minimal', 'Bodyweight Only']
+const API = import.meta.env.VITE_API_URL || ''
+
+// ─── Toggle ───────────────────────────────────────────────────────────────────
+const Toggle = ({ value, onChange }) => (
+  <div
+    onClick={() => onChange(!value)}
+    style={{
+      width: 44, height: 26, borderRadius: 13,
+      backgroundColor: value ? '#111' : '#E0E0E0',
+      position: 'relative', cursor: 'pointer',
+      transition: 'background-color 0.2s', flexShrink: 0,
+    }}
+  >
+    <div style={{
+      position: 'absolute', top: 3, left: value ? 21 : 3,
+      width: 20, height: 20, borderRadius: '50%',
+      backgroundColor: 'white', transition: 'left 0.2s',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+    }} />
+  </div>
+)
+
+// ─── Pill Selector ────────────────────────────────────────────────────────────
+const PillSelector = ({ options, value, onChange, multiSelect = false }) => (
+  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '12px 0' }}>
+    {options.map(opt => {
+      const isSelected = multiSelect ? (value || []).includes(opt) : value === opt
+      return (
+        <button
+          key={opt} onClick={() => onChange(opt)}
+          style={{
+            height: 34, padding: '0 14px', borderRadius: 10,
+            backgroundColor: isSelected ? '#111' : 'white',
+            color: isSelected ? 'white' : '#111',
+            border: isSelected ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
+            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          }}
+        >{opt}</button>
+      )
+    })}
+  </div>
+)
+
+// ─── Section label ────────────────────────────────────────────────────────────
+const SectionLabel = ({ children, color = '#999' }) => (
+  <div style={{
+    fontSize: 11, fontWeight: 600, color,
+    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
+  }}>{children}</div>
+)
+
+export default function Settings() {
+  const navigate = useNavigate()
+
+  const [user, setUser] = useState(null)
+  const [userId, setUserId] = useState(null)
+  const [userEmail, setUserEmail] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  const [form, setForm] = useState({
+    full_name: '', age: '', gender: '', city: '', phone: '',
+    goal: '', experience: '', equipment: [], training_days: 3,
+    injuries: '', current_weight: '', height: '', target_weight: '',
+  })
+
+  const [isDirty, setIsDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [activeEditRow, setActiveEditRow] = useState(null)
+  const [showBodyEdit, setShowBodyEdit] = useState(false)
+
+  const [showPasswordSheet, setShowPasswordSheet] = useState(false)
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' })
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  // ─── Load user ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const loadUser = async () => {
+      setLoading(true)
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!authUser) { navigate('/'); return }
+        setUserId(authUser.id)
+        setUserEmail(authUser.email || '')
+
+        const res = await fetch(`${API}/api/users/${authUser.id}`)
+        if (!res.ok) throw new Error('User not found')
+        const data = await res.json()
+        setUser(data)
+        setForm({
+          full_name: data.full_name || '',
+          age: data.age ? String(data.age) : '',
+          gender: data.gender || '',
+          city: data.city || '',
+          phone: data.phone || '',
+          goal: data.goal || '',
+          experience: data.experience || '',
+          equipment: Array.isArray(data.equipment) ? data.equipment : [],
+          training_days: data.training_days || 3,
+          injuries: data.injuries || '',
+          current_weight: data.current_weight ? String(data.current_weight) : '',
+          height: data.height ? String(data.height) : '',
+          target_weight: data.target_weight ? String(data.target_weight) : '',
+        })
+      } catch (err) {
+        console.error('Load user failed:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadUser()
+  }, [])
+
+  // ─── Form helpers ───────────────────────────────────────────────────────────
+  const updateField = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }))
+    setIsDirty(true)
+  }
+
+  const toggleEquipment = (option) => {
+    setForm(prev => {
+      const current = prev.equipment || []
+      const updated = current.includes(option)
+        ? current.filter(e => e !== option)
+        : [...current, option]
+      return { ...prev, equipment: updated }
+    })
+    setIsDirty(true)
+  }
+
+  const toggleEditRow = (key) => setActiveEditRow(prev => prev === key ? null : key)
+
+  // ─── Save ───────────────────────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!isDirty || saving || !userId) return
+    setSaving(true)
+    try {
+      const payload = {
+        full_name: form.full_name || undefined,
+        age: form.age ? Number(form.age) : undefined,
+        gender: form.gender || undefined,
+        phone: form.phone || undefined,
+        goal: form.goal || undefined,
+        experience: form.experience || undefined,
+        equipment: form.equipment.length > 0 ? form.equipment : undefined,
+        training_days: form.training_days || undefined,
+        injuries: form.injuries || undefined,
+        current_weight: form.current_weight ? Number(form.current_weight) : undefined,
+        height: form.height ? Number(form.height) : undefined,
+        target_weight: form.target_weight ? Number(form.target_weight) : undefined,
+      }
+      Object.keys(payload).forEach(k => { if (payload[k] === undefined) delete payload[k] })
+
+      const res = await fetch(`${API}/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Save failed')
+      const updated = await res.json()
+      setUser(updated)
+      setIsDirty(false)
+      setActiveEditRow(null)
+      showToastMsg('✓ Settings saved', 'success')
+    } catch {
+      showToastMsg('Failed to save settings', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // ─── Password ───────────────────────────────────────────────────────────────
+  const handlePasswordChange = async () => {
+    setPasswordError('')
+    if (passwordForm.newPass.length < 8) { setPasswordError('Min 8 characters'); return }
+    if (passwordForm.newPass !== passwordForm.confirm) { setPasswordError("Passwords don't match"); return }
+    setPasswordSaving(true)
+    try {
+      const res = await fetch(`${API}/api/users/${userId}/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_password: passwordForm.newPass }),
+      })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed') }
+      setShowPasswordSheet(false)
+      setPasswordForm({ current: '', newPass: '', confirm: '' })
+      showToastMsg('✓ Password updated', 'success')
+    } catch (err) {
+      setPasswordError(err.message || 'Update failed')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
+
+  // ─── Logout / Delete ────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    localStorage.clear()
+    navigate('/')
+  }
+
+  const handleDelete = async () => {
+    if (deleteConfirm !== 'DELETE') return
+    setDeleting(true)
+    try {
+      await fetch(`${API}/api/users/${userId}`, { method: 'DELETE' })
+      await supabase.auth.signOut()
+      localStorage.clear()
+      navigate('/')
+    } catch {
+      showToastMsg('Deletion failed', 'error')
+      setDeleting(false)
+    }
+  }
+
+  // ─── Toast ──────────────────────────────────────────────────────────────────
+  const showToastMsg = (message, type = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  // ─── Shared styles ───────────────────────────────────────────────────────────
+  const rowStyle = (extra = {}) => ({
+    display: 'flex', alignItems: 'center',
+    padding: '0 20px', height: 52, cursor: 'pointer',
+    borderBottom: '0.5px solid rgba(0,0,0,0.06)',
+    ...extra,
+  })
+
+  const labelStyle = { fontSize: 14, fontWeight: 500, color: '#999', width: 110, flexShrink: 0 }
+  const valueStyle = { flex: 1, fontSize: 14, fontWeight: 500, color: '#111', textAlign: 'right' }
+  const inlineInputStyle = {
+    flex: 1, border: 'none', outline: 'none', fontSize: 14, color: '#111',
+    backgroundColor: 'transparent', textAlign: 'right', fontFamily: 'inherit',
+  }
+
+  const sheetInputStyle = {
+    width: '100%', height: 52, border: '0.5px solid rgba(0,0,0,0.15)',
+    borderRadius: 12, padding: '0 16px', fontSize: 15,
+    boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit',
+  }
+
+  // ─── Loading ─────────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{
+      minHeight: '100vh', backgroundColor: '#F7F7F5',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    }}>
+      <span style={{ fontSize: 14, color: '#999' }}>Loading...</span>
+    </div>
+  )
+
+  return (
+    <div style={{
+      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    }}>
+
+      {/* STICKY HEADER */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white',
+        padding: '16px 20px 12px', display: 'flex', alignItems: 'center', gap: 12,
+        borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+      }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 500, color: '#185FA5', cursor: 'pointer', padding: 0 }}
+        >← Back</button>
+        <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: '#111', textAlign: 'center' }}>Settings</span>
+        <button
+          onClick={handleSave} disabled={!isDirty || saving}
+          style={{
+            backgroundColor: '#111', color: 'white', border: 'none', borderRadius: 10,
+            height: 32, padding: '0 14px', fontSize: 13, fontWeight: 600,
+            cursor: isDirty ? 'pointer' : 'default', opacity: isDirty && !saving ? 1 : 0.4,
+          }}
+        >{saving ? 'Saving...' : 'Save'}</button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+
+        {/* PROFILE HERO */}
+        {user && (() => {
+          const { bg, text } = getAvatarColor(form.full_name || 'U')
+          const initials = getInitials(form.full_name || 'User')
+          return (
+            <div style={{
+              backgroundColor: 'white', borderRadius: '0 0 16px 16px',
+              border: '0.5px solid rgba(0,0,0,0.08)', borderTop: 'none',
+              padding: 20, marginBottom: 16,
+              display: 'flex', alignItems: 'center', gap: 16,
+            }}>
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                backgroundColor: bg, color: text,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 24, fontWeight: 600, flexShrink: 0,
+              }}>{initials}</div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>
+                  {form.full_name || 'Your Name'}
+                </div>
+                <span style={{
+                  display: 'inline-block',
+                  backgroundColor: '#E6F1FB', color: '#185FA5',
+                  fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, marginTop: 4,
+                }}>
+                  {user.role === 'trainer' ? 'Trainer' : user.gym_id ? 'Member' : 'Solo User'}
+                </span>
+                <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+                  Joined {formatMonthYear(user.created_at)}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+          {/* ── SECTION 1: PROFILE ──────────────────────────────────────────────── */}
+          <div>
+            <SectionLabel>PROFILE</SectionLabel>
+            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+
+              {/* Text input rows */}
+              {[
+                { key: 'full_name', label: 'Name', type: 'text', placeholder: 'Your full name', display: form.full_name },
+                { key: 'age', label: 'Age', type: 'number', placeholder: 'e.g. 24', display: form.age ? `${form.age} yrs` : '—' },
+                { key: 'phone', label: 'Phone', type: 'tel', placeholder: '+91 98765 43210', display: form.phone || '—' },
+              ].map(row => (
+                <div key={row.key}>
+                  <div onClick={() => toggleEditRow(row.key)} style={rowStyle()}>
+                    <span style={labelStyle}>{row.label}</span>
+                    {activeEditRow === row.key ? (
+                      <input
+                        autoFocus type={row.type} value={form[row.key]}
+                        placeholder={row.placeholder}
+                        onChange={e => updateField(row.key, e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        style={inlineInputStyle}
+                      />
+                    ) : (
+                      <span style={valueStyle}>{row.display || '—'}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Gender — pill selector */}
+              <div>
+                <div
+                  onClick={() => toggleEditRow('gender')}
+                  style={rowStyle({ borderBottom: activeEditRow === 'gender' ? '0.5px solid rgba(0,0,0,0.06)' : 'none' })}
+                >
+                  <span style={labelStyle}>Gender</span>
+                  <span style={valueStyle}>{form.gender || '—'}</span>
+                </div>
+                {activeEditRow === 'gender' && (
+                  <div style={{ padding: '0 20px 12px' }}>
+                    <PillSelector
+                      options={['Male', 'Female', 'Other']}
+                      value={form.gender}
+                      onChange={val => { updateField('gender', val); setActiveEditRow(null) }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── SECTION 2: FITNESS ──────────────────────────────────────────────── */}
+          <div>
+            <SectionLabel>FITNESS</SectionLabel>
+            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+
+              {/* Goal */}
+              <div>
+                <div onClick={() => toggleEditRow('goal')} style={rowStyle()}>
+                  <span style={labelStyle}>Goal</span>
+                  <span style={{ ...valueStyle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {form.goal || '—'}
+                  </span>
+                </div>
+                {activeEditRow === 'goal' && (
+                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+                    <PillSelector
+                      options={GOALS} value={form.goal}
+                      onChange={val => { updateField('goal', val); setActiveEditRow(null) }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Experience */}
+              <div>
+                <div onClick={() => toggleEditRow('experience')} style={rowStyle()}>
+                  <span style={labelStyle}>Experience</span>
+                  <span style={valueStyle}>{form.experience || '—'}</span>
+                </div>
+                {activeEditRow === 'experience' && (
+                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+                    <PillSelector
+                      options={EXPERIENCE_LEVELS} value={form.experience}
+                      onChange={val => { updateField('experience', val); setActiveEditRow(null) }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Equipment — multi-select */}
+              <div>
+                <div onClick={() => toggleEditRow('equipment')} style={rowStyle()}>
+                  <span style={labelStyle}>Equipment</span>
+                  <span style={{ ...valueStyle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {form.equipment?.length > 0 ? form.equipment.join(', ') : '—'}
+                  </span>
+                </div>
+                {activeEditRow === 'equipment' && (
+                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+                    <PillSelector
+                      options={EQUIPMENT_OPTIONS} value={form.equipment}
+                      onChange={toggleEquipment} multiSelect={true}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Training days — stepper */}
+              <div>
+                <div onClick={() => toggleEditRow('training_days')} style={rowStyle()}>
+                  <span style={labelStyle}>Training Days</span>
+                  {activeEditRow === 'training_days' ? (
+                    <div
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 16 }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => { if (form.training_days > 1) updateField('training_days', form.training_days - 1) }}
+                        style={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          border: '0.5px solid rgba(0,0,0,0.15)', backgroundColor: 'white',
+                          fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: form.training_days <= 1 ? '#CCC' : '#111',
+                        }}
+                      >−</button>
+                      <span style={{ fontSize: 16, fontWeight: 600, color: '#111', minWidth: 20, textAlign: 'center' }}>
+                        {form.training_days}
+                      </span>
+                      <button
+                        onClick={() => { if (form.training_days < 7) updateField('training_days', form.training_days + 1) }}
+                        style={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          border: '0.5px solid rgba(0,0,0,0.15)', backgroundColor: 'white',
+                          fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: form.training_days >= 7 ? '#CCC' : '#111',
+                        }}
+                      >+</button>
+                    </div>
+                  ) : (
+                    <span style={valueStyle}>{form.training_days} days/week</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Injuries */}
+              <div>
+                <div onClick={() => toggleEditRow('injuries')} style={{ ...rowStyle({ borderBottom: 'none' }), minHeight: 52, height: 'auto' }}>
+                  <span style={{ ...labelStyle, alignSelf: 'flex-start', paddingTop: 17 }}>Injuries</span>
+                  {activeEditRow === 'injuries' ? (
+                    <div style={{ flex: 1, padding: '10px 0' }} onClick={e => e.stopPropagation()}>
+                      <input
+                        autoFocus type="text" value={form.injuries}
+                        placeholder="e.g. Lower back, left knee"
+                        onChange={e => updateField('injuries', e.target.value)}
+                        style={inlineInputStyle}
+                      />
+                      <div style={{ fontSize: 12, color: '#999', textAlign: 'right', marginTop: 4 }}>
+                        Helps AI avoid risky exercises
+                      </div>
+                    </div>
+                  ) : (
+                    <span style={valueStyle}>{form.injuries || '—'}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── SECTION 3: BODY STATS ───────────────────────────────────────────── */}
+          <div>
+            <SectionLabel>BODY STATS</SectionLabel>
+            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+              {/* 3-tile row */}
+              <div style={{ display: 'flex' }}>
+                {[
+                  { key: 'current_weight', label: 'Weight', unit: 'kg' },
+                  { key: 'height', label: 'Height', unit: 'cm' },
+                  { key: 'target_weight', label: 'Target', unit: 'kg' },
+                ].map((stat, i) => (
+                  <div
+                    key={stat.key}
+                    onClick={() => setShowBodyEdit(prev => !prev)}
+                    style={{
+                      flex: 1, padding: 12, textAlign: 'center', cursor: 'pointer',
+                      borderRight: i < 2 ? '0.5px solid rgba(0,0,0,0.08)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
+                      <span style={{ fontSize: 22, fontWeight: 700, color: '#111' }}>{form[stat.key] || '—'}</span>
+                      {form[stat.key] && <span style={{ fontSize: 13, color: '#999' }}>{stat.unit}</span>}
+                    </div>
+                    <div style={{
+                      fontSize: 10, fontWeight: 600, color: '#999',
+                      textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4,
+                    }}>{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Expandable edit rows */}
+              {showBodyEdit && (
+                <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.08)' }}>
+                  {[
+                    { key: 'current_weight', label: 'Current Weight', unit: 'kg' },
+                    { key: 'height', label: 'Height', unit: 'cm' },
+                    { key: 'target_weight', label: 'Target Weight', unit: 'kg' },
+                  ].map((field, i) => (
+                    <div key={field.key} style={{
+                      display: 'flex', alignItems: 'center', padding: '0 20px', height: 52,
+                      borderBottom: i < 2 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
+                    }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: '#999', flex: 1 }}>{field.label}</span>
+                      <input
+                        type="number" value={form[field.key]} placeholder="—"
+                        onChange={e => updateField(field.key, e.target.value)}
+                        style={{
+                          width: 80, border: 'none', outline: 'none', fontSize: 14,
+                          fontWeight: 600, color: '#111', backgroundColor: 'transparent',
+                          textAlign: 'right', fontFamily: 'inherit',
+                        }}
+                      />
+                      <span style={{ fontSize: 13, color: '#999', marginLeft: 4, width: 24 }}>{field.unit}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── SECTION 4: ACCOUNT ──────────────────────────────────────────────── */}
+          <div style={{ paddingBottom: 20 }}>
+            <SectionLabel>ACCOUNT</SectionLabel>
+            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+              {/* Change Password */}
+              <div
+                onClick={() => setShowPasswordSheet(true)}
+                style={rowStyle()}
+              >
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#111' }}>Change Password</span>
+                <span style={{ fontSize: 16, color: '#CCC' }}>›</span>
+              </div>
+
+              {/* Delete Account */}
+              <div onClick={() => setShowDeleteSheet(true)} style={{ ...rowStyle({ borderBottom: 'none' }) }}>
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#A32D2D' }}>Delete Account</span>
+                <span style={{ fontSize: 16, color: '#A32D2D' }}>›</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── LOG OUT ─────────────────────────────────────────────────────────── */}
+          <div style={{ padding: '8px 16px 40px' }}>
+            <div style={{ height: 1, background: '#F3F4F6', margin: '8px 0 20px' }} />
+            <button
+              onClick={handleLogout}
+              style={{
+                width: '100%', padding: '14px', borderRadius: 12,
+                background: '#FEF2F2', color: '#EF4444', fontWeight: 600,
+                fontSize: 15, border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── CHANGE PASSWORD SHEET ──────────────────────────────────────────────── */}
+      {showPasswordSheet && (
+        <>
+          <div
+            onClick={() => { setShowPasswordSheet(false); setPasswordError(''); setPasswordForm({ current: '', newPass: '', confirm: '' }) }}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            zIndex: 51, padding: '0 0 32px',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 0' }} />
+            <div style={{ padding: '16px 20px 0' }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#111', marginBottom: 16 }}>Change Password</div>
+              {[
+                { key: 'current', placeholder: 'Current password' },
+                { key: 'newPass', placeholder: 'New password (min 8 chars)' },
+                { key: 'confirm', placeholder: 'Confirm new password' },
+              ].map(field => (
+                <div key={field.key} style={{ marginBottom: 10 }}>
+                  <input
+                    type="password" placeholder={field.placeholder} value={passwordForm[field.key]}
+                    onChange={e => { setPasswordForm(prev => ({ ...prev, [field.key]: e.target.value })); setPasswordError('') }}
+                    style={sheetInputStyle}
+                  />
+                </div>
+              ))}
+              {passwordError && (
+                <div style={{ fontSize: 12, color: '#A32D2D', marginBottom: 12 }}>{passwordError}</div>
+              )}
+              <button
+                onClick={handlePasswordChange}
+                disabled={passwordSaving || passwordForm.newPass.length < 8 || passwordForm.newPass !== passwordForm.confirm}
+                style={{
+                  width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                  border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                  cursor: 'pointer', marginTop: 4,
+                  opacity: (passwordSaving || passwordForm.newPass.length < 8 || passwordForm.newPass !== passwordForm.confirm) ? 0.4 : 1,
+                }}
+              >{passwordSaving ? 'Updating...' : 'Update Password'}</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── DELETE ACCOUNT SHEET ───────────────────────────────────────────────── */}
+      {showDeleteSheet && (
+        <>
+          <div
+            onClick={() => { setShowDeleteSheet(false); setDeleteConfirm('') }}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            zIndex: 51, padding: '0 20px 32px',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>Delete Account?</div>
+
+            <div style={{
+              backgroundColor: '#FAEEDA', borderLeft: '3px solid #854F0B',
+              borderRadius: '0 10px 10px 0', padding: 12, marginTop: 14,
+            }}>
+              <div style={{ fontSize: 13, color: '#854F0B' }}>
+                ⚠ This will deactivate your account. Your workout history, progress, and data will be preserved but you won't be able to log in.
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Type DELETE to confirm</div>
+              <input
+                type="text" placeholder="Type DELETE" value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                style={sheetInputStyle}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+              <button
+                onClick={handleDelete}
+                disabled={deleteConfirm !== 'DELETE' || deleting}
+                style={{
+                  width: '100%', height: 52, backgroundColor: '#A32D2D', color: 'white',
+                  border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                  cursor: 'pointer', opacity: (deleteConfirm !== 'DELETE' || deleting) ? 0.4 : 1,
+                }}
+              >{deleting ? 'Deleting...' : 'Delete Account'}</button>
+              <button
+                onClick={() => { setShowDeleteSheet(false); setDeleteConfirm('') }}
+                style={{
+                  width: '100%', height: 52, backgroundColor: 'white', color: '#111',
+                  border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                }}
+              >Cancel</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* TOAST */}
+      {toast && (
+        <div style={{
+          position: 'fixed', top: 16, left: 16, right: 16, zIndex: 100,
+          backgroundColor: toast.type === 'success' ? '#EAF3DE' : '#FCEBEB',
+          borderRadius: 16, padding: '14px 16px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? '#3B6D11' : '#A32D2D' }}>
+            {toast.message}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

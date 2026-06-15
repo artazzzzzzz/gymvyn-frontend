@@ -1,61 +1,123 @@
-import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { House, Dumbbell, Apple, TrendingUp, ScanLine, Building2 } from 'lucide-react'
-import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
+import { useNavigate, useLocation } from 'react-router-dom'
 
-const baseTabs = [
-  { to: '/home',       icon: House,      label: 'Home'     },
-  { to: '/workout',    icon: Dumbbell,   label: 'Workout'  },
-  { to: '/diet',       icon: Apple,      label: 'Diet'     },
-  { to: '/progress',   icon: TrendingUp, label: 'Progress' },
-  { to: '/form-coach', icon: ScanLine,   label: 'Form'     },
-]
+export default function BottomNav({ onMorePress }) {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
 
-const myGymTab = { to: '/my-gym', icon: Building2, label: 'My Gym' }
+  const isActive = (path) => {
+    if (path === '/more') return false
+    if (path === '/home') return pathname === '/home'
+    return pathname.startsWith(path)
+  }
 
-export default function BottomNav() {
-  const { user } = useAuth()
-  const [hasGym, setHasGym] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    if (!user) { setHasGym(false); return }
-    ;(async () => {
-      try {
-        const { data } = await supabase
-          .from('users')
-          .select('gym_id')
-          .eq('id', user.id)
-          .maybeSingle()
-        if (!cancelled) setHasGym(!!data?.gym_id)
-      } catch {
-        if (!cancelled) setHasGym(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [user])
-
-  const tabs = hasGym ? [...baseTabs, myGymTab] : baseTabs
+  const NAV_ITEMS = [
+    {
+      id: 'home',
+      label: 'Home',
+      path: '/home',
+      icon: (active) => (
+        <svg width="22" height="22" viewBox="0 0 24 24"
+          fill={active ? '#111' : 'none'}
+          stroke={active ? '#111' : '#CCC'}
+          strokeWidth="1.8" strokeLinecap="round"
+          strokeLinejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
+          <polyline points="9,21 9,12 15,12 15,21"
+            stroke={active ? 'white' : '#CCC'}
+            fill="none"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'workout',
+      label: 'Workout',
+      path: '/workout',
+      icon: (active) => (
+        <svg width="22" height="22" viewBox="0 0 24 24"
+          fill="none"
+          stroke={active ? '#111' : '#CCC'}
+          strokeWidth="1.8" strokeLinecap="round"
+          strokeLinejoin="round">
+          <path d="M6.5 6.5h11M6.5 17.5h11"/>
+          <line x1="3" y1="9" x2="3" y2="15" strokeWidth="3"/>
+          <line x1="21" y1="9" x2="21" y2="15" strokeWidth="3"/>
+          <line x1="6" y1="6" x2="6" y2="18" strokeWidth="2.5"/>
+          <line x1="18" y1="6" x2="18" y2="18" strokeWidth="2.5"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'diet',
+      label: 'Diet',
+      path: '/diet',
+      icon: (active) => (
+        <svg width="22" height="22" viewBox="0 0 24 24"
+          fill="none"
+          stroke={active ? '#111' : '#CCC'}
+          strokeWidth="1.8" strokeLinecap="round"
+          strokeLinejoin="round">
+          <line x1="12" y1="2" x2="12" y2="6"/>
+          <path d="M17.66 7.93A9 9 0 1 1 6.34 7.93"/>
+          <path d="M17.66 7.93L12 13"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'progress',
+      label: 'Progress',
+      path: '/progress',
+      icon: (active) => (
+        <svg width="22" height="22" viewBox="0 0 24 24"
+          fill="none"
+          stroke={active ? '#111' : '#CCC'}
+          strokeWidth="1.8" strokeLinecap="round"
+          strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      ),
+    },
+  ]
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111113] border-t border-white/[0.06]">
-      <div className="flex items-stretch h-16 max-w-lg mx-auto">
-        {tabs.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-150 ${
-                isActive ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'
-              }`
-            }
-          >
-            <Icon size={20} strokeWidth={1.8} />
-            <span className="text-[10px] font-medium tracking-wide">{label}</span>
-          </NavLink>
-        ))}
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-black/[0.06] h-16 pb-safe">
+      <div className="grid grid-cols-5 h-full">
+
+        {/* Regular nav items */}
+        {NAV_ITEMS.map(item => {
+          const active = isActive(item.path)
+          return (
+            <button
+              key={item.id}
+              onClick={() => navigate(item.path)}
+              className="flex flex-col items-center justify-center gap-0.5 relative">
+              {item.icon(active)}
+              <span className={`text-[10px] transition-colors ${
+                active ? 'font-semibold text-[#111]' : 'font-normal text-[#CCC]'
+              }`}>
+                {item.label}
+              </span>
+              {active && (
+                <span className="absolute bottom-1 w-1 h-1 bg-[#111] rounded-full"/>
+              )}
+            </button>
+          )
+        })}
+
+        {/* More button — opens sheet, never navigates */}
+        <button
+          onClick={onMorePress}
+          className="flex flex-col items-center justify-center gap-0.5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round">
+            <circle cx="5"  cy="12" r="1.5" fill="#CCC"/>
+            <circle cx="12" cy="12" r="1.5" fill="#CCC"/>
+            <circle cx="19" cy="12" r="1.5" fill="#CCC"/>
+          </svg>
+          <span className="text-[10px] font-normal text-[#CCC]">More</span>
+        </button>
+
       </div>
-    </nav>
+    </div>
   )
 }

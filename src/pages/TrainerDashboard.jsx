@@ -3,16 +3,187 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 
+/* ── palette ── */
+const C = {
+  bg: '#f5f5f7',
+  card: '#ffffff',
+  border: '#e8e8ed',
+  text: '#1a1a1a',
+  sub: '#6e6e73',
+  green: '#1a9955',
+  greenBg: '#e8f5ee',
+  amber: '#c07800',
+  amberBg: '#fff4d9',
+  blue: '#1a6fd4',
+  blueBg: '#e8f0fb',
+  gray: '#9e9ea8',
+  grayBg: '#f0f0f3',
+  red: '#d93025',
+};
+
+const AVATAR_COLORS = [
+  { bg: '#e8f0fb', text: '#1a6fd4' },
+  { bg: '#fce8e6', text: '#c0392b' },
+  { bg: '#e8f5ee', text: '#1a9955' },
+  { bg: '#fff4d9', text: '#c07800' },
+  { bg: '#f3e8fb', text: '#7b2fbf' },
+];
+
+const FILTER_TABS = ['All', 'Active', 'Needs attention', 'No plan', 'Pending'];
+
+function getInitials(name = '') {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+}
+
+function getStatusFromClient(rel) {
+  if (rel.status === 'pending') return 'pending';
+  if (!rel.stats?.activePlans || rel.stats.activePlans === 0) return 'noplan';
+  if (rel.stats?.lastWorkout) {
+    const days = (Date.now() - new Date(rel.stats.lastWorkout)) / 86400000;
+    if (days > 3) return 'attention';
+  }
+  return 'active';
+}
+
+function statusDotColor(status) {
+  if (status === 'active') return C.green;
+  if (status === 'attention') return C.amber;
+  return C.gray;
+}
+
+function lastActiveText(rel) {
+  if (rel.status === 'pending') return 'Pending invite';
+  if (!rel.stats?.lastWorkout) return 'No activity';
+  const days = Math.floor((Date.now() - new Date(rel.stats.lastWorkout)) / 86400000);
+  if (days === 0) return 'Active today';
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
+
+/* ── icons ── */
+const IconCopy = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+const IconShare = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+  </svg>
+);
+const IconSearch = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+const IconChevronRight = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.sub} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+const IconCheck = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+
+/* ── StatCard ── */
+function StatCard({ value, label, sub, subColor, subBg }) {
+  return (
+    <div style={{
+      background: C.card, borderRadius: 16, padding: '16px 14px',
+      display: 'flex', flexDirection: 'column', gap: 6,
+      border: `1px solid ${C.border}`,
+    }}>
+      <span style={{ fontSize: 28, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</span>
+      <span style={{ fontSize: 12, fontWeight: 500, color: C.sub, lineHeight: 1.3 }}>{label}</span>
+      {sub && (
+        <span style={{
+          fontSize: 11, fontWeight: 600, color: subColor || C.sub,
+          background: subBg || C.grayBg,
+          borderRadius: 20, padding: '2px 7px', alignSelf: 'flex-start', marginTop: 2,
+        }}>{sub}</span>
+      )}
+    </div>
+  );
+}
+
+/* ── ClientCard ── */
+function ClientCard({ rel, avatarIdx, onClick }) {
+  const [pressed, setPressed] = useState(false);
+  const av = AVATAR_COLORS[avatarIdx % AVATAR_COLORS.length];
+  const name = rel.client?.full_name || rel.invite_email || 'Client';
+  const initials = getInitials(name);
+  const status = getStatusFromClient(rel);
+  const goal = rel.client?.goal || '—';
+  const planName = rel.stats?.planName || null;
+
+  let badge, badgeColor, badgeBg;
+  if (rel.status === 'pending') {
+    badge = 'Pending invite'; badgeColor = C.amber; badgeBg = C.amberBg;
+  } else if (!rel.stats?.activePlans || rel.stats.activePlans === 0) {
+    badge = 'No plan assigned'; badgeColor = C.amber; badgeBg = C.amberBg;
+  } else {
+    badge = 'Workout + Diet'; badgeColor = C.blue; badgeBg = C.blueBg;
+  }
+
+  return (
+    <div
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onClick={onClick}
+      style={{
+        background: pressed ? '#f9f9fb' : C.card,
+        borderRadius: 16, padding: '14px 14px',
+        display: 'flex', alignItems: 'center', gap: 12,
+        border: `1px solid ${C.border}`,
+        cursor: 'pointer',
+        transition: 'background 0.1s',
+      }}
+    >
+      <div style={{
+        width: 44, height: 44, borderRadius: 14,
+        background: av.bg, color: av.text,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 14, fontWeight: 700, flexShrink: 0, letterSpacing: '0.3px',
+      }}>{initials}</div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{name}</span>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusDotColor(status), flexShrink: 0 }} />
+        </div>
+        <div style={{ fontSize: 12, color: C.sub, marginBottom: 6 }}>
+          {goal}{planName ? ` · ${planName}` : ''}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600,
+            color: badgeColor, background: badgeBg,
+            borderRadius: 20, padding: '2px 8px',
+          }}>{badge}</span>
+          <span style={{ fontSize: 11, color: C.sub }}>{lastActiveText(rel)}</span>
+        </div>
+      </div>
+
+      <IconChevronRight />
+    </div>
+  );
+}
+
+/* ── main ── */
 export default function TrainerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviting, setInviting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [searchVal, setSearchVal] = useState('');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -36,267 +207,229 @@ export default function TrainerDashboard() {
 
   const copyInviteCode = () => {
     if (profile?.invite_code) {
-      navigator.clipboard.writeText(profile.invite_code);
+      navigator.clipboard.writeText(profile.invite_code).catch(() => {});
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1500);
     }
   };
 
-  const sendInvite = async () => {
-    if (!inviteEmail.trim()) return;
-    setInviting(true);
-    try {
-      await apiFetch('/api/trainer/invite-client', {
-        method: 'POST',
-        body: JSON.stringify({
-          trainerId: user.id,
-          clientEmail: inviteEmail.trim(),
-          gymId: profile?.gym_id || null
-        })
-      });
-      setInviteEmail('');
-      setShowInvite(false);
-      loadData();
-    } catch (err) {
-      alert('Failed to send invite');
-    } finally {
-      setInviting(false);
+  const shareInviteCode = () => {
+    if (navigator.share && profile?.invite_code) {
+      navigator.share({ title: 'FitForge Invite Code', text: `Join me on FitForge! Use code: ${profile.invite_code}` }).catch(() => {});
     }
   };
 
   const activeClients = clients.filter(c => c.status === 'active');
   const pendingClients = clients.filter(c => c.status === 'pending');
+  const withPlans = activeClients.filter(c => c.stats?.activePlans > 0);
+  const noPlans = activeClients.filter(c => !c.stats?.activePlans || c.stats.activePlans === 0);
+  const needsAttention = activeClients.filter(c => getStatusFromClient(c) === 'attention');
+
+  const filteredClients = clients.filter(rel => {
+    const name = (rel.client?.full_name || rel.invite_email || '').toLowerCase();
+    if (searchVal && !name.includes(searchVal.toLowerCase())) return false;
+    if (activeFilter === 'Active') return rel.status === 'active' && getStatusFromClient(rel) === 'active';
+    if (activeFilter === 'Needs attention') return getStatusFromClient(rel) === 'attention';
+    if (activeFilter === 'No plan') return getStatusFromClient(rel) === 'noplan';
+    if (activeFilter === 'Pending') return rel.status === 'pending';
+    return true;
+  });
+
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const trainerName = user?.full_name?.split(' ')[0] || 'Coach';
+  const trainerInitials = getInitials(user?.full_name || 'RP');
+
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.text, animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-24">
-      {/* Header */}
-      <div className="px-5 pt-12 pb-6">
-        <div className="flex items-center justify-between mb-1">
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: "'DM Sans', system-ui, sans-serif", paddingBottom: 80 }}>
+
+      {/* scrollable body */}
+      <div style={{ padding: '52px 16px 0' }}>
+
+        {/* top bar */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 22 }}>
           <div>
-            <p className="text-zinc-400 text-sm">Welcome back</p>
-            <h1 className="text-2xl font-bold">{user?.full_name || 'Coach'}</h1>
+            <div style={{ fontSize: 22, fontWeight: 700, color: C.text, letterSpacing: '-0.3px' }}>
+              {greeting()}, {trainerName} 👋
+            </div>
+            <div style={{ fontSize: 13, color: C.sub, marginTop: 3 }}>{dateStr}</div>
           </div>
-          <button
+          <div
             onClick={() => navigate('/trainer/settings')}
-            className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center"
-          >
-            <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+            style={{
+              width: 42, height: 42, borderRadius: 13,
+              background: C.text, color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 14, fontWeight: 700, flexShrink: 0, letterSpacing: '0.5px',
+              cursor: 'pointer',
+            }}
+          >{trainerInitials}</div>
         </div>
 
-        {/* Invite code banner */}
+        {/* stats grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <StatCard
+            value={activeClients.length}
+            label="Active clients"
+            sub={activeClients.length > 0 ? `${pendingClients.length > 0 ? `+${pendingClients.length} pending` : 'all active'}` : 'none yet'}
+            subColor={activeClients.length > 0 ? C.green : C.sub}
+            subBg={activeClients.length > 0 ? C.greenBg : C.grayBg}
+          />
+          <StatCard
+            value={withPlans.length + noPlans.length}
+            label="Plans assigned"
+            sub={`${withPlans.length} with plan · ${noPlans.length} without`}
+          />
+          <StatCard
+            value={needsAttention.length}
+            label="Need attention"
+            sub={needsAttention.length > 0 ? 'inactive 3+ days' : 'all up to date'}
+            subColor={needsAttention.length > 0 ? C.amber : C.green}
+            subBg={needsAttention.length > 0 ? C.amberBg : C.greenBg}
+          />
+          <StatCard
+            value={pendingClients.length}
+            label="Pending invites"
+            sub={pendingClients.length > 0 ? 'awaiting response' : 'none pending'}
+            subColor={pendingClients.length > 0 ? C.amber : C.sub}
+            subBg={pendingClients.length > 0 ? C.amberBg : C.grayBg}
+          />
+        </div>
+
+        {/* invite code card */}
         {profile?.invite_code && (
-          <button
-            onClick={copyInviteCode}
-            className="mt-4 w-full flex items-center justify-between px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-lg">🔗</span>
-              <div className="text-left">
-                <p className="text-emerald-400 text-xs font-medium">Your invite code</p>
-                <p className="text-emerald-300 font-mono font-bold text-lg tracking-wider">
-                  {profile.invite_code}
-                </p>
-              </div>
+          <div style={{
+            background: C.card, borderRadius: 18, padding: '16px 16px',
+            border: `1px solid ${C.border}`, marginBottom: 22,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 2 }}>Your invite code</div>
+            <div style={{ fontSize: 12, color: C.sub, marginBottom: 14 }}>
+              Share with new clients to link instantly
             </div>
-            <span className="text-emerald-400 text-sm">
-              {copied ? '✓ Copied!' : 'Copy'}
-            </span>
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                flex: 1, background: C.bg, borderRadius: 12, padding: '10px 14px',
+                fontFamily: 'monospace',
+                fontSize: 22, fontWeight: 700, letterSpacing: '3px', color: C.text,
+              }}>{profile.invite_code}</div>
+              <button
+                onClick={copyInviteCode}
+                style={{
+                  width: 42, height: 42, borderRadius: 12, border: `1px solid ${C.border}`,
+                  background: copied ? C.greenBg : C.card,
+                  color: copied ? C.green : C.sub,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0,
+                }}
+              >
+                {copied ? <IconCheck /> : <IconCopy />}
+              </button>
+              <button
+                onClick={shareInviteCode}
+                style={{
+                  width: 42, height: 42, borderRadius: 12, border: `1px solid ${C.border}`,
+                  background: C.card, color: C.sub,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', flexShrink: 0,
+                }}
+              >
+                <IconShare />
+              </button>
+            </div>
+          </div>
         )}
-      </div>
 
-      {/* Stats row */}
-      <div className="px-5 mb-6">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{activeClients.length}</p>
-            <p className="text-xs text-zinc-400 mt-1">Active clients</p>
-          </div>
-          <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-center">
-            <p className="text-2xl font-bold text-amber-400">{pendingClients.length}</p>
-            <p className="text-xs text-zinc-400 mt-1">Pending</p>
-          </div>
-          <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-center">
-            <p className="text-2xl font-bold text-blue-400">
-              {profile?.specializations?.length || 0}
-            </p>
-            <p className="text-xs text-zinc-400 mt-1">Specialties</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick actions */}
-      <div className="px-5 mb-6">
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowInvite(true)}
-            className="flex-1 py-3 bg-emerald-500 rounded-xl font-semibold text-sm"
-          >
-            + Invite Client
-          </button>
-          <button
+        {/* client list section */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: C.text }}>Clients</span>
+          <span
             onClick={() => navigate('/trainer/templates')}
-            className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl font-medium text-sm"
-          >
-            Plan Templates
-          </button>
+            style={{ fontSize: 12, fontWeight: 600, color: C.blue, cursor: 'pointer' }}
+          >Manage templates</span>
         </div>
-      </div>
 
-      {/* Client list */}
-      <div className="px-5">
-        <h2 className="text-lg font-semibold mb-3">Your clients</h2>
-
-        {activeClients.length === 0 && pendingClients.length === 0 ? (
-          <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800 text-center">
-            <p className="text-4xl mb-3">👥</p>
-            <p className="text-zinc-400 mb-1">No clients yet</p>
-            <p className="text-zinc-500 text-sm">
-              Share your invite code or send invites to get started
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Pending invites */}
-            {pendingClients.map(rel => (
-              <div
-                key={rel.id}
-                className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center">
-                    <span className="text-amber-400 text-sm">⏳</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-zinc-300">
-                      {rel.invite_email || rel.invite_phone || 'Pending invite'}
-                    </p>
-                    <p className="text-xs text-amber-400">Pending</p>
-                  </div>
-                </div>
-                <span className="text-xs text-zinc-500 font-mono">{rel.invite_code}</span>
-              </div>
-            ))}
-
-            {/* Active clients */}
-            {activeClients.map(rel => (
-              <button
-                key={rel.id}
-                onClick={() => navigate(`/trainer/client/${rel.client_id}`)}
-                className="w-full bg-zinc-900 rounded-xl p-4 border border-zinc-800 flex items-center justify-between text-left hover:border-zinc-700 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                    <span className="text-emerald-400 font-bold text-sm">
-                      {(rel.client?.full_name || '?')[0].toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium">{rel.client?.full_name || 'Client'}</p>
-                    <div className="flex items-center gap-3 text-xs text-zinc-500 mt-0.5">
-                      <span>{rel.client?.goal || '—'}</span>
-                      <span>·</span>
-                      <span>{rel.stats?.weeklyWorkouts || 0} workouts/wk</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  {rel.stats?.activePlans > 0 ? (
-                    <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
-                      {rel.stats.activePlans} plan{rel.stats.activePlans > 1 ? 's' : ''}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-zinc-500">No plan</span>
-                  )}
-                  {rel.stats?.lastWorkout && (
-                    <p className="text-[10px] text-zinc-600 mt-1">
-                      Last: {new Date(rel.stats.lastWorkout).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                    </p>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Invite modal */}
-      {showInvite && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
-          <div className="bg-zinc-900 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 border border-zinc-800">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold">Invite a client</h3>
-              <button onClick={() => setShowInvite(false)} className="text-zinc-400 text-xl">×</button>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm text-zinc-400 mb-2">Client email</label>
-              <input
-                type="email"
-                placeholder="client@email.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-              />
-            </div>
-
-            <p className="text-xs text-zinc-500 mb-4">
-              Or share your invite code: <span className="text-emerald-400 font-mono font-bold">{profile?.invite_code}</span>
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowInvite(false)}
-                className="flex-1 py-3 bg-zinc-800 rounded-xl font-medium text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={sendInvite}
-                disabled={!inviteEmail.trim() || inviting}
-                className="flex-1 py-3 bg-emerald-500 rounded-xl font-semibold text-sm disabled:opacity-40"
-              >
-                {inviting ? 'Sending...' : 'Send Invite'}
-              </button>
-            </div>
-          </div>
+        {/* search */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: C.card, borderRadius: 12, padding: '10px 12px',
+          border: `1px solid ${C.border}`, marginBottom: 12,
+        }}>
+          <IconSearch />
+          <input
+            value={searchVal}
+            onChange={e => setSearchVal(e.target.value)}
+            placeholder="Search clients…"
+            style={{
+              border: 'none', outline: 'none', background: 'transparent',
+              fontSize: 14, color: C.text, flex: 1, fontFamily: 'inherit',
+            }}
+          />
         </div>
-      )}
 
-      {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800">
-        <div className="flex justify-around py-3">
-          {[
-            { label: 'Clients', icon: '👥', path: '/trainer/dashboard', active: true },
-            { label: 'Templates', icon: '📋', path: '/trainer/templates' },
-            { label: 'Chat', icon: '💬', path: '/trainer/chat' },
-            { label: 'Profile', icon: '👤', path: '/trainer/settings' }
-          ].map(tab => (
+        {/* filter chips */}
+        <div style={{
+          display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 4, marginBottom: 14,
+          scrollbarWidth: 'none',
+        }}>
+          {FILTER_TABS.map(f => (
             <button
-              key={tab.label}
-              onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-1 px-3 ${
-                tab.active ? 'text-emerald-400' : 'text-zinc-500'
-              }`}
-            >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </button>
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              style={{
+                padding: '6px 13px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
+                border: activeFilter === f ? 'none' : `1px solid ${C.border}`,
+                background: activeFilter === f ? C.text : C.card,
+                color: activeFilter === f ? '#fff' : C.sub,
+                transition: 'all 0.15s',
+              }}
+            >{f}</button>
           ))}
         </div>
+
+        {/* client cards */}
+        {filteredClients.length === 0 ? (
+          <div style={{
+            background: C.card, borderRadius: 18, padding: '40px 24px',
+            border: `1px solid ${C.border}`, textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>👥</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 4 }}>No clients yet</div>
+            <div style={{ fontSize: 13, color: C.sub }}>Share your invite code to get started</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {filteredClients.map((rel, i) => (
+              <ClientCard
+                key={rel.id}
+                rel={rel}
+                avatarIdx={i}
+                onClick={() => rel.status !== 'pending' && rel.client_id && navigate(`/trainer/client/${rel.client_id}`)}
+              />
+            ))}
+          </div>
+        )}
+
+        <div style={{ height: 20 }} />
       </div>
+
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { Brain, BarChart3, Users, ArrowRight, ArrowLeft } from 'lucide-react'
-import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../utils/supabase'
 
 function Spinner() {
   return (

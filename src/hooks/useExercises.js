@@ -60,8 +60,13 @@ export function useExercises() {
         if (fetchError) throw fetchError
         if (cancelled) return
 
+        // Deduplicate by id — guards against accidental double-seeding in Supabase
+        const unique = data
+          ? [...new Map(data.map(ex => [ex.id, ex])).values()]
+          : []
+
         // If the table exists but is empty, fall back to local DB
-        setAllExercises((data && data.length > 0) ? data : LOCAL_EXERCISES)
+        setAllExercises(unique.length > 0 ? unique : LOCAL_EXERCISES)
       } catch {
         if (!cancelled) {
           setAllExercises(LOCAL_EXERCISES)

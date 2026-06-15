@@ -45,20 +45,20 @@ export function useStreak(userId) {
       const [{ data: logs }, { data: entries }] = await Promise.all([
         supabase
           .from('workout_logs')
-          .select('date')
+          .select('started_at')
           .eq('user_id', userId)
-          .eq('completed', true),
+          .not('completed_at', 'is', null),
         supabase
           .from('progress_entries')
-          .select('date')
+          .select('logged_at')
           .eq('user_id', userId),
       ])
 
       if (cancelled) return
 
       const dates = [
-        ...(logs ?? []).map(r => r.date?.slice(0, 10)),
-        ...(entries ?? []).map(r => r.date?.slice(0, 10)),
+        ...(logs ?? []).map(r => r.started_at?.slice(0, 10)),
+        ...(entries ?? []).map(r => r.logged_at?.slice(0, 10)),
       ].filter(Boolean)
 
       setStreak({ ...calcStreaks(dates), loading: false })

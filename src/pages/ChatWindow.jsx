@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
-import { supabase } from '../utils/supabase';
 
 export default function ChatWindow({ conversationId, otherPersonName, onBack }) {
   const { user } = useAuth();
@@ -11,19 +10,12 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  const channelRef = useRef(null);
-
   useEffect(() => {
     if (!conversationId || !user?.id) return;
     loadMessages();
     markRead();
-    subscribeRealtime();
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
+    const cleanup = subscribeRealtime();
+    return cleanup;
   }, [conversationId, user?.id]);
 
   // Auto-scroll on new messages
@@ -54,34 +46,10 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
   };
 
   const subscribeRealtime = () => {
-    const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        (payload) => {
-          const newMsg = payload.new;
-          // Avoid duplicates (our own optimistic messages)
-          setMessages(prev => {
-            const exists = prev.some(m => m.id === newMsg.id);
-            if (exists) return prev;
-            return [...prev, newMsg];
-          });
-          // Mark as read if it's from the other person
-          if (newMsg.sender_id !== user.id) {
-            markRead();
-          }
-          bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = channel;
+    const interval = setInterval(() => {
+      loadMessages();
+    }, 3000);
+    return () => clearInterval(interval);
   };
 
   const sendMessage = async () => {

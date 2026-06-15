@@ -1,57 +1,57 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 
+const API = import.meta.env.VITE_API_URL || '';
+
+const accentColors = ['#185FA5', '#1D9E75', '#BA7517', '#D85A30', '#534AB7', '#0F6E56'];
+
+function CheckIcon({ color = 'white', size = 10 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
 export default function TrainerAssignPlan() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-
-  const preselectedClientId = searchParams.get('clientId');
-  const preselectedTemplateId = searchParams.get('templateId');
-  const preselectedType = searchParams.get('type') || 'workout';
+  const [params] = useSearchParams();
 
   const [clients, setClients] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
 
-  const [selectedClient, setSelectedClient] = useState(preselectedClientId || '');
-  const [selectedTemplate, setSelectedTemplate] = useState(preselectedTemplateId || '');
-  const [planName, setPlanName] = useState('');
-  const [notes, setNotes] = useState('');
-  const [startsAt, setStartsAt] = useState(new Date().toISOString().split('T')[0]);
-  const [endsAt, setEndsAt] = useState('');
+  // Multi-step state
+  const [step, setStep] = useState(1);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [planType, setPlanType] = useState('workout');
+  const [startDate, setStartDate] = useState(new Date());
+  const [duration, setDuration] = useState(12);
+  const [customDuration, setCustomDuration] = useState(false);
+  const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  const [replacingPlanId, setReplacingPlanId] = useState(null);
 
   useEffect(() => {
     if (!user?.id) return;
     loadData();
   }, [user?.id]);
 
-  // Auto-fill plan name when template selected
-  useEffect(() => {
-    if (selectedTemplate) {
-      const t = templates.find(t => t.id === selectedTemplate);
-      if (t && !planName) setPlanName(t.name);
-    }
-  }, [selectedTemplate, templates]);
-
   const loadData = async () => {
     try {
       const [clientsRes, templatesRes] = await Promise.all([
         apiFetch(`/api/trainer/clients/${user.id}`),
-        apiFetch(`/api/trainer/templates/${user.id}?type=${preselectedType}`)
+        apiFetch(`/api/trainer/templates/${user.id}`)
       ]);
       const activeClients = (clientsRes || []).filter(c => c.status === 'active' && c.client_id);
       setClients(activeClients);
       setTemplates(templatesRes || []);
-
-      // Auto-fill name if template preselected
-      if (preselectedTemplateId && templatesRes?.length) {
-        const t = templatesRes.find(x => x.id === preselectedTemplateId);
-        if (t) setPlanName(t.name);
-      }
     } catch (err) {
       console.error('Load assign data error:', err);
     } finally {
@@ -59,33 +59,76 @@ export default function TrainerAssignPlan() {
     }
   };
 
+  // Process URL params after data loads
+  useEffect(() => {
+    const clientId = params.get('clientId');
+    const type = params.get('type');
+    const templateId = params.get('templateId');
+    const replace = params.get('replace');
+
+    if (type) setPlanType(type);
+    if (replace) setReplacingPlanId(replace);
+
+    if (clientId) {
+      const client = clients.find(c => c.client_id === clientId);
+      if (client) {
+        setSelectedClient(client);
+        setStep(2);
+      }
+    }
+
+    if (templateId) {
+      const tmpl = templates.find(t => t.id === templateId);
+      if (tmpl) {
+        setSelectedTemplate(tmpl);
+        setStep(clientId ? 3 : 1);
+      }
+    }
+  }, [clients, templates]);
+
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + duration * 7);
+
+  const prevDay = () => {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() - 1);
+    setStartDate(d);
+  };
+  const nextDay = () => {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + 1);
+    setStartDate(d);
+  };
+  const isToday = startDate.toDateString() === new Date().toDateString();
+
+  const filteredClients = clients.filter(c =>
+    (c.client?.full_name || '').toLowerCase().includes(clientSearch.toLowerCase())
+  );
+
+  const filteredTemplates = templates.filter(t => t.type === planType);
+
   const handleAssign = async () => {
-    if (!selectedClient) return alert('Select a client');
-    if (!planName.trim()) return alert('Give the plan a name');
-
-    setAssigning(true);
     try {
-      const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
-
-      await apiFetch('/api/trainer/assign-plan', {
+      setAssigning(true);
+      const res = await fetch(`${API}/api/trainer/assign-plan`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trainerId: user.id,
-          clientId: selectedClient,
-          templateId: selectedTemplate || null,
-          type: preselectedType,
-          name: planName.trim(),
-          planData: selectedTemplateData?.template_data || {},
-          notes: notes.trim() || null,
-          startsAt,
-          endsAt: endsAt || null
+          trainer_id: user.id,
+          client_id: selectedClient.client_id,
+          template_id: selectedTemplate?.id || null,
+          type: planType,
+          name: selectedTemplate?.name || 'Custom Plan',
+          plan_data: selectedTemplate?.template_data || {},
+          starts_at: startDate.toISOString(),
+          ends_at: endDate.toISOString(),
+          notes: message,
+          replacing: replacingPlanId || null
         })
       });
-
-      navigate(`/trainer/client/${selectedClient}`);
-    } catch (err) {
-      alert('Failed to assign plan');
-      console.error(err);
+      if (res.ok) setSuccess(true);
+    } catch (e) {
+      console.error('Assign plan error:', e);
     } finally {
       setAssigning(false);
     }
@@ -93,195 +136,376 @@ export default function TrainerAssignPlan() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div style={{ minHeight: '100vh', background: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  const selectedClientData = clients.find(c => c.client_id === selectedClient);
-  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
+  if (success) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center', background: '#F7F7F5' }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EAF3DE', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <CheckIcon color="#3B6D11" size={28} />
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 8 }}>Plan assigned!</h2>
+      <p style={{ fontSize: 13, color: '#888', maxWidth: 260, lineHeight: 1.6, marginBottom: 32 }}>
+        {selectedClient?.client?.full_name} will see their new plan immediately in the app
+      </p>
+      <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+        <button
+          onClick={() => navigate(`/trainer/client/${selectedClient?.client_id}`)}
+          style={{ flex: 1, height: 48, borderRadius: 10, border: '0.5px solid rgba(0,0,0,0.15)', background: 'transparent', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+        >
+          View client
+        </button>
+        <button
+          onClick={() => navigate('/trainer/dashboard')}
+          style={{ flex: 1, height: 48, borderRadius: 10, background: '#111', color: 'white', border: 'none', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+        >
+          Dashboard
+        </button>
+      </div>
+    </div>
+  );
+
+  const stepNames = ['Client', 'Plan', 'Schedule'];
+  const canNext = step === 1 ? !!selectedClient : step === 2 ? !!selectedTemplate : true;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-36">
+    <div style={{ minHeight: '100vh', background: '#F7F7F5', paddingBottom: 100 }}>
       {/* Header */}
-      <div className="px-5 pt-12 pb-6">
-        <button onClick={() => navigate(-1)} className="text-zinc-400 text-sm mb-3 flex items-center gap-1">
+      <div style={{ padding: '52px 16px 0' }}>
+        <button
+          onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}
+          style={{ fontSize: 14, color: '#666', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
           ← Back
         </button>
-        <h1 className="text-2xl font-bold">
-          Assign {preselectedType === 'diet' ? 'Diet' : 'Workout'} Plan
-        </h1>
-        <p className="text-zinc-400 text-sm mt-0.5">
-          {preselectedType === 'diet' ? '🍽️' : '🏋️'} Sending to a client
-        </p>
       </div>
 
-      <div className="px-5 space-y-5">
-        {/* Client picker */}
-        <div>
-          <label className="block text-sm text-zinc-400 mb-2">Client</label>
-          {clients.length === 0 ? (
-            <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-center">
-              <p className="text-zinc-400 text-sm">No active clients yet</p>
+      {/* Step indicator */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, padding: '16px 0' }}>
+        {stepNames.map((s, i) => (
+          <React.Fragment key={i}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: step > i + 1 ? '#111' : step === i + 1 ? '#111' : 'transparent',
+                border: step <= i ? '1.5px solid #D0D0D0' : 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                {step > i + 1
+                  ? <CheckIcon color="white" size={12} />
+                  : <span style={{ fontSize: 12, fontWeight: 500, color: step === i + 1 ? 'white' : '#999' }}>{i + 1}</span>
+                }
+              </div>
+              <span style={{ fontSize: 10, color: '#999' }}>{s}</span>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {clients.map(rel => (
-                <button
-                  key={rel.client_id}
-                  onClick={() => setSelectedClient(rel.client_id)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${
-                    selectedClient === rel.client_id
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : 'border-zinc-800 bg-zinc-900'
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-                    <span className="text-emerald-400 font-bold text-sm">
-                      {(rel.client?.full_name || '?')[0].toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium">{rel.client?.full_name || 'Client'}</p>
-                    <p className="text-xs text-zinc-500">{rel.client?.goal || '—'}</p>
-                  </div>
-                  {selectedClient === rel.client_id && (
-                    <span className="ml-auto text-emerald-400">✓</span>
-                  )}
-                </button>
+            {i < 2 && (
+              <div style={{
+                height: 1, width: 40,
+                background: step > i + 1 ? '#111' : '#E0E0E0',
+                margin: '0 4px', marginBottom: 16
+              }} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div style={{ padding: '0 16px' }}>
+
+        {/* ── Step 1: Client ── */}
+        {step === 1 && (
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Select client</h2>
+            <p style={{ fontSize: 13, color: '#888', marginBottom: 16 }}>Who are you assigning this plan to?</p>
+
+            <input
+              type="text"
+              placeholder="Search clients…"
+              value={clientSearch}
+              onChange={e => setClientSearch(e.target.value)}
+              style={{
+                width: '100%', height: 40, borderRadius: 10,
+                border: '0.5px solid rgba(0,0,0,0.12)', padding: '0 12px',
+                fontSize: 13, background: 'white', outline: 'none',
+                boxSizing: 'border-box', marginBottom: 12, display: 'block'
+              }}
+            />
+
+            {filteredClients.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: '#999', fontSize: 13 }}>
+                No active clients found
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {filteredClients.map(c => {
+                  const isSelected = selectedClient?.client_id === c.client_id;
+                  return (
+                    <div
+                      key={c.client_id}
+                      onClick={() => setSelectedClient(c)}
+                      style={{
+                        height: 64, borderRadius: 10,
+                        border: isSelected ? '0.5px solid #111' : '0.5px solid rgba(0,0,0,0.08)',
+                        background: isSelected ? '#F7F7F5' : 'white',
+                        display: 'flex', alignItems: 'center', padding: '0 16px',
+                        gap: 12, cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{
+                        width: 36, height: 36, borderRadius: '50%',
+                        background: '#F0EDE6', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', fontSize: 14, fontWeight: 600,
+                        color: '#5F5E5A', flexShrink: 0
+                      }}>
+                        {(c.client?.full_name || '?')[0].toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500 }}>{c.client?.full_name || 'Client'}</div>
+                        <div style={{ fontSize: 12, color: '#999' }}>{c.client?.goal || '—'}</div>
+                      </div>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: '50%',
+                        border: isSelected ? 'none' : '1.5px solid #D0D0D0',
+                        background: isSelected ? '#111' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                      }}>
+                        {isSelected && <CheckIcon color="white" size={10} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Step 2: Template ── */}
+        {step === 2 && (
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Select plan</h2>
+            <p style={{ fontSize: 13, color: '#888', marginBottom: 16 }}>Choose a template or build a new one</p>
+
+            {/* Plan type toggle */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              {['workout', 'diet'].map(t => (
+                <button key={t} onClick={() => { setPlanType(t); setSelectedTemplate(null); }} style={{
+                  padding: '6px 16px', borderRadius: 20, fontSize: 13,
+                  border: planType === t ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
+                  background: planType === t ? '#111' : 'transparent',
+                  color: planType === t ? 'white' : '#555', cursor: 'pointer', textTransform: 'capitalize'
+                }}>{t === 'workout' ? 'Workout' : 'Diet'}</button>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* Template picker */}
-        <div>
-          <label className="block text-sm text-zinc-400 mb-2">
-            Template <span className="text-zinc-600">(optional)</span>
-          </label>
-          {templates.length === 0 ? (
-            <button
-              onClick={() => navigate('/trainer/templates/new')}
-              className="w-full p-4 bg-zinc-900 border border-dashed border-zinc-700 rounded-xl text-zinc-400 text-sm text-center"
-            >
-              No templates yet — create one first
-            </button>
-          ) : (
-            <div className="space-y-2">
-              {/* No template option */}
-              <button
-                onClick={() => setSelectedTemplate('')}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                  selectedTemplate === ''
-                    ? 'border-zinc-600 bg-zinc-800'
-                    : 'border-zinc-800 bg-zinc-900'
-                }`}
-              >
-                <span className="text-zinc-400 text-sm">Custom plan (no template)</span>
-                {selectedTemplate === '' && <span className="ml-auto text-zinc-400">✓</span>}
-              </button>
-
-              {templates.map(t => {
-                const days = t.template_data?.days || [];
-                const totalEx = days.reduce((s, d) => s + (d.exercises?.length || 0), 0);
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelectedTemplate(t.id)}
-                    className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${
-                      selectedTemplate === t.id
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-zinc-800 bg-zinc-900'
-                    }`}
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{t.name}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
-                        {days.length} days · {totalEx} exercises · {t.template_data?.difficulty || '—'}
-                      </p>
-                    </div>
-                    {selectedTemplate === t.id && <span className="text-emerald-400">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Plan name */}
-        <div>
-          <label className="block text-sm text-zinc-400 mb-2">Plan name</label>
-          <input
-            type="text"
-            placeholder="e.g. 4-Week Hypertrophy Program"
-            value={planName}
-            onChange={(e) => setPlanName(e.target.value)}
-            className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-          />
-        </div>
-
-        {/* Dates */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm text-zinc-400 mb-2">Start date</label>
-            <input
-              type="date"
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-zinc-400 mb-2">End date <span className="text-zinc-600">(optional)</span></label>
-            <input
-              type="date"
-              value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="block text-sm text-zinc-400 mb-2">Notes for client <span className="text-zinc-600">(optional)</span></label>
-          <textarea
-            rows={3}
-            placeholder="Any instructions, tips, or context for the client..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none resize-none"
-          />
-        </div>
-
-        {/* Summary card */}
-        {selectedClient && planName && (
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
-            <p className="text-emerald-400 text-sm font-medium mb-1">Ready to assign</p>
-            <p className="text-sm text-zinc-300">
-              <span className="text-white font-medium">{planName}</span>
-              {' '}→{' '}
-              <span className="text-white font-medium">{selectedClientData?.client?.full_name || 'Client'}</span>
-            </p>
-            {selectedTemplateData && (
-              <p className="text-xs text-zinc-500 mt-1">
-                Using template: {selectedTemplateData.name}
-              </p>
+            {replacingPlanId && (
+              <div style={{
+                background: '#FAEEDA', border: '0.5px solid #854F0B',
+                borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 12, color: '#854F0B'
+              }}>
+                Replacing existing plan. The client's current plan will be ended when the new one starts.
+              </div>
             )}
+
+            {filteredTemplates.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 32, color: '#999', fontSize: 13 }}>
+                No {planType} templates yet
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {filteredTemplates.map((t, idx) => {
+                  const isSelected = selectedTemplate?.id === t.id;
+                  const accent = accentColors[idx % 6];
+                  const days = t.template_data?.days?.length || 0;
+                  const exercises = t.template_data?.days?.reduce((sum, d) => sum + (d.exercises?.length || 0), 0) || 0;
+                  return (
+                    <div
+                      key={t.id}
+                      onClick={() => setSelectedTemplate(t)}
+                      style={{
+                        height: 80, borderRadius: 10,
+                        border: isSelected ? '0.5px solid #111' : '0.5px solid rgba(0,0,0,0.08)',
+                        background: isSelected ? '#F7F7F5' : 'white',
+                        display: 'flex', alignItems: 'center',
+                        padding: '0 16px', gap: 12, cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: accent, flexShrink: 0 }} />
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{t.name}</div>
+                        <div style={{ fontSize: 12, color: '#999' }}>
+                          {planType === 'workout'
+                            ? `${days} days · ${exercises} exercises`
+                            : `${t.template_data?.calories || 0} kcal`
+                          }
+                        </div>
+                      </div>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: '50%',
+                        border: isSelected ? 'none' : '1.5px solid #D0D0D0',
+                        background: isSelected ? '#111' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                      }}>
+                        {isSelected && <CheckIcon color="white" size={10} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button
+              onClick={() => navigate(planType === 'workout' ? '/trainer/templates/new' : '/trainer/diet-templates/new')}
+              style={{
+                width: '100%', marginTop: 10, padding: '12px 0',
+                border: '1.5px dashed #D0D0D0', borderRadius: 10,
+                background: 'transparent', fontSize: 13, color: '#185FA5', cursor: 'pointer'
+              }}
+            >
+              Build new {planType} template instead
+            </button>
+          </div>
+        )}
+
+        {/* ── Step 3: Schedule ── */}
+        {step === 3 && (
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Schedule</h2>
+            <p style={{ fontSize: 13, color: '#888', marginBottom: 16 }}>When should the plan start?</p>
+
+            {/* Start date nav */}
+            <div style={{ background: 'white', borderRadius: 12, padding: '16px', marginBottom: 12, border: '0.5px solid rgba(0,0,0,0.08)' }}>
+              <div style={{ fontSize: 11, color: '#999', marginBottom: 12 }}>Start date</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <button onClick={prevDay} style={{ width: 40, height: 40, background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  <div style={{ fontSize: 28, fontWeight: 500 }}>
+                    {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>
+                    {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+                <button onClick={nextDay} style={{ width: 40, height: 40, background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div style={{ background: 'white', borderRadius: 12, padding: 16, marginBottom: 12, border: '0.5px solid rgba(0,0,0,0.08)' }}>
+              <div style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>Duration</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {[4, 8, 12].map(w => (
+                  <button key={w} onClick={() => { setDuration(w); setCustomDuration(false); }} style={{
+                    height: 34, padding: '0 14px', borderRadius: 20, fontSize: 13,
+                    border: !customDuration && duration === w ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
+                    background: !customDuration && duration === w ? '#111' : 'transparent',
+                    color: !customDuration && duration === w ? 'white' : '#555', cursor: 'pointer'
+                  }}>{w} weeks</button>
+                ))}
+                <button onClick={() => setCustomDuration(true)} style={{
+                  height: 34, padding: '0 14px', borderRadius: 20, fontSize: 13,
+                  border: customDuration ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
+                  background: customDuration ? '#111' : 'transparent',
+                  color: customDuration ? 'white' : '#555', cursor: 'pointer'
+                }}>Custom</button>
+              </div>
+              {customDuration && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+                  <input
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={duration}
+                    onChange={e => setDuration(parseInt(e.target.value) || 1)}
+                    style={{
+                      width: 60, height: 36, borderRadius: 8,
+                      border: '0.5px solid rgba(0,0,0,0.15)',
+                      textAlign: 'center', fontSize: 14, outline: 'none'
+                    }}
+                  />
+                  <span style={{ fontSize: 13, color: '#666' }}>weeks</span>
+                </div>
+              )}
+              <div style={{ marginTop: 10, fontSize: 12, color: '#999' }}>
+                Ends {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </div>
+            </div>
+
+            {/* Message */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Message to client (optional)</div>
+              <textarea
+                rows={3}
+                placeholder="Any tips, instructions, or encouragement…"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                style={{
+                  width: '100%', background: '#F7F7F5', border: 'none',
+                  borderRadius: 8, padding: 12, fontSize: 13, color: '#333',
+                  resize: 'none', outline: 'none', boxSizing: 'border-box',
+                  fontFamily: 'inherit', display: 'block'
+                }}
+              />
+            </div>
+
+            {/* Summary card */}
+            <div style={{ background: 'white', borderRadius: 10, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden', marginBottom: 16 }}>
+              {[
+                { label: 'Client', value: selectedClient?.client?.full_name || '—' },
+                { label: 'Plan', value: selectedTemplate?.name || 'Custom Plan' },
+                { label: 'Type', value: planType === 'workout' ? 'Workout' : 'Diet' },
+                { label: 'Start', value: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
+                { label: 'Duration', value: `${duration} weeks` },
+              ].map((row, i, arr) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '10px 16px',
+                  borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none'
+                }}>
+                  <span style={{ fontSize: 13, color: '#999' }}>{row.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800 p-5">
-        <button
-          onClick={handleAssign}
-          disabled={!selectedClient || !planName.trim() || assigning}
-          className="w-full py-4 bg-emerald-500 rounded-xl font-semibold text-base disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {assigning ? 'Assigning...' : `Assign to ${selectedClientData?.client?.full_name || 'Client'}`}
-        </button>
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '0.5px solid rgba(0,0,0,0.08)',
+        padding: '12px 16px 28px'
+      }}>
+        {step < 3 ? (
+          <button
+            onClick={() => setStep(step + 1)}
+            disabled={!canNext}
+            style={{
+              width: '100%', height: 52, borderRadius: 12,
+              background: canNext ? '#111' : '#E0E0E0',
+              color: canNext ? 'white' : '#999',
+              border: 'none', fontSize: 15, fontWeight: 500,
+              cursor: canNext ? 'pointer' : 'not-allowed'
+            }}
+          >
+            Next
+          </button>
+        ) : (
+          <button
+            onClick={handleAssign}
+            disabled={assigning}
+            style={{
+              width: '100%', height: 52, borderRadius: 12,
+              background: assigning ? '#ccc' : '#111',
+              color: 'white', border: 'none', fontSize: 15,
+              fontWeight: 500, cursor: assigning ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {assigning ? 'Assigning…' : `Assign to ${selectedClient?.client?.full_name || 'Client'}`}
+          </button>
+        )}
       </div>
     </div>
   );

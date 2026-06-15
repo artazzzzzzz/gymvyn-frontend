@@ -10,7 +10,7 @@ function Spinner() {
 }
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading, onboardingComplete } = useAuth()
+  const { user, loading, role, onboardingComplete } = useAuth()
 
   if (loading) return <Spinner />
 
@@ -19,8 +19,15 @@ export default function ProtectedRoute({ children }) {
   // Onboarding check still in flight
   if (onboardingComplete === null) return <Spinner />
 
-  // Logged in but hasn't done onboarding
-  if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+  // Logged in but no role chosen yet
+  if (!role) return <Navigate to="/role-select" replace />
+
+  // Role chosen but role-specific onboarding not done
+  if (!onboardingComplete) {
+    if (role === 'trainer')   return <Navigate to="/become-trainer"  replace />
+    if (role === 'gym_owner') return <Navigate to="/gym-onboarding"  replace />
+    return <Navigate to="/onboarding" replace />
+  }
 
   return children
 }

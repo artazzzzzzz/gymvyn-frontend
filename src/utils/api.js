@@ -31,6 +31,13 @@ export async function getGymByUserId(userId) {
 
 // ── Gym member management ────────────────────────────────────────────────────
 
+export async function getGymMembers(gymId) {
+  const res = await fetch(`${BASE_URL}/api/gym-members?gymId=${encodeURIComponent(gymId)}`)
+  const data = await res.json().catch(() => null)
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch members (${res.status})`)
+  return Array.isArray(data) ? data : (data?.members ?? [])
+}
+
 export async function addGymMember({
   gymId, fullName, phone, membershipType, monthlyFee,
   startDate, assignedTrainerId, notes,
@@ -322,3 +329,62 @@ export async function joinGym(userId, joinCode) {
   if (!res.ok) throw new Error(data.error || data.message || `Failed to join gym (${res.status})`);
   return data;
 }
+
+// ── Diet & Macros ────────────────────────────────────────────────────────────
+
+async function dietRequest(path, { method = 'GET', body } = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`);
+  return data;
+}
+
+export const calculateMacros = (userId) =>
+  dietRequest('/api/macros/calculate', { method: 'POST', body: { userId } });
+
+export const getMacros = (userId) =>
+  dietRequest(`/api/macros/${userId}`);
+
+export const searchFood = (query) =>
+  dietRequest(`/api/food-search?q=${encodeURIComponent(query)}`);
+
+export const logFood = (data) =>
+  dietRequest('/api/food-logs', { method: 'POST', body: data });
+
+export const getFoodLogs = (userId, date) =>
+  dietRequest(`/api/food-logs/${userId}?date=${encodeURIComponent(date)}`);
+
+export const deleteFoodLog = (logId) =>
+  dietRequest(`/api/food-logs/${logId}`, { method: 'DELETE' });
+
+export const logFoodByVoice = (data) =>
+  dietRequest('/api/food-logs/voice', { method: 'POST', body: data });
+
+export const logFoodByCamera = (data) =>
+  dietRequest('/api/food-logs/camera', { method: 'POST', body: data });
+
+export const generateDietPlan = (data) =>
+  dietRequest('/api/diet-plan/generate', { method: 'POST', body: data });
+
+export const getDietPlan = (userId) =>
+  dietRequest(`/api/diet-plan/${userId}`);
+
+export const createCustomMeal = (data) =>
+  dietRequest('/api/custom-meals', { method: 'POST', body: data });
+
+export const getCustomMeals = (userId) =>
+  dietRequest(`/api/custom-meals/${userId}`);
+
+export const deleteCustomMeal = (mealId) =>
+  dietRequest(`/api/custom-meals/${mealId}`, { method: 'DELETE' });
+
+// ── Workout session ──────────────────────────────────────────────────────────
+
+// Route the finish call through the backend (service-role key) to avoid the
+// PostgREST schema-cache error on workout_logs.exercises (JSONB column).
+export const finishWorkout = (data) =>
+  apiFetch('/api/workout/finish', { method: 'POST', body: JSON.stringify(data) });

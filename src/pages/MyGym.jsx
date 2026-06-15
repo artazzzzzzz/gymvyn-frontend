@@ -1,67 +1,76 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  MapPin, Phone, Megaphone, CalendarDays, Clock, Users, Bell, Info, Zap,
-  Loader2, Building2,
-} from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Loader2, Building2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getMyGym, joinGym } from '../utils/api'
-import BottomNav from '../components/BottomNav'
 
-const DAYS = [
-  { key: 0, short: 'Mon', long: 'Monday'    },
-  { key: 1, short: 'Tue', long: 'Tuesday'   },
-  { key: 2, short: 'Wed', long: 'Wednesday' },
-  { key: 3, short: 'Thu', long: 'Thursday'  },
-  { key: 4, short: 'Fri', long: 'Friday'    },
-  { key: 5, short: 'Sat', long: 'Saturday'  },
-  { key: 6, short: 'Sun', long: 'Sunday'    },
-]
-
-const PRIORITY_STYLES = {
-  normal:    { bg: 'bg-white/[0.06]', border: 'border-white/[0.10]', text: 'text-zinc-300', icon: Info,  iconColor: 'text-zinc-400' },
-  important: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', icon: Bell, iconColor: 'text-amber-400' },
-  urgent:    { bg: 'bg-red-500/10',   border: 'border-red-500/30',  text: 'text-red-400',   icon: Zap,  iconColor: 'text-red-400' },
-}
-
-function formatTime(t) {
-  if (!t) return ''
-  const [h, m] = t.split(':')
-  const hour = Number(h)
-  const minute = m ?? '00'
-  const ampm = hour >= 12 ? 'PM' : 'AM'
-  const display = hour % 12 || 12
-  return `${display}:${minute} ${ampm}`
-}
+// ── Utility helpers (kept from original) ─────────────────────────────────────
 
 function timeAgo(iso) {
   if (!iso) return '—'
   const diff = Date.now() - new Date(iso).getTime()
   const min = Math.floor(diff / 60000)
-  if (min < 1)    return 'just now'
-  if (min < 60)   return `${min}m ago`
+  if (min < 1)  return 'just now'
+  if (min < 60) return `${min}m ago`
   const hr = Math.floor(min / 60)
-  if (hr < 24)    return `${hr}h ago`
+  if (hr < 24)  return `${hr}h ago`
   const day = Math.floor(hr / 24)
-  if (day < 7)    return `${day}d ago`
-  if (day < 30)   {
-    const w = Math.floor(day / 7)
-    return `${w}w ago`
-  }
-  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  if (day < 7)  return `${day}d ago`
+  const w = Math.floor(day / 7)
+  return w < 4 ? `${w}w ago` : new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
-function PriorityPill({ priority }) {
-  const s = PRIORITY_STYLES[priority] ?? PRIORITY_STYLES.normal
-  const Icon = s.icon
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${s.bg} ${s.border} ${s.text}`}>
-      <Icon size={10} className={s.iconColor} />
-      {priority || 'normal'}
-    </span>
-  )
+// ── Mock / fallback data ──────────────────────────────────────────────────────
+
+const mockGym = {
+  name: 'IronPeak Fitness',
+  location: 'Bhopal · MP',
+  memberSince: 'Jan 2025',
+  tier: 'Gold Member',
+  memberId: 'FF-2024-0847',
 }
 
-// ── Join-a-gym view ──────────────────────────────────────────────────────────
+const mockOccupancy = {
+  current: 34,
+  capacity: 80,
+  hourly: [20, 45, 70, 55, 35, 30, 42, 50, 38, 43, 65, 80],
+  currentHour: 7,
+}
+
+const mockClasses = [
+  { id: '1', name: 'Morning HIIT',             time: '06:30', period: 'AM', duration: '45 min', trainer: 'Priya Sharma',  spotsLeft: 4, capacity: 16, status: 'upcoming' },
+  { id: '2', name: 'Strength & Conditioning', time: '08:00', period: 'AM', duration: '60 min', trainer: 'Vikram Nair',   spotsLeft: 0, capacity: 20, status: 'booked'   },
+  { id: '3', name: 'Yoga Flow',               time: '07:00', period: 'AM', duration: '50 min', trainer: 'Ananya Singh',  spotsLeft: 0, capacity: 15, status: 'past'     },
+]
+
+const mockAnnouncements = [
+  {
+    id: '1',
+    accentColor: '#185FA5',
+    title: 'New equipment arriving this week',
+    body: '3 new cable machines and a Smith rack will be available from Monday. First come first served.',
+    postedBy: 'Management',
+    timeAgo: '2 days ago',
+  },
+]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const occPct   = o => Math.round((o.current / o.capacity) * 100)
+const occColor = p => p < 50 ? '#3B6D11' : p < 75 ? '#854F0B' : '#A32D2D'
+const occLabel = p => p < 50 ? 'Quiet right now — great time to go' : p < 75 ? 'Moderate — getting busy' : 'Busy — peak hours'
+
+const QR_GRID = [
+  [1,1,1,0,1,0,1],
+  [1,0,1,0,1,0,1],
+  [1,1,1,0,0,1,0],
+  [0,0,0,1,1,0,1],
+  [1,1,0,1,0,1,1],
+  [1,0,1,0,1,0,1],
+  [1,1,1,0,1,1,1],
+]
+
+// ── Join-a-gym view (preserved from original) ─────────────────────────────────
 
 function JoinGymView({ userId, onJoined }) {
   const [code, setCode] = useState('')
@@ -71,10 +80,7 @@ function JoinGymView({ userId, onJoined }) {
   async function submit(e) {
     e.preventDefault()
     setError('')
-    if (!code.trim()) {
-      setError('Enter a join code.')
-      return
-    }
+    if (!code.trim()) { setError('Enter a join code.'); return }
     setBusy(true)
     try {
       const data = await joinGym(userId, code.trim().toUpperCase())
@@ -87,191 +93,44 @@ function JoinGymView({ userId, onJoined }) {
   }
 
   return (
-    <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-8 sm:p-10 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-5">
-        <Building2 size={26} className="text-emerald-400" />
+    <div className="flex flex-col items-center pt-12 px-5 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-[#E1F5EE] flex items-center justify-center mb-5">
+        <Building2 size={26} className="text-[#0F6E56]" />
       </div>
-      <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Join a gym</h2>
-      <p className="text-zinc-400 text-sm max-w-md mx-auto mb-6">
-        Enter the 6-character join code your gym shared with you to see schedule and announcements.
+      <h2 className="text-xl font-bold text-[#111] mb-2">Join a gym</h2>
+      <p className="text-[13px] text-[#999] max-w-xs leading-relaxed mb-6">
+        Enter the join code your gym shared with you to see schedule and announcements.
       </p>
-
-      <form onSubmit={submit} className="max-w-xs mx-auto">
+      <form onSubmit={submit} className="w-full max-w-xs">
         <input
           type="text"
           value={code}
           onChange={e => setCode(e.target.value.toUpperCase())}
           placeholder="ABC123"
           maxLength={12}
-          className="w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-white placeholder-zinc-700 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 uppercase"
+          className="w-full bg-[#F1EFE8] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-[#111] placeholder-[#CCC] focus:outline-none uppercase"
         />
-        {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+        {error && <p className="mt-2 text-xs text-[#A32D2D]">{error}</p>}
         <button
           type="submit"
           disabled={busy || !code.trim()}
-          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-4 w-full bg-[#111] text-white font-semibold text-sm px-5 py-3 rounded-xl disabled:opacity-40"
         >
-          {busy && <Loader2 size={14} className="animate-spin" />}
-          {busy ? 'Joining…' : 'Join'}
+          {busy ? 'Joining…' : 'Join Gym'}
         </button>
       </form>
     </div>
   )
 }
 
-// ── Gym header ───────────────────────────────────────────────────────────────
-
-function GymHeaderCard({ gym }) {
-  return (
-    <section className="bg-[#141416] border border-white/[0.06] rounded-2xl p-5 mb-5 flex items-start gap-4">
-      {gym.logo_url ? (
-        <img
-          src={gym.logo_url}
-          alt={`${gym.name} logo`}
-          className="w-14 h-14 rounded-2xl object-cover flex-shrink-0"
-        />
-      ) : (
-        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-          <Building2 size={22} className="text-emerald-400" />
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">
-          {gym.name || 'Your gym'}
-        </h2>
-        <div className="mt-1.5 space-y-1">
-          {gym.address && (
-            <p className="text-xs text-zinc-400 flex items-start gap-1.5">
-              <MapPin size={12} className="mt-0.5 text-zinc-500 flex-shrink-0" />
-              <span className="break-words">{gym.address}</span>
-            </p>
-          )}
-          {gym.phone && (
-            <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-              <Phone size={12} className="text-zinc-500 flex-shrink-0" />
-              <a href={`tel:${gym.phone}`} className="hover:text-white tabular-nums">{gym.phone}</a>
-            </p>
-          )}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ── Announcements section ────────────────────────────────────────────────────
-
-function AnnouncementsSection({ items }) {
-  return (
-    <section className="mb-5">
-      <h3 className="text-sm font-semibold text-white mb-2.5 flex items-center gap-1.5">
-        <Megaphone size={14} className="text-emerald-400" />
-        Announcements
-      </h3>
-      {items.length === 0 ? (
-        <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-6 text-center">
-          <p className="text-sm text-zinc-300 font-medium">No announcements yet</p>
-          <p className="text-xs text-zinc-500 mt-1">Updates from your gym will show up here.</p>
-        </div>
-      ) : (
-        <ul className="space-y-2.5">
-          {items.map(a => (
-            <li key={a.id} className="bg-[#141416] border border-white/[0.06] rounded-2xl p-4">
-              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <h4 className="text-sm font-semibold text-white">{a.title}</h4>
-                <PriorityPill priority={a.priority} />
-              </div>
-              <p className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">{a.body}</p>
-              <p className="text-[11px] text-zinc-500 mt-2">{timeAgo(a.created_at)}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
-
-// ── Schedule section (read-only) ─────────────────────────────────────────────
-
-function ScheduleSection({ schedule }) {
-  const byDay = useMemo(() => {
-    const map = new Map(DAYS.map(d => [d.key, []]))
-    for (const c of schedule) {
-      const k = Number(c.day_of_week)
-      if (map.has(k)) map.get(k).push(c)
-    }
-    return map
-  }, [schedule])
-
-  const allEmpty = schedule.length === 0
-
-  return (
-    <section>
-      <h3 className="text-sm font-semibold text-white mb-2.5 flex items-center gap-1.5">
-        <CalendarDays size={14} className="text-emerald-400" />
-        This week
-      </h3>
-
-      {allEmpty ? (
-        <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-6 text-center">
-          <p className="text-sm text-zinc-300 font-medium">No classes scheduled</p>
-          <p className="text-xs text-zinc-500 mt-1">Classes will show up here once your gym posts them.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-          {DAYS.map(d => {
-            const dayClasses = byDay.get(d.key) || []
-            return (
-              <div key={d.key} className="bg-[#141416] border border-white/[0.06] rounded-2xl p-3 min-h-[140px]">
-                <div className="flex items-center justify-between mb-2.5">
-                  <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
-                    {d.short}
-                  </p>
-                  <p className="text-[10px] text-zinc-500 tabular-nums">
-                    {dayClasses.length}
-                  </p>
-                </div>
-
-                {dayClasses.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-center py-4 text-zinc-600">
-                    <CalendarDays size={16} className="mb-1" />
-                    <p className="text-[11px]">No classes</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {dayClasses.map(c => (
-                      <div key={c.id} className="bg-[#1a1a1d] border border-white/[0.06] rounded-xl p-3">
-                        <p className="text-sm font-semibold text-white mb-1.5 truncate">{c.class_name}</p>
-                        <div className="flex items-center gap-1 text-[11px] text-zinc-400 tabular-nums mb-1">
-                          <Clock size={10} />
-                          {formatTime(c.start_time)} – {formatTime(c.end_time)}
-                        </div>
-                        {c.trainer_name && (
-                          <p className="text-[11px] text-zinc-500 truncate">with {c.trainer_name}</p>
-                        )}
-                        <div className="flex items-center gap-1 text-[11px] text-zinc-500 tabular-nums mt-1">
-                          <Users size={10} />
-                          {c.capacity} {c.capacity === 1 ? 'spot' : 'spots'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </section>
-  )
-}
-
-// ── Main page ────────────────────────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function MyGym() {
-  const { user } = useAuth()
-  const [data, setData] = useState(null)        // { linked, gym, announcements, schedule }
+  const { user }    = useAuth()
+  const navigate    = useNavigate()
+  const [data,    setData]    = useState(null)   // { linked, gym, announcements, schedule }
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error,   setError]   = useState('')
 
   async function load() {
     if (!user) return
@@ -290,47 +149,334 @@ export default function MyGym() {
 
   useEffect(() => { load() }, [user])
 
-  function onJoined(_gymName) {
-    // Reload so BottomNav re-evaluates the user's gym_id and the linked view renders.
+  function onJoined() {
     window.location.reload()
   }
 
+  // Derive display values from real API data with mock fallbacks
+  const gymData = {
+    name:        data?.gym?.name     || mockGym.name,
+    location:    data?.gym?.address  || mockGym.location,
+    memberSince: mockGym.memberSince,
+    tier:        mockGym.tier,
+    memberId:    mockGym.memberId,
+  }
+
+  const occ = mockOccupancy   // no live-occupancy API yet
+  const classes = mockClasses // no class-booking API yet
+
+  const displayAnnouncements = data?.announcements?.length > 0
+    ? data.announcements.map(a => ({
+        id: a.id,
+        accentColor: a.priority === 'urgent' ? '#A32D2D' : '#185FA5',
+        title:    a.title,
+        body:     a.body,
+        postedBy: 'Management',
+        timeAgo:  timeAgo(a.created_at),
+      }))
+    : mockAnnouncements
+
+  const pct   = occPct(occ)
+  const color = occColor(pct)
+  const label = occLabel(pct)
+
   return (
-    <div className="min-h-screen bg-[#0c0c0e] pb-24 overflow-x-hidden">
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-emerald-500/[0.07] blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-[#F7F7F5] pb-24">
 
-      <div className="relative z-10 max-w-5xl mx-auto px-5 py-10 sm:py-12">
-        <header className="mb-7">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">My Gym</h1>
-          <p className="text-zinc-500 text-sm mt-0.5">
-            {loading ? 'Loading…'
-              : data?.linked ? 'Schedule and announcements from your gym.'
-              : 'Connect to your gym to see what’s happening.'}
-          </p>
-        </header>
-
-        {error && (
-          <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-8 sm:p-10 flex items-center justify-center">
-            <Loader2 size={20} className="text-zinc-500 animate-spin" />
-          </div>
-        ) : !data?.linked ? (
-          <JoinGymView userId={user?.id} onJoined={onJoined} />
-        ) : (
-          <>
-            {data.gym && <GymHeaderCard gym={data.gym} />}
-            <AnnouncementsSection items={data.announcements || []} />
-            <ScheduleSection schedule={data.schedule || []} />
-          </>
-        )}
+      {/* TOP BAR */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
+        <span className="text-xl font-semibold text-[#111]">My Gym</span>
+        <button className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
       </div>
 
-      <BottomNav />
+      {loading ? (
+        <div className="pt-14 flex items-center justify-center min-h-screen">
+          <Loader2 size={24} className="text-[#999] animate-spin" />
+        </div>
+      ) : !data?.linked ? (
+        <div className="pt-14">
+          <JoinGymView userId={user?.id} onJoined={onJoined} />
+        </div>
+      ) : (
+        <div className="pt-[72px] px-5 space-y-4 pb-6">
+
+          {/* ── MEMBERSHIP CARD ─────────────────────────────── */}
+          <div className="relative w-full bg-[#111] rounded-[20px] overflow-hidden" style={{ height: 180 }}>
+
+            {/* Dot-grid texture */}
+            <div className="absolute inset-0 pointer-events-none" style={{
+              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+              backgroundSize: '14px 14px',
+            }} />
+
+            {/* Gold accent at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] z-10" style={{ background: '#D4A017' }} />
+
+            {/* Content */}
+            <div className="relative z-10 p-5 h-full flex flex-col justify-between">
+
+              {/* Top row */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[18px] font-bold text-white leading-tight">{gymData.name}</p>
+                  <p className="text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{gymData.location}</p>
+                </div>
+                {/* QR pattern */}
+                <div className="w-14 h-14 rounded-xl p-1.5 flex items-center justify-center"
+                  style={{ background: 'rgba(255,255,255,0.10)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1.5, width: 42, height: 42 }}>
+                    {QR_GRID.flat().map((cell, i) => (
+                      <div key={i} style={{
+                        borderRadius: 1,
+                        backgroundColor: cell ? 'rgba(255,255,255,0.9)' : 'transparent',
+                        width: 5, height: 5,
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom */}
+              <div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+                    style={{
+                      background: 'rgba(255,255,255,0.10)',
+                      border: '0.5px solid rgba(255,255,255,0.20)',
+                      color: '#D4A017',
+                    }}
+                  >
+                    {gymData.tier}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#3B6D11]" />
+                    <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>Active</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    Member since {gymData.memberSince}
+                  </span>
+                  <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.5)' }}>Tap to show QR</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── LIVE OCCUPANCY ──────────────────────────────── */}
+          <div className="bg-white rounded-2xl border border-black/[0.06] p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Live Occupancy</span>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3B6D11]" />
+                <span className="text-[11px] text-[#3B6D11]">Updated now</span>
+              </div>
+            </div>
+
+            {/* Count + progress bar */}
+            <div className="flex items-center gap-4 mt-3">
+              <div className="shrink-0">
+                <div className="flex items-baseline">
+                  <span className="text-[36px] font-bold text-[#111] tabular-nums leading-none">{occ.current}</span>
+                  <span className="text-base text-[#CCC] mx-1">/</span>
+                  <span className="text-base text-[#999]">{occ.capacity}</span>
+                </div>
+                <span className="text-[11px] text-[#999] mt-0.5 block">members</span>
+              </div>
+              <div className="flex-1">
+                <div className="h-3 w-full bg-[#F1EFE8] rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${pct}%`, backgroundColor: color }} />
+                </div>
+                <p className="text-[12px] mt-1.5" style={{ color }}>{label}</p>
+              </div>
+            </div>
+
+            {/* Hourly bars */}
+            <div className="mt-4 pt-3 border-t border-black/[0.04]">
+              <p className="text-[11px] text-[#999] mb-2">Today's pattern</p>
+              <div className="flex items-end gap-1">
+                {occ.hourly.map((val, i) => {
+                  const h = Math.max(3, Math.round((val / 100) * 32))
+                  const isCurrent = i === occ.currentHour
+                  const isPast    = i < occ.currentHour
+                  return (
+                    <div key={i} className="flex flex-col items-center flex-1">
+                      <div className="w-full rounded-t-sm transition-all"
+                        style={{
+                          height: h,
+                          backgroundColor: isCurrent ? '#111' : isPast ? '#E5E5E3' : '#F1EFE8',
+                        }} />
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex justify-between mt-1 px-0.5">
+                {['6a', '9a', '12p', '3p', '6p'].map(l => (
+                  <span key={l} className="text-[10px] text-[#CCC]">{l}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── TODAY'S CLASSES ─────────────────────────────── */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Today's Classes</span>
+              <button className="text-[13px] font-medium text-[#185FA5]">View all →</button>
+            </div>
+
+            {classes.map(cls => (
+              <div
+                key={cls.id}
+                className={`bg-white rounded-xl p-4 mb-2 flex items-center gap-3 relative overflow-hidden ${
+                  cls.status === 'booked'
+                    ? 'border-[1.5px] border-[#3B6D11]'
+                    : 'border border-black/[0.06]'
+                } ${cls.status === 'past' ? 'opacity-50' : ''}`}
+              >
+                {/* Green left accent on booked */}
+                {cls.status === 'booked' && (
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#3B6D11]" />
+                )}
+
+                {/* Time column */}
+                <div className="w-12 shrink-0 pl-1">
+                  <p className="text-[14px] font-semibold text-[#111] tabular-nums">{cls.time}</p>
+                  <p className="text-[10px] text-[#999]">{cls.period}</p>
+                  <p className="text-[11px] text-[#CCC] mt-0.5">{cls.duration}</p>
+                </div>
+
+                {/* Divider */}
+                <div className="w-px h-10 bg-[#F1EFE8] shrink-0" />
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#111] truncate">{cls.name}</p>
+                  <p className="text-xs text-[#999] mt-0.5">with {cls.trainer}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {cls.status === 'upcoming' && (
+                      <>
+                        <span className="text-[11px] font-medium bg-[#EAF3DE] text-[#3B6D11] px-2 py-0.5 rounded-full">
+                          {cls.spotsLeft} spots left
+                        </span>
+                        <span className="text-[11px] text-[#999]">
+                          {cls.capacity - cls.spotsLeft}/{cls.capacity}
+                        </span>
+                      </>
+                    )}
+                    {cls.status === 'booked' && (
+                      <span className="text-[11px] font-semibold bg-[#EAF3DE] text-[#3B6D11] px-2 py-0.5 rounded-full">
+                        ✓ Booked
+                      </span>
+                    )}
+                    {cls.status === 'past' && (
+                      <span className="text-[11px] bg-[#F1EFE8] text-[#999] px-2 py-0.5 rounded-full">
+                        Attended
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action */}
+                {cls.status === 'upcoming' && (
+                  <button className="bg-[#111] text-white text-[12px] font-semibold px-3 py-1.5 rounded-xl shrink-0">
+                    Book →
+                  </button>
+                )}
+                {cls.status === 'booked' && (
+                  <button className="text-[12px] text-[#999] shrink-0">Cancel</button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* ── ANNOUNCEMENTS ───────────────────────────────── */}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999] mb-3">
+              Announcements
+            </p>
+            {displayAnnouncements.map(a => (
+              <div
+                key={a.id}
+                className="bg-white rounded-xl border border-black/[0.06] p-4 mb-2 flex gap-3 relative overflow-hidden"
+              >
+                <div className="w-[3px] rounded-full shrink-0 self-stretch"
+                  style={{ backgroundColor: a.accentColor }} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#111]">{a.title}</p>
+                  <p className="text-[13px] text-[#666] mt-1 leading-snug">{a.body}</p>
+                  <p className="text-[11px] text-[#CCC] mt-3">
+                    Posted by {a.postedBy} · {a.timeAgo}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── QUICK ACTIONS ───────────────────────────────── */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              {
+                label: 'Check-in QR',
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+                  </svg>
+                ),
+              },
+              {
+                label: 'Contact Gym',
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
+                ),
+              },
+              {
+                label: 'My Membership',
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                ),
+              },
+              {
+                label: 'Leave a Review',
+                icon: (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                ),
+              },
+            ].map((a, i) => (
+              <button
+                key={i}
+                className="bg-white rounded-xl border border-black/[0.06] p-4 flex items-center gap-3 h-14"
+              >
+                <div className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center shrink-0">
+                  {a.icon}
+                </div>
+                <span className="text-sm font-medium text-[#111]">{a.label}</span>
+              </button>
+            ))}
+          </div>
+
+        </div>
+      )}
     </div>
   )
 }

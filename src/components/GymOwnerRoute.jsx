@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
 
 function Spinner() {
   return (
@@ -12,32 +10,15 @@ function Spinner() {
 }
 
 export default function GymOwnerRoute({ children }) {
-  const { user, loading } = useAuth()
-  const [role, setRole] = useState(null)
-  const [checking, setChecking] = useState(true)
+  const { user, loading, role, onboardingComplete } = useAuth()
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      if (!user) {
-        setChecking(false)
-        return
-      }
-      const { data } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (cancelled) return
-      setRole(data?.role ?? null)
-      setChecking(false)
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
-
-  if (loading || checking) return <Spinner />
+  if (loading) return <Spinner />
   if (!user) return <Navigate to="/login" replace />
-  if (role !== 'gym_owner') return <Navigate to="/home" replace />
+
+  // role/onboardingComplete still resolving from checkOnboarding
+  if (role === null || onboardingComplete === null) return <Spinner />
+
+  if (role !== 'gym_owner') return <Navigate to="/gym-onboarding" replace />
+
   return children
 }

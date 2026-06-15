@@ -1,24 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import {
   X, Check, Plus, Trash2, Camera, ChevronLeft, Loader2, AlertCircle,
-  Search, Dumbbell, ScanLine, SkipForward,
+  SkipForward,
 } from 'lucide-react'
 import { useWorkoutSession } from '../hooks/useWorkoutSession'
-import { useExercises } from '../hooks/useExercises'
+import ExercisePicker from '../components/ExercisePicker'
 import { supabase } from '../utils/supabase'
-import { exercises as FORM_RULES } from '../utils/formRules'
 import { useAuth } from '../hooks/useAuth'
 import FormCoachModal from '../components/FormCoachModal'
-
-function hasFormCoach(name) {
-  if (!name) return false
-  const n = name.toLowerCase().replace(/[^a-z0-9]/g, '')
-  return Object.keys(FORM_RULES).some(key => {
-    const k = key.toLowerCase().replace(/[^a-z0-9]/g, '')
-    return n === k || n.includes(k) || k.includes(n)
-  })
-}
+import { hasFormDetection } from '../utils/formRuleMapping'
 
 const MUSCLE_COLOURS = {
   chest:     'bg-red-500/15 text-red-300 ring-red-500/30',
@@ -197,7 +188,7 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
     return () => { cancelled = true }
   }, [userId, exercise.exerciseId])
 
-  const formCoachAvailable = hasFormCoach(exercise.exerciseName)
+  const aiForm = hasFormDetection(exercise.exerciseName)
 
   return (
     <div className="bg-gray-900 border border-white/[0.07] rounded-2xl p-4 space-y-3">
@@ -213,14 +204,13 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => onCheckForm(exercise)}
-            disabled={!formCoachAvailable}
             className={[
               'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
-              formCoachAvailable
+              aiForm
                 ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-white/[0.03] text-gray-600 ring-1 ring-inset ring-white/[0.06] cursor-not-allowed',
+                : 'bg-blue-500/15 text-blue-300 ring-1 ring-inset ring-blue-500/30 hover:bg-blue-500/25',
             ].join(' ')}
-            title={formCoachAvailable ? 'Check form' : 'No form coach for this exercise'}
+            title={aiForm ? 'AI Form Check' : 'Guided Form Check'}
           >
             <Camera size={15} />
           </button>
@@ -266,149 +256,48 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
   )
 }
 
-// ─── Exercise Picker Modal ───────────────────────────────────────────────────
-
-function ExercisePickerModal({ open, onClose, onPick, alreadyAddedIds }) {
-  const {
-    filteredExercises, loading, searchQuery, setSearchQuery,
-    muscleGroup, setMuscleGroup, muscleGroups,
-  } = useExercises()
-
-  if (!open) return null
-
-  return (
-    <div className="fixed inset-0 z-50 bg-gray-950/95 backdrop-blur-sm flex flex-col">
-      <header className="px-5 pt-12 pb-4 flex items-center gap-3 border-b border-white/[0.06]">
-        <button
-          onClick={onClose}
-          className="w-9 h-9 rounded-xl bg-white/[0.05] flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <h2 className="text-white font-semibold text-base">Add Exercise</h2>
-      </header>
-
-      <div className="px-5 py-3 space-y-2 border-b border-white/[0.06]">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search exercises…"
-            className="w-full bg-gray-900 border border-white/[0.07] rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/40"
-          />
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          <button
-            onClick={() => setMuscleGroup('')}
-            className={[
-              'shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full ring-1 ring-inset transition-colors',
-              muscleGroup === ''
-                ? 'bg-orange-500/20 text-orange-200 ring-orange-500/40'
-                : 'bg-white/[0.03] text-gray-400 ring-white/10',
-            ].join(' ')}
-          >
-            All
-          </button>
-          {muscleGroups.map(g => (
-            <button
-              key={g}
-              onClick={() => setMuscleGroup(g)}
-              className={[
-                'shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full ring-1 ring-inset transition-colors',
-                muscleGroup === g
-                  ? 'bg-orange-500/20 text-orange-200 ring-orange-500/40'
-                  : 'bg-white/[0.03] text-gray-400 ring-white/10',
-              ].join(' ')}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-5 py-3">
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 size={20} className="text-orange-500 animate-spin" />
-          </div>
-        ) : filteredExercises.length === 0 ? (
-          <p className="text-center text-gray-500 text-sm py-10">No exercises match</p>
-        ) : (
-          <ul className="space-y-1.5">
-            {filteredExercises.map(ex => {
-              const added = alreadyAddedIds.has(ex.id)
-              const fc = hasFormCoach(ex.name)
-              return (
-                <li key={ex.id}>
-                  <button
-                    type="button"
-                    onClick={() => !added && onPick(ex)}
-                    disabled={added}
-                    className={[
-                      'w-full text-left bg-gray-900 border border-white/[0.07] rounded-xl p-3 flex items-center gap-3 transition-colors',
-                      added ? 'opacity-50' : 'hover:border-orange-500/30',
-                    ].join(' ')}
-                  >
-                    <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
-                      <Dumbbell size={15} className="text-gray-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-white truncate">{ex.name}</p>
-                      <p className="text-[11px] text-gray-500 truncate">
-                        {ex.muscle_group} · {ex.equipment}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {fc && (
-                        <span className="inline-flex items-center text-[9px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30 px-1.5 py-0.5 rounded-full">
-                          <ScanLine size={9} className="mr-0.5" />
-                          Form
-                        </span>
-                      )}
-                      {added ? (
-                        <span className="text-[10px] uppercase font-bold text-gray-500">Added</span>
-                      ) : (
-                        <Plus size={16} className="text-gray-400" />
-                      )}
-                    </div>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // ─── Cancel Confirm ──────────────────────────────────────────────────────────
 
-function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel }) {
+function ConfirmDialog({ open, onConfirm, onCancel }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-gray-900 border border-white/[0.08] rounded-2xl p-5 space-y-4">
-        <div>
-          <h3 className="text-white font-bold text-base">{title}</h3>
-          <p className="text-gray-400 text-sm mt-1 leading-relaxed">{body}</p>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '20px 20px 0 0',
+          padding: '32px 24px 40px',
+          width: '100%',
+          maxWidth: '480px',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <span style={{ fontSize: 22 }}>🛑</span>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl bg-white/[0.05] text-white font-semibold text-sm hover:bg-white/[0.1] transition-colors"
-          >
-            Keep going
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl bg-red-500/15 text-red-300 ring-1 ring-inset ring-red-500/30 font-semibold text-sm hover:bg-red-500/25 transition-colors"
-          >
-            {confirmLabel}
-          </button>
-        </div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', textAlign: 'center', margin: '0 0 8px' }}>
+          End this workout?
+        </h2>
+        <p style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', margin: '0 0 28px', lineHeight: 1.5 }}>
+          Your progress won't be saved.
+        </p>
+        <button
+          onClick={onConfirm}
+          style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#EF4444', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', marginBottom: 12, cursor: 'pointer' }}
+        >
+          Discard Workout
+        </button>
+        <button
+          onClick={onCancel}
+          style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#F3F4F6', color: '#111827', fontWeight: 600, fontSize: 15, border: 'none', cursor: 'pointer' }}
+        >
+          Keep Going
+        </button>
       </div>
     </div>
   )
@@ -419,6 +308,8 @@ function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel })
 export default function LiveSession() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
+  const preloaded = location.state
   const { user } = useAuth()
 
   const session = useWorkoutSession()
@@ -455,13 +346,23 @@ export default function LiveSession() {
     updateSetFormScore(formCoachTargetExerciseId, lastCompleted.setNumber, score)
   }
 
-  // Pre-load exercises from ?exercises= and start the session on mount
+  // Pre-load exercises from ?exercises= or location.state plan, then start the session
   useEffect(() => {
     if (!user || isActive) return
     let cancelled = false
     ;(async () => {
       const id = await startSession()
       if (cancelled || !id) return
+
+      // Preloaded from plan (location.state)
+      if (preloaded?.exercises?.length > 0) {
+        for (const ex of preloaded.exercises) {
+          addExercise({ id: ex.id || ex.name, name: ex.name, muscleGroup: ex.muscleGroup || '' })
+        }
+        return
+      }
+
+      // Fallback: load from ?exercises= URL param
       const exIds = (searchParams.get('exercises') ?? '')
         .split(',').map(s => s.trim()).filter(Boolean)
       if (!exIds.length) return
@@ -498,117 +399,273 @@ export default function LiveSession() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 pb-32 overflow-x-hidden">
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[480px] h-[220px] bg-orange-500/[0.05] blur-[90px] rounded-full pointer-events-none" />
+    <div style={{ background: '#F7F7F5', minHeight: '100vh', paddingBottom: 48 }}>
 
-      <RestTimerBar
-        restTimer={restTimer}
-        restDuration={restDuration}
-        onSkip={skipRest}
-        onChangeDuration={setRestDuration}
-      />
-
-      {/* Top bar */}
-      <header className={[
-        'sticky top-0 z-30 bg-gray-950/95 backdrop-blur-sm border-b border-white/[0.06] transition-[padding] duration-200',
-        restTimer.active ? 'pt-28' : 'pt-12',
-      ].join(' ')}>
-        <div className="px-5 pb-3 flex items-center justify-between gap-3">
-          <button
-            onClick={() => setConfirmCancel(true)}
-            className="w-9 h-9 rounded-xl bg-white/[0.05] flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-            title="Cancel workout"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <div className="text-center min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">Workout in progress</p>
-            <p className="text-white font-mono font-bold text-lg leading-tight">{formatElapsed(elapsedSeconds)}</p>
-          </div>
-          <button
-            onClick={handleFinish}
-            disabled={isSaving || !sessionId}
-            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.97] text-white font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_18px_rgba(16,185,129,0.35)]"
-          >
-            {isSaving ? <Loader2 size={14} className="animate-spin" /> : 'Finish'}
-          </button>
-        </div>
-      </header>
-
-      <div className="relative z-10 px-5 pt-4 space-y-3">
-        {(error || bootError) && (
-          <div className="flex items-start gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-3.5 py-2.5">
-            <AlertCircle size={14} className="text-red-400 shrink-0 mt-0.5" />
-            <p className="text-red-400 text-xs leading-relaxed flex-1">{error || bootError}</p>
-            <button onClick={() => { clearError(); setBootError(null) }} className="text-red-300 text-xs font-semibold">Dismiss</button>
-          </div>
-        )}
-
-        {!sessionId && !error && (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 size={22} className="text-orange-500 animate-spin" />
-            <p className="text-gray-400 text-sm">Starting your session…</p>
-          </div>
-        )}
-
-        {sessionId && exercises.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-5 text-center">
-            <button
-              onClick={() => setPickerOpen(true)}
-              className="w-20 h-20 rounded-3xl bg-orange-500/15 ring-1 ring-inset ring-orange-500/30 flex items-center justify-center text-orange-300 hover:bg-orange-500/25 active:scale-95 transition-all"
-            >
-              <Plus size={32} />
-            </button>
-            <div>
-              <p className="text-white font-semibold text-base">Add your first exercise</p>
-              <p className="text-gray-500 text-sm mt-1">Tap the button to pick from the library</p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {exercises.map(ex => (
-              <ExerciseBlock
-                key={ex.exerciseId}
-                exercise={ex}
-                userId={user?.id}
-                onAddSet={addSet}
-                onRemoveSet={removeSet}
-                onUpdateSet={updateSet}
-                onCompleteSet={completeSet}
-                onRemove={() => removeExercise(ex.exerciseId)}
-                onCheckForm={handleCheckForm}
-              />
-            ))}
-          </div>
-        )}
+      {/* ── Fixed top bar ────────────────────────────────────── */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+        background: 'white', borderBottom: '1px solid rgba(0,0,0,0.05)',
+        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 20px',
+      }}>
+        <button
+          onClick={() => setConfirmCancel(true)}
+          style={{ fontSize: 14, fontWeight: 500, color: '#A32D2D', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          ← End
+        </button>
+        <span style={{ fontSize: 14, fontWeight: 500, color: '#111', fontVariantNumeric: 'tabular-nums' }}>
+          {formatElapsed(elapsedSeconds)}
+        </span>
+        <button
+          onClick={handleFinish}
+          disabled={isSaving || !sessionId}
+          style={{
+            fontSize: 14, fontWeight: 500, color: 'white', background: '#111',
+            borderRadius: 12, padding: '6px 16px', border: 'none', cursor: 'pointer',
+            opacity: (isSaving || !sessionId) ? 0.5 : 1,
+          }}
+        >
+          {isSaving ? '…' : 'Finish'}
+        </button>
       </div>
 
-      {/* Bottom add-exercise bar */}
-      {sessionId && exercises.length > 0 && (
-        <div className="fixed bottom-0 inset-x-0 z-30 bg-gray-950/95 backdrop-blur-sm border-t border-white/[0.06]">
-          <div className="max-w-lg mx-auto px-5 py-3">
+      {/* ── Error banner ─────────────────────────────────────── */}
+      {(error || bootError) && (
+        <div style={{
+          position: 'fixed', top: 56, left: 0, right: 0, zIndex: 49,
+          background: '#FEF2F2', borderBottom: '1px solid rgba(220,38,38,0.15)',
+          padding: '8px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+        }}>
+          <span style={{ fontSize: 12, color: '#DC2626', flex: 1 }}>{error || bootError}</span>
+          <button onClick={() => { clearError(); setBootError(null) }} style={{ fontSize: 12, color: '#DC2626', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Dismiss</button>
+        </div>
+      )}
+
+      {/* ── Rest timer banner ─────────────────────────────────── */}
+      {restTimer.active && (
+        <div style={{
+          position: 'sticky', top: 56, zIndex: 40,
+          background: '#FFFBF5', borderBottom: '1px solid rgba(133,79,11,0.15)',
+          padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', background: '#FAEEDA', color: '#854F0B', padding: '2px 8px', borderRadius: 20 }}>
+              REST
+            </span>
+            <span style={{ fontSize: 22, fontWeight: 600, color: '#854F0B', fontVariantNumeric: 'tabular-nums' }}>
+              {formatMmSs(restTimer.secondsLeft)}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[{ label: '−30s', delta: -30 }, { label: '+30s', delta: 30 }].map(({ label, delta }) => (
+              <button
+                key={label}
+                onClick={() => setRestDuration(Math.max(5, restTimer.secondsLeft + delta))}
+                style={{ height: 32, padding: '0 10px', border: '1px solid rgba(133,79,11,0.25)', borderRadius: 8, fontSize: 12, fontWeight: 500, color: '#854F0B', background: 'white', cursor: 'pointer' }}
+              >
+                {label}
+              </button>
+            ))}
             <button
-              onClick={() => setPickerOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-[0_0_18px_rgba(249,115,22,0.35)]"
+              onClick={skipRest}
+              style={{ height: 32, padding: '0 10px', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'white', background: '#854F0B', cursor: 'pointer' }}
             >
-              <Plus size={16} />
-              Add Exercise
+              Skip
             </button>
           </div>
         </div>
       )}
 
-      <ExercisePickerModal
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        onPick={(ex) => { addExercise(ex); setPickerOpen(false) }}
-        alreadyAddedIds={alreadyAddedIds}
-      />
+      {/* ── Workout title ─────────────────────────────────────── */}
+      <div style={{ paddingTop: 72, paddingLeft: 20, paddingRight: 20, paddingBottom: 4 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 600, color: '#111', margin: 0 }}>
+          {preloaded?.planName || 'Workout'}
+        </h2>
+        <p style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
+          {exercises.length === 0
+            ? 'No exercises yet'
+            : `${exercises.length} exercise${exercises.length === 1 ? '' : 's'}`}
+        </p>
+      </div>
+
+      {/* ── Loading spinner ───────────────────────────────────── */}
+      {!sessionId && !error && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #111', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+          <p style={{ fontSize: 14, color: '#999' }}>Starting session…</p>
+        </div>
+      )}
+
+      {/* ── Empty state ───────────────────────────────────────── */}
+      {sessionId && exercises.length === 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 20px', gap: 16, textAlign: 'center' }}>
+          <button
+            onClick={() => setPickerOpen(true)}
+            style={{ width: 64, height: 64, borderRadius: 20, background: '#F1EFE8', border: 'none', cursor: 'pointer', fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            +
+          </button>
+          <div>
+            <p style={{ fontSize: 16, fontWeight: 500, color: '#111', margin: 0 }}>Add your first exercise</p>
+            <p style={{ fontSize: 13, color: '#999', marginTop: 4 }}>Tap to pick from the library</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Scrollable exercise list ──────────────────────────── */}
+      {sessionId && exercises.map(ex => (
+        <div key={ex.exerciseId} style={{ margin: '12px 20px 0', background: 'white', borderRadius: 12, border: '1px solid rgba(0,0,0,0.08)', padding: 16 }}>
+
+          {/* Exercise header */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 16, fontWeight: 600, color: '#111', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {ex.exerciseName}
+              </p>
+              {ex.muscleGroup && (
+                <p style={{ fontSize: 12, color: '#999', marginTop: 2 }}>{ex.muscleGroup}</p>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 8 }}>
+              <button
+                onClick={() => handleCheckForm(ex)}
+                style={{ width: 32, height: 32, borderRadius: 8, background: '#EAF3DE', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Form check"
+              >
+                <Camera size={14} color="#3B6D11" />
+              </button>
+              <button
+                onClick={() => removeExercise(ex.exerciseId)}
+                style={{ width: 32, height: 32, borderRadius: 8, background: '#F1EFE8', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Remove exercise"
+              >
+                <X size={14} color="#999" />
+              </button>
+            </div>
+          </div>
+
+          {/* Set header row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+            {['SET', 'PREVIOUS', 'KG', 'REPS', ''].map((h, i) => (
+              <span key={i} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#999', textAlign: i >= 2 ? 'center' : 'left' }}>{h}</span>
+            ))}
+          </div>
+
+          {/* Set rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {ex.sets.map(set => (
+              <div
+                key={set.setNumber}
+                style={{
+                  display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px',
+                  gap: 6, padding: '6px 4px', alignItems: 'center', borderRadius: 8,
+                  background: set.completed ? 'rgba(59,109,17,0.05)' : 'transparent',
+                  borderLeft: set.completed ? '2px solid #3B6D11' : '2px solid transparent',
+                }}
+              >
+                {/* Set number */}
+                <span style={{ fontSize: 13, fontWeight: 500, color: set.completed ? '#3B6D11' : '#999' }}>
+                  {set.setNumber}
+                </span>
+                {/* Previous */}
+                <span style={{ fontSize: 12, color: '#CCC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>—</span>
+                {/* KG */}
+                {set.completed ? (
+                  <span style={{ fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 500 }}>{set.weight || '—'}</span>
+                ) : (
+                  <input
+                    type="number" inputMode="decimal"
+                    value={set.weight}
+                    onChange={e => updateSet(ex.exerciseId, set.setNumber, 'weight', e.target.value)}
+                    placeholder="0"
+                    style={{ width: '100%', height: 36, background: '#F7F7F5', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: '#111', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                )}
+                {/* Reps */}
+                {set.completed ? (
+                  <span style={{ fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 500 }}>{set.reps || '—'}</span>
+                ) : (
+                  <input
+                    type="number" inputMode="numeric"
+                    value={set.reps}
+                    onChange={e => updateSet(ex.exerciseId, set.setNumber, 'reps', e.target.value)}
+                    placeholder="0"
+                    style={{ width: '100%', height: 36, background: '#F7F7F5', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: '#111', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                )}
+                {/* Complete / undo button */}
+                {set.completed ? (
+                  <button
+                    onClick={() => removeSet(ex.exerciseId, set.setNumber)}
+                    style={{ width: 32, height: 32, borderRadius: 8, background: '#EAF3DE', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Undo set"
+                  >
+                    <Check size={15} color="#3B6D11" strokeWidth={3} />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => completeSet(ex.exerciseId, set.setNumber)}
+                    style={{ width: 32, height: 32, borderRadius: 8, background: '#F1EFE8', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Log set"
+                  >
+                    <Check size={15} color="#CCC" strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Add Set */}
+          <button
+            onClick={() => addSet(ex.exerciseId)}
+            style={{ marginTop: 10, fontSize: 13, fontWeight: 500, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 4px', display: 'flex', alignItems: 'center', gap: 4 }}
+          >
+            <Plus size={13} /> Add Set
+          </button>
+        </div>
+      ))}
+
+      {/* ── Bottom actions ────────────────────────────────────── */}
+      {sessionId && (
+        <div style={{ margin: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button
+            onClick={() => setPickerOpen(true)}
+            style={{
+              width: '100%', height: 48, borderRadius: 12, border: '1.5px dashed rgba(0,0,0,0.15)',
+              background: 'transparent', fontSize: 14, fontWeight: 500, color: '#111', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <Plus size={16} /> Add Exercise
+          </button>
+          <button
+            onClick={handleFinish}
+            disabled={isSaving || exercises.length === 0}
+            style={{
+              width: '100%', height: 52, background: '#111', color: 'white',
+              fontSize: 16, fontWeight: 500, borderRadius: 12, border: 'none', cursor: 'pointer',
+              opacity: (isSaving || exercises.length === 0) ? 0.4 : 1,
+            }}
+          >
+            {isSaving ? 'Saving…' : 'Finish Workout'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Exercise picker ───────────────────────────────────── */}
+      {pickerOpen && (
+        <ExercisePicker
+          onSelect={ex => { addExercise({ id: ex.id, name: ex.name, muscle_group: ex.muscle || '' }); setPickerOpen(false) }}
+          onClose={() => setPickerOpen(false)}
+          preSelected={exercises.map(e => e.exerciseName)}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmCancel}
         title="Cancel workout?"
-        body="All progress will be lost and the session will be deleted."
+        body="All progress will be lost."
         confirmLabel="Cancel workout"
         onCancel={() => setConfirmCancel(false)}
         onConfirm={handleCancel}

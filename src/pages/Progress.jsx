@@ -9,7 +9,7 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
-import BottomNav from '../components/BottomNav'
+
 
 const API = import.meta.env.VITE_BACKEND_URL
 
@@ -281,10 +281,10 @@ function WeightTab({ userId }) {
     setLoading(true)
     const { data } = await supabase
       .from('progress_entries')
-      .select('id, date, weight')
+      .select('id, logged_at, weight_kg')
       .eq('user_id', userId)
-      .not('weight', 'is', null)
-      .order('date', { ascending: true })
+      .not('weight_kg', 'is', null)
+      .order('logged_at', { ascending: true })
     setEntries(data ?? [])
     setLoading(false)
   }
@@ -295,8 +295,8 @@ function WeightTab({ userId }) {
     setSaving(true)
     const { error } = await supabase.from('progress_entries').insert({
       user_id: userId,
-      date: new Date().toISOString().slice(0, 10),
-      weight: val,
+      logged_at: new Date().toISOString(),
+      weight_kg: val,
     })
     if (!error) {
       setWeight('')
@@ -306,12 +306,12 @@ function WeightTab({ userId }) {
   }
 
   const chartData = entries.map(e => ({
-    date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    weight: e.weight,
+    date: new Date(e.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    weight: e.weight_kg,
   }))
 
-  const first   = entries[0]?.weight
-  const current = entries[entries.length - 1]?.weight
+  const first   = entries[0]?.weight_kg
+  const current = entries[entries.length - 1]?.weight_kg
   const delta   = first && current ? +(current - first).toFixed(1) : null
 
   return (
@@ -411,11 +411,11 @@ function WeightTab({ userId }) {
 // ── Measurements Tab ──────────────────────────────────────────────────────────
 
 const MEASURE_FIELDS = [
-  { key: 'chest',  label: 'Chest'  },
-  { key: 'waist',  label: 'Waist'  },
-  { key: 'hips',   label: 'Hips'   },
-  { key: 'bicep',  label: 'Bicep'  },
-  { key: 'thigh',  label: 'Thigh'  },
+  { key: 'chest',  label: 'Chest',  col: 'chest_cm'  },
+  { key: 'waist',  label: 'Waist',  col: 'waist_cm'  },
+  { key: 'hips',   label: 'Hips',   col: 'hips_cm'   },
+  { key: 'bicep',  label: 'Bicep',  col: 'bicep_cm'  },
+  { key: 'thigh',  label: 'Thigh',  col: 'thigh_cm'  },
 ]
 
 function MeasurementsTab({ userId }) {
@@ -430,10 +430,10 @@ function MeasurementsTab({ userId }) {
     setLoading(true)
     const { data } = await supabase
       .from('progress_entries')
-      .select('id, date, measurements')
+      .select('id, logged_at, chest_cm, waist_cm, hips_cm, bicep_cm, thigh_cm')
       .eq('user_id', userId)
-      .not('measurements', 'is', null)
-      .order('date', { ascending: false })
+      .or('chest_cm.not.is.null,waist_cm.not.is.null,hips_cm.not.is.null,bicep_cm.not.is.null,thigh_cm.not.is.null')
+      .order('logged_at', { ascending: false })
       .limit(1)
       .maybeSingle()
     setLast(data ?? null)
@@ -441,15 +441,17 @@ function MeasurementsTab({ userId }) {
   }
 
   async function handleSave() {
-    const m = Object.fromEntries(
-      Object.entries(values).filter(([, v]) => v !== '').map(([k, v]) => [k, parseFloat(v)])
+    const cols = Object.fromEntries(
+      MEASURE_FIELDS
+        .filter(f => values[f.key] !== '')
+        .map(f => [f.col, parseFloat(values[f.key])])
     )
-    if (Object.keys(m).length === 0) return
+    if (Object.keys(cols).length === 0) return
     setSaving(true)
     const { error } = await supabase.from('progress_entries').insert({
       user_id: userId,
-      date: new Date().toISOString().slice(0, 10),
-      measurements: m,
+      logged_at: new Date().toISOString(),
+      ...cols,
     })
     if (!error) {
       setValues({ chest: '', waist: '', hips: '', bicep: '', thigh: '' })
@@ -502,7 +504,7 @@ function MeasurementsTab({ userId }) {
           <p className="text-white font-semibold text-sm mb-3">
             Last Logged&nbsp;
             <span className="text-zinc-500 font-normal text-xs">
-              {new Date(last.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              {new Date(last.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
           </p>
           <div className="grid grid-cols-3 gap-3">
@@ -510,7 +512,7 @@ function MeasurementsTab({ userId }) {
               <div key={f.key} className="bg-gray-800 rounded-xl p-3 text-center">
                 <p className="text-zinc-500 text-[11px] mb-1">{f.label}</p>
                 <p className="text-white font-bold text-sm">
-                  {last.measurements?.[f.key] != null ? `${last.measurements[f.key]} cm` : '—'}
+                  {last[f.col] != null ? `${last[f.col]} cm` : '—'}
                 </p>
               </div>
             ))}
@@ -654,72 +656,421 @@ function PRsTab({ userId }) {
   )
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const days = Math.floor(diff / 86400000)
+  if (days === 0) return 'today'
+  if (days === 1) return 'yesterday'
+  if (days < 7) return `${days} days ago`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks} week${weeks !== 1 ? 's' : ''} ago`
+  const months = Math.floor(days / 30)
+  return `${months} month${months !== 1 ? 's' : ''} ago`
+}
+
+function prAbbr(name = '') {
+  const words = name.trim().split(/\s+/)
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return words.slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
+}
+
+const PR_COLORS = [
+  { bg: '#E6F1FB', text: '#0C447C' },
+  { bg: '#FAECE7', text: '#993C1D' },
+  { bg: '#EAF3DE', text: '#3B6D11' },
+  { bg: '#F1EFE8', text: '#5F5E5A' },
+  { bg: '#E1F5EE', text: '#0F6E56' },
+]
+
+function computeWeeklyVolume(logs) {
+  const weeks = {}
+  for (const log of logs) {
+    if (!log.started_at) continue
+    const d = new Date(log.started_at)
+    const dow = d.getDay() // 0=Sun
+    const monday = new Date(d)
+    monday.setDate(d.getDate() - ((dow + 6) % 7))
+    const key = monday.toISOString().slice(0, 10)
+    let vol = 0
+    for (const ex of (log.exercises ?? [])) {
+      for (const s of (ex.sets ?? [])) {
+        vol += (s.weight_kg || 0) * (s.reps_completed || 0)
+      }
+    }
+    weeks[key] = (weeks[key] || 0) + vol
+  }
+
+  const result = []
+  for (let i = 3; i >= 0; i--) {
+    const monday = new Date()
+    const dow = monday.getDay()
+    monday.setDate(monday.getDate() - ((dow + 6) % 7) - i * 7)
+    const key = monday.toISOString().slice(0, 10)
+    result.push({
+      week: i === 0 ? 'This wk' : `${i}w ago`,
+      kg: Math.round(weeks[key] || 0),
+    })
+  }
+  return result
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function Progress() {
   const { user } = useAuth()
-  const [tab, setTab] = useState('photos')
-  const { current, best, loading: streakLoading } = useStreak(user?.id)
+  const userId = user?.id
+  const { current: streakCurrent, best: streakBest } = useStreak(userId)
+
+  const [timeRange, setTimeRange] = useState('3M')
+  const [loading, setLoading]     = useState(true)
+
+  // Real data
+  const [entries,     setEntries]     = useState([])  // progress_entries with weight_kg
+  const [userRow,     setUserRow]     = useState(null) // users row
+  const [prs,         setPrs]         = useState([])  // personal_records
+  const [volumeData,  setVolumeData]  = useState([])  // computed weekly volume
+  const [workedDates, setWorkedDates] = useState(new Set()) // YYYY-MM-DD strings
+
+  useEffect(() => {
+    if (!userId) return
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+
+      const cutoff = new Date()
+      if (timeRange === '3M') cutoff.setMonth(cutoff.getMonth() - 3)
+      else cutoff.setFullYear(2000)
+
+      const fourWeeksAgo = new Date()
+      fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28)
+
+      const [
+        { data: entriesData },
+        { data: userData },
+        { data: prsData },
+        { data: wlogs },
+      ] = await Promise.all([
+        supabase
+          .from('progress_entries')
+          .select('logged_at, weight_kg')
+          .eq('user_id', userId)
+          .not('weight_kg', 'is', null)
+          .gte('logged_at', cutoff.toISOString())
+          .order('logged_at', { ascending: true }),
+        supabase
+          .from('users')
+          .select('current_weight, target_weight')
+          .eq('id', userId)
+          .maybeSingle(),
+        supabase
+          .from('personal_records')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false })
+          .limit(3),
+        supabase
+          .from('workout_logs')
+          .select('started_at, exercises')
+          .eq('user_id', userId)
+          .not('completed_at', 'is', null)
+          .gte('started_at', fourWeeksAgo.toISOString()),
+      ])
+
+      if (cancelled) return
+
+      setEntries(entriesData ?? [])
+      setUserRow(userData)
+      setPrs(prsData ?? [])
+      setVolumeData(computeWeeklyVolume(wlogs ?? []))
+
+      // All-time worked dates for calendar (re-query without cutoff)
+      const today = new Date()
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString()
+      const { data: calLogs } = await supabase
+        .from('workout_logs')
+        .select('started_at')
+        .eq('user_id', userId)
+        .not('completed_at', 'is', null)
+        .gte('started_at', monthStart)
+      if (!cancelled) {
+        setWorkedDates(new Set((calLogs ?? []).map(l => l.started_at?.slice(0, 10)).filter(Boolean)))
+      }
+
+      setLoading(false)
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [userId, timeRange])
+
+  // ── Derived values ────────────────────────────────────────────────────────
+  const earliest = entries[0]
+  const latest   = entries[entries.length - 1]
+
+  const currentWeight  = latest?.weight_kg  ?? userRow?.current_weight  ?? null
+  const startingWeight = earliest?.weight_kg ?? userRow?.current_weight  ?? null
+  const goalWeight     = userRow?.target_weight ?? null
+  const weightDelta    = currentWeight != null && startingWeight != null
+    ? +(currentWeight - startingWeight).toFixed(1) : null
+
+  const goalPct = currentWeight != null && startingWeight != null && goalWeight != null
+    && startingWeight !== goalWeight
+    ? Math.min(Math.max(
+        ((startingWeight - currentWeight) / (startingWeight - goalWeight)) * 100, 0
+      ), 100).toFixed(0)
+    : null
+
+  const chartData = entries.map(e => ({
+    month: new Date(e.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    weight: e.weight_kg,
+  }))
+
+  const bestVol = Math.max(...volumeData.map(v => v.kg), 0)
+
+  // Calendar grid for current month (Mon–Sun)
+  const today     = new Date()
+  const yr        = today.getFullYear()
+  const mo        = today.getMonth()
+  const daysInMo  = new Date(yr, mo + 1, 0).getDate()
+  const firstDow  = new Date(yr, mo, 1).getDay() // 0=Sun
+  const leadEmpty = (firstDow + 6) % 7           // shift to Mon-start
+  const calCells  = [
+    ...Array(leadEmpty).fill(null),
+    ...Array.from({ length: daysInMo }, (_, i) => i + 1),
+  ]
+  const todayNum = today.getDate()
+  const moStr    = `${yr}-${String(mo + 1).padStart(2, '0')}`
+  const daysThisMonth = [...workedDates].filter(d => d.startsWith(moStr)).length
 
   return (
-    <div className="min-h-screen bg-[#0c0c0e] pb-24">
-      {/* Header */}
-      <header className="px-5 pt-12 pb-4">
-        <h1 className="text-2xl font-bold text-white">Progress</h1>
-        <p className="text-zinc-500 text-sm mt-1">Track your results over time</p>
-      </header>
+    <div className="min-h-screen bg-[#F7F7F5] pb-24">
 
-      {/* Streak banner */}
-      <div className="px-5 mb-5">
-        <div className="bg-gray-900 rounded-2xl px-5 py-4 flex items-center gap-4">
-          <span className="text-4xl leading-none">🔥</span>
-          <div className="flex-1">
-            {streakLoading ? (
-              <div className="h-7 w-24 bg-white/[0.06] rounded-lg animate-pulse mb-1" />
-            ) : (
-              <p className="text-3xl font-bold text-white leading-none">
-                {current}
-                <span className="text-base font-semibold text-zinc-400 ml-2">day streak</span>
-              </p>
-            )}
-            <p className="text-zinc-500 text-xs mt-1">
-              {streakLoading ? '' : `Best: ${best} day${best !== 1 ? 's' : ''}`}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tab pills */}
-      <div className="px-5 mb-5">
-        <div className="flex bg-gray-900 rounded-2xl p-1 gap-1">
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                tab === t.id
-                  ? 'bg-emerald-500 text-black shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              <t.icon size={13} strokeWidth={2} />
-              <span className="hidden xs:inline">{t.label}</span>
+      {/* Fixed Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
+        <span className="text-xl font-semibold text-[#111]">Progress</span>
+        <div className="flex gap-1.5">
+          {['3M', 'All'].map(r => (
+            <button key={r} onClick={() => setTimeRange(r)}
+              className={`h-7 px-3 rounded-[10px] text-[13px] font-medium transition-colors ${
+                timeRange === r ? 'bg-[#111] text-white' : 'border border-black/10 text-[#999]'
+              }`}>
+              {r}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Tab content */}
-      {user && (
-        <>
-          {tab === 'photos'       && <PhotosTab       userId={user.id} />}
-          {tab === 'weight'       && <WeightTab        userId={user.id} />}
-          {tab === 'measurements' && <MeasurementsTab  userId={user.id} />}
-          {tab === 'prs'          && <PRsTab           userId={user.id} />}
-        </>
-      )}
+      <div className="pt-[72px] px-5 space-y-4 pb-6">
 
-      <BottomNav />
+        {/* BODY STATS CARD */}
+        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Body Stats</span>
+          </div>
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
+          ) : currentWeight == null ? (
+            <div className="py-6 text-center">
+              <p className="text-[#999] text-sm">No data yet.</p>
+              <p className="text-[#CCC] text-xs mt-1">Log your first weigh-in in the Weight tab.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 divide-x divide-y divide-black/[0.05]">
+                {[
+                  {
+                    label: 'current',
+                    value: `${currentWeight} kg`,
+                    delta: weightDelta != null
+                      ? weightDelta < 0 ? `↓ ${Math.abs(weightDelta)} kg lost` : weightDelta > 0 ? `↑ ${weightDelta} kg gained` : 'No change'
+                      : '—',
+                    deltaColor: weightDelta != null && weightDelta < 0 ? '#3B6D11' : weightDelta != null && weightDelta > 0 ? '#A32D2D' : '#999',
+                  },
+                  {
+                    label: 'starting',
+                    value: `${startingWeight} kg`,
+                    delta: earliest?.logged_at ? `since ${new Date(earliest.logged_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : 'onboarding',
+                    deltaColor: '#999',
+                  },
+                  { label: 'body fat',    value: '—', delta: 'not tracked', deltaColor: '#CCC' },
+                  { label: 'muscle mass', value: '—', delta: 'not tracked', deltaColor: '#CCC' },
+                ].map((s, i) => (
+                  <div key={i} className="p-4 flex flex-col gap-0.5">
+                    <span className="text-[11px] uppercase tracking-wider text-[#999]">{s.label}</span>
+                    <span className="text-[22px] font-semibold text-[#111] tabular-nums leading-tight">{s.value}</span>
+                    <span className="text-[12px] font-medium" style={{ color: s.deltaColor }}>{s.delta}</span>
+                  </div>
+                ))}
+              </div>
+              {goalWeight != null && goalPct != null && (
+                <div className="mt-4">
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-[12px] text-[#999]">{currentWeight} kg now</span>
+                    <span className="text-[12px] font-medium text-[#111]">Goal: {goalWeight} kg</span>
+                  </div>
+                  <div className="h-2 bg-[#F1EFE8] rounded-full">
+                    <div className="h-full bg-[#111] rounded-full transition-all duration-700" style={{ width: `${goalPct}%` }} />
+                  </div>
+                  <span className="text-[10px] text-[#999] mt-1 block">{goalPct}% to goal</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* WEIGHT CHART */}
+        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Weight</span>
+            {weightDelta != null && (
+              <span className={`text-[13px] font-medium ${weightDelta < 0 ? 'text-[#3B6D11]' : 'text-[#A32D2D]'}`}>
+                {weightDelta < 0 ? '↓' : '↑'} {Math.abs(weightDelta)} kg
+              </span>
+            )}
+          </div>
+          {startingWeight != null && currentWeight != null && (
+            <div className="text-[13px] text-[#999] mb-4">
+              {startingWeight} → {currentWeight} kg
+            </div>
+          )}
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
+          ) : chartData.length < 2 ? (
+            <div className="py-6 text-center">
+              <p className="text-[#999] text-sm">Log at least 2 weigh-ins to see your chart.</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={130}>
+              <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#999' }} axisLine={false} tickLine={false} />
+                <Tooltip content={({ active, payload }) =>
+                  active && payload?.length ? (
+                    <div className="bg-white border border-black/10 rounded-lg px-2 py-1 text-xs font-medium text-[#111]">
+                      {payload[0].value} kg
+                    </div>
+                  ) : null
+                } />
+                <Line
+                  type="monotone" dataKey="weight"
+                  stroke="#111111" strokeWidth={2}
+                  dot={{ r: 4, fill: 'white', stroke: '#111', strokeWidth: 1.5 }}
+                  activeDot={{ r: 5, fill: '#111' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* PERSONAL RECORDS */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Personal Records</span>
+          </div>
+          {loading ? (
+            <div className="flex justify-center py-6"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
+          ) : prs.length === 0 ? (
+            <div className="bg-white rounded-xl border border-black/[0.06] p-5 text-center">
+              <p className="text-[#999] text-sm">No personal records yet.</p>
+              <p className="text-[#CCC] text-xs mt-1">Finish a workout to set your first PR.</p>
+            </div>
+          ) : (
+            prs.map((pr, i) => {
+              const c = PR_COLORS[i % PR_COLORS.length]
+              return (
+                <div key={pr.id} className="bg-white rounded-xl border border-black/[0.06] p-4 mb-2 flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-semibold uppercase tracking-wider"
+                    style={{ backgroundColor: c.bg, color: c.text }}>
+                    {prAbbr(pr.exercise)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#111] truncate">{pr.exercise}</p>
+                    <p className="text-xs text-[#999] mt-0.5">Set {timeAgo(pr.date)}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-lg font-semibold text-[#111] tabular-nums">{pr.weight} kg</p>
+                    <p className="text-xs text-[#999] mt-0.5">× {pr.reps} reps</p>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* WEEKLY VOLUME */}
+        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Weekly Volume</span>
+          </div>
+          {loading ? (
+            <div className="flex justify-center py-6"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
+          ) : bestVol === 0 ? (
+            <p className="text-[#999] text-sm text-center py-4">No workouts logged in the last 4 weeks.</p>
+          ) : (
+            <div className="space-y-3">
+              {volumeData.map((w, i) => {
+                const pct = bestVol > 0 ? Math.round((w.kg / bestVol) * 100) : 0
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-[12px] text-[#999] w-14 shrink-0">{w.week}</span>
+                    <div className="flex-1 h-7 bg-[#F1EFE8] rounded-xl overflow-hidden">
+                      <div className="h-full bg-[#111] rounded-xl transition-all duration-700" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[12px] font-medium text-[#111] tabular-nums w-20 text-right">
+                        {w.kg > 0 ? `${w.kg.toLocaleString()} kg` : '—'}
+                      </span>
+                      {w.kg === bestVol && w.kg > 0 && (
+                        <span className="text-[9px] font-semibold uppercase bg-[#EAF3DE] text-[#3B6D11] px-1.5 py-0.5 rounded-full">
+                          best
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* CONSISTENCY CALENDAR */}
+        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Consistency</span>
+            <span className="text-[12px] text-[#999]">{daysThisMonth}/{daysInMo} days</span>
+          </div>
+          <div className="grid grid-cols-7 mb-2">
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+              <div key={i} className="text-[10px] text-[#999] text-center">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {calCells.map((dayNum, i) => {
+              if (dayNum == null) return <div key={i} />
+              const dateStr = `${moStr}-${String(dayNum).padStart(2, '0')}`
+              const isToday = dayNum === todayNum
+              const worked  = workedDates.has(dateStr)
+              return (
+                <div key={i} className={`aspect-square rounded-lg ${
+                  isToday
+                    ? 'border-[1.5px] border-[#111] bg-white'
+                    : worked
+                    ? 'bg-[#111]'
+                    : 'bg-[#F1EFE8]'
+                }`} />
+              )
+            })}
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-black/[0.04]">
+            <span className="text-[14px] font-semibold text-[#111]">🔥 {streakCurrent ?? 0} day streak</span>
+            <span className="text-[12px] text-[#999]">Best: {streakBest ?? 0} days</span>
+          </div>
+        </div>
+
+      </div>
     </div>
   )
 }

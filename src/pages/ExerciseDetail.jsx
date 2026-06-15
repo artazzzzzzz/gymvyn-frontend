@@ -1,449 +1,707 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  ChevronLeft, Trophy, Dumbbell,
-  TrendingUp, Award, BarChart3, Hash,
-} from 'lucide-react'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer,
-} from 'recharts'
-import { useAuth } from '../hooks/useAuth'
-import { useExercises } from '../hooks/useExercises'
-import { useExerciseHistory } from '../hooks/useExerciseHistory'
+import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { supabase } from '../utils/supabase'
+import { EXERCISE_DATABASE } from '../data/exerciseDatabase'
 import { EXERCISE_INSTRUCTIONS } from '../data/exerciseInstructions'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+const API  = import.meta.env.VITE_API_URL || ''
+const FONT = "'Inter', -apple-system, 'Helvetica Neue', sans-serif"
+const card = { background: '#FFF', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
 
-function formatDate(iso) {
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function getToken() {
+  const { data } = await supabase.auth.getSession()
+  return data?.session?.access_token ?? null
+}
+
+function fmtDate(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function shortDate(iso) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+function timeAgo(iso) {
+  if (!iso) return null
+  const d = Math.floor((Date.now() - new Date(iso)) / 86400000)
+  if (d === 0) return 'today'
+  if (d === 1) return 'yesterday'
+  if (d < 7)  return `${d} days ago`
+  if (d < 14) return '1 week ago'
+  if (d < 30) return `${Math.floor(d / 7)} weeks ago`
+  return `${Math.floor(d / 30)} months ago`
 }
 
-const SECONDARY_MAP = {
-  'Bench Press':        ['Triceps', 'Shoulders'],
-  'Squat':              ['Glutes', 'Hamstrings'],
-  'Deadlift':           ['Glutes', 'Hamstrings'],
-  'Overhead Press':     ['Triceps'],
-  'Bent Over Row':      ['Biceps'],
-  'Pull Up':            ['Biceps'],
-  'Dip':                ['Triceps'],
-  'Lunge':              ['Glutes'],
-  'Romanian Deadlift':  ['Glutes', 'Back'],
-  'Bicep Curl':         ['Forearms'],
-  'Tricep Extension':   [],
-  'Lateral Raise':      [],
-  'Leg Press':          ['Glutes'],
-  'Leg Curl':           [],
-  'Calf Raise':         [],
-  'Face Pull':          ['Traps'],
-  'Cable Row':          ['Biceps'],
-  'Chest Fly':          [],
-  'Incline Bench Press':['Shoulders', 'Triceps'],
-  'Front Squat':        ['Core'],
-  'Hip Thrust':         ['Hamstrings'],
-  'Plank':              [],
-  'Arnold Press':       ['Triceps'],
-  'Hammer Curl':        ['Forearms'],
-  'Skull Crusher':      [],
-  'Good Morning':       ['Back'],
-  'Box Jump':           ['Glutes'],
-  'Battle Ropes':       ['Core'],
-  'Farmer Walk':        ['Traps', 'Core'],
-  'Goblet Squat':       ['Glutes', 'Core'],
-}
+// ── Small components ──────────────────────────────────────────────────────────
 
-function getCategory(mg, name) {
-  const m = (mg   ?? '').toLowerCase()
-  const n = (name ?? '').toLowerCase()
-  if (m === 'hamstrings' && (n.includes('deadlift') || n.includes('morning'))) return 'Hinge'
-  if (['chest', 'triceps', 'shoulders'].includes(m)) return 'Push'
-  if (['back', 'biceps', 'forearms'].includes(m))    return 'Pull'
-  if (['legs', 'quads', 'glutes', 'calves', 'hamstrings'].includes(m)) return 'Legs'
-  if (m === 'core') return 'Core'
-  return 'Other'
-}
-
-// ── Tabs ─────────────────────────────────────────────────────────────────────
-
-const TABS = ['Summary', 'History', 'How To']
-
-// ── Recharts custom tooltip ───────────────────────────────────────────────────
-
-function CustomTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null
+function BookmarkIcon({ filled }) {
   return (
-    <div className="bg-gray-900 border border-white/[0.10] rounded-xl px-3 py-2 text-xs shadow-xl">
-      <p className="text-zinc-400 mb-1">{label}</p>
-      <p className="text-white font-bold">{payload[0].value} kg</p>
-    </div>
+    <svg width="20" height="22" viewBox="0 0 22 26"
+      fill={filled ? '#111827' : 'none'}
+      stroke={filled ? '#111827' : '#6B7280'}
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 2h14a2 2 0 012 2v18l-9-4-9 4V4a2 2 0 012-2z"/>
+    </svg>
   )
 }
 
-// ── Time filter helper ────────────────────────────────────────────────────────
-
-function filterByTime(data, months) {
-  if (!months) return data
-  const cutoff = new Date()
-  cutoff.setMonth(cutoff.getMonth() - months)
-  return data.filter(d => new Date(d.rawDate) >= cutoff)
+function FullscreenIco() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="rgba(255,255,255,0.88)" strokeWidth="2" strokeLinecap="round">
+      <path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M16 21h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+    </svg>
+  )
 }
 
-// ── Summary Tab ───────────────────────────────────────────────────────────────
-
-function SummaryTab({ exercise, stats, chartData }) {
-  const [chartMetric, setChartMetric] = useState('heaviestWeight')
-  const [timeRange,   setTimeRange]   = useState(null)          // null = All
-
-  const CHART_OPTIONS = [
-    { key: 'heaviestWeight', label: 'Heaviest' },
-    { key: 'est1RM',         label: '1RM'      },
-    { key: 'bestSetVolume',  label: 'Volume'   },
-  ]
-  const TIME_OPTIONS = [
-    { label: '3M', months: 3  },
-    { label: '6M', months: 6  },
-    { label: '1Y', months: 12 },
-    { label: 'All', months: null },
-  ]
-
-  const visibleData = useMemo(
-    () => filterByTime(chartData, timeRange),
-    [chartData, timeRange]
+function DifficultyDots({ level }) {
+  const count = { Beginner: 1, Intermediate: 3, Advanced: 5 }[level] ?? 2
+  return (
+    <span style={{ display: 'inline-flex', gap: 3 }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span key={i} style={{ fontSize: 12, color: i < count ? '#111827' : '#D1D5DB', lineHeight: 1 }}>
+          {i < count ? '●' : '○'}
+        </span>
+      ))}
+    </span>
   )
+}
+
+function Skeleton({ w = '100%', h = 18 }) {
+  return (
+    <div style={{
+      width: w, height: h, borderRadius: 6,
+      background: 'linear-gradient(90deg,#F3F4F6 25%,#E9EAEB 50%,#F3F4F6 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'shimmer 1.4s infinite',
+    }} />
+  )
+}
+
+// ── Video hero ────────────────────────────────────────────────────────────────
+
+function VideoHeroCard({ videoUrl, duration, exercise }) {
+  const [playing, setPlaying] = useState(false)
+  const videoRef = useRef(null)
 
   return (
-    <div className="space-y-5">
+    <div style={{ ...card, marginBottom: 12, overflow: 'hidden' }}>
+      {/* 16:9 area */}
+      <div
+        onClick={() => videoUrl && setPlaying(v => !v)}
+        style={{
+          position: 'relative', width: '100%', paddingBottom: '56.25%',
+          background: '#1C1C1E',
+          cursor: videoUrl ? 'pointer' : 'default',
+          userSelect: 'none',
+        }}
+      >
+        {/* subtle grid */}
+        <div style={{
+          position: 'absolute', inset: 0, opacity: 0.04, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.7) 1px,transparent 1px)',
+          backgroundSize: '24px 24px',
+        }} />
 
-      {/* Stat cards 2×2 */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: 'Heaviest Weight', value: stats.heaviestWeight.value ? `${stats.heaviestWeight.value} kg` : '—', Icon: TrendingUp },
-          { label: 'Est. 1RM',        value: stats.estimated1RM.value   ? `${stats.estimated1RM.value} kg`   : '—', Icon: Award    },
-          { label: 'Total Sets',      value: stats.totalSets || '0',                                                  Icon: Hash     },
-          { label: 'Best Volume',     value: stats.bestSetVolume.value  ? `${stats.bestSetVolume.value} kg`  : '—', Icon: BarChart3 },
-        ].map(({ label, value, Icon }) => (
-          <div key={label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-            <p className="text-zinc-500 text-xs mb-2">{label}</p>
-            <p className="text-white text-2xl font-bold leading-none tabular-nums">{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Progress chart */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-white font-semibold text-sm">Progress</p>
-          {/* Time range */}
-          <div className="flex gap-1">
-            {TIME_OPTIONS.map(({ label, months }) => (
-              <button
-                key={label}
-                onClick={() => setTimeRange(months)}
-                className={[
-                  'text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors',
-                  timeRange === months
-                    ? 'bg-emerald-500/20 text-emerald-300'
-                    : 'text-zinc-500 hover:text-zinc-300',
-                ].join(' ')}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Metric pills */}
-        <div className="flex gap-1.5 mb-4">
-          {CHART_OPTIONS.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setChartMetric(key)}
-              className={[
-                'text-[10px] font-semibold px-2.5 py-1 rounded-full ring-1 ring-inset transition-colors',
-                chartMetric === key
-                  ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
-                  : 'text-zinc-500 ring-white/[0.07] hover:text-zinc-300',
-              ].join(' ')}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {visibleData.length < 2 ? (
-          <div className="h-40 flex items-center justify-center text-zinc-600 text-xs">
-            Not enough data yet
-          </div>
+        {videoUrl && playing ? (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            autoPlay
+            controls
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        ) : videoUrl ? (
+          <>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.28)' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M6 3l14 9-14 9V3z" fill="#111827"/></svg>
+              </div>
+            </div>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 40, background: 'linear-gradient(to top,rgba(0,0,0,0.4),transparent)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', alignItems: 'center', gap: 5, pointerEvents: 'none' }}>
+              <span style={{ fontSize: 8, color: '#EF4444', fontWeight: 900, lineHeight: 1 }}>●</span>
+              <span style={{ fontSize: 12, color: '#FFF', fontFamily: FONT, letterSpacing: '0.04em' }}>
+                REC{duration ? `  ${duration}` : ''}
+              </span>
+            </div>
+            <div style={{ position: 'absolute', bottom: 10, right: 12, pointerEvents: 'none' }}>
+              <FullscreenIco />
+            </div>
+          </>
         ) : (
-          <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={visibleData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis
-                dataKey="date"
-                tick={{ fill: '#71717a', fontSize: 9 }}
-                axisLine={false}
-                tickLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                tick={{ fill: '#71717a', fontSize: 9 }}
-                axisLine={false}
-                tickLine={false}
-                width={36}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey={chartMetric}
-                stroke="#10b981"
-                strokeWidth={2}
-                dot={{ fill: '#10b981', r: 3 }}
-                activeDot={{ r: 5, fill: '#10b981' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round">
+              <rect x="2" y="6" width="20" height="12" rx="3"/>
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M7 6V4M17 6V4"/>
+            </svg>
+            <span style={{ fontSize: 13, color: '#6B7280', fontFamily: FONT }}>Video coming soon</span>
+          </div>
         )}
       </div>
 
-      {/* Personal Records */}
-      {stats.totalSets > 0 && (
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Trophy size={14} className="text-amber-400" />
-            <p className="text-white font-semibold text-sm">Personal Records</p>
-          </div>
-          <div className="space-y-3">
-            {[
-              {
-                label: 'Heaviest',
-                value: `${stats.heaviestWeight.value} kg`,
-                date: stats.heaviestWeight.date,
-              },
-              {
-                label: 'Most Reps',
-                value: `${stats.mostReps.value} reps @ ${stats.mostReps.weight} kg`,
-                date: stats.mostReps.date,
-              },
-              {
-                label: 'Best Volume Set',
-                value: `${stats.bestSetVolume.weight} kg × ${stats.bestSetVolume.reps} = ${stats.bestSetVolume.value} kg`,
-                date: stats.bestSetVolume.date,
-              },
-            ].map(({ label, value, date }) => (
-              <div key={label} className="flex items-start justify-between gap-4">
-                <span className="text-zinc-500 text-xs mt-0.5 shrink-0">{label}</span>
-                <div className="text-right min-w-0">
-                  <p className="text-white text-sm font-semibold">{value}</p>
-                  <p className="text-zinc-600 text-[10px]">{shortDate(date)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Pills */}
+      {exercise && (
+        <div style={{ display: 'flex', gap: 8, padding: '12px 16px 16px', flexWrap: 'wrap' }}>
+          <span style={{ background: '#111827', color: '#FFF', fontSize: 12, fontWeight: 600, borderRadius: 6, padding: '5px 10px', lineHeight: 1 }}>
+            {exercise.equipment}
+          </span>
+          {exercise.mechanics && (
+            <span style={{ background: '#F3F4F6', color: '#374151', fontSize: 12, fontWeight: 500, borderRadius: 6, padding: '5px 10px', lineHeight: 1 }}>
+              {exercise.mechanics}
+            </span>
+          )}
+          <span style={{ background: '#F3F4F6', color: '#374151', fontSize: 12, fontWeight: 500, borderRadius: 6, padding: '5px 10px', lineHeight: 1 }}>
+            {exercise.difficulty}
+          </span>
         </div>
       )}
     </div>
   )
 }
 
-// ── History Tab ───────────────────────────────────────────────────────────────
+// ── Stats info row ────────────────────────────────────────────────────────────
 
-function HistoryTab({ sessions, loading }) {
+function StatsRow({ exercise }) {
+  if (!exercise) return null
+  return (
+    <div style={{ ...card, marginBottom: 12, overflow: 'hidden' }}>
+      <div style={{ display: 'flex' }}>
+        {[
+          { label: 'PRIMARY MUSCLE', value: exercise.muscle },
+          { label: 'EQUIPMENT',      value: exercise.equipment },
+          { label: 'DIFFICULTY',     value: <DifficultyDots level={exercise.difficulty} /> },
+        ].map((s, i) => (
+          <div key={i} style={{ display: 'flex', flex: 1 }}>
+            <div style={{ flex: 1, padding: '16px 6px', textAlign: 'center' }}>
+              <div style={{ fontSize: 10, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7, lineHeight: 1.4 }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', lineHeight: 1 }}>{s.value}</div>
+            </div>
+            {i < 2 && <div style={{ width: '0.5px', background: '#F3F4F6', margin: '10px 0' }} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Progress chart ────────────────────────────────────────────────────────────
+
+function ProgressChart({ chartData }) {
+  const [range,  setRange]  = useState('All')
+  const [metric, setMetric] = useState('Heaviest')
+
+  const key = metric === 'Heaviest' ? 'heaviest' : metric === '1RM' ? 'est_1rm' : 'volume'
+
+  const filtered = (() => {
+    if (range === 'All') return chartData
+    const cutoffs = { '3M': 90, '6M': 180, '1Y': 365 }
+    const limit = cutoffs[range]
+    const now = Date.now()
+    return chartData.filter(d => (now - new Date(d.date)) / 86400000 <= limit)
+  })()
+
+  const data = filtered.map(d => ({
+    date: new Date(d.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+    value: d[key],
+  }))
+
+  const btnStyle = (active) => ({
+    height: 22, padding: '0 7px', borderRadius: 11, border: 'none', cursor: 'pointer', fontFamily: FONT,
+    fontSize: 11, fontWeight: 600,
+    background: active ? '#111827' : 'transparent',
+    color: active ? '#FFF' : '#9CA3AF',
+    transition: 'background 0.15s',
+  })
+
+  const metricStyle = (active) => ({
+    height: 26, padding: '0 10px', borderRadius: 13, border: 'none', cursor: 'pointer', fontFamily: FONT,
+    fontSize: 12, fontWeight: active ? 600 : 400,
+    background: active ? '#111827' : '#F3F4F6',
+    color: active ? '#FFF' : '#6B7280',
+    transition: 'background 0.15s',
+  })
+
+  return (
+    <div style={{ ...card, marginBottom: 12, padding: 18 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Progress</span>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {['3M','6M','1Y','All'].map(r => (
+            <button key={r} onClick={() => setRange(r)} style={btnStyle(range === r)}>{r}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {['Heaviest','1RM','Volume'].map(m => (
+          <button key={m} onClick={() => setMetric(m)} style={metricStyle(metric === m)}>{m}</button>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={120}>
+        <LineChart data={data} margin={{ top: 8, right: 8, left: -28, bottom: 0 }}>
+          <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#9CA3AF', fontFamily: FONT }} axisLine={false} tickLine={false} />
+          <Tooltip
+            contentStyle={{ background: '#FFF', border: '1px solid #F3F4F6', borderRadius: 8, fontSize: 12, fontFamily: FONT, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+            formatter={v => [v, metric]}
+            labelStyle={{ color: '#6B7280', fontWeight: 500 }}
+          />
+          <Line
+            type="monotone" dataKey="value" stroke="#111827" strokeWidth={2}
+            dot={{ r: 3, fill: '#FFF', stroke: '#111827', strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: '#111827' }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// ── Summary tab ───────────────────────────────────────────────────────────────
+
+function SummaryTab({ stats, loading }) {
   if (loading) {
     return (
-      <div className="space-y-3">
-        {[0, 1, 2].map(i => (
-          <div key={i} className="h-24 rounded-xl bg-white/[0.03] border border-white/[0.06] animate-pulse" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ ...card, padding: '18px 20px' }}><Skeleton h={64} /></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {[0,1,2,3].map(i => <div key={i} style={{ ...card, padding: '16px 14px' }}><Skeleton h={52} /></div>)}
+        </div>
+      </div>
+    )
+  }
+
+  const pb = stats?.personal_best
+
+  return (
+    <>
+      {/* Personal best */}
+      <div style={{ ...card, marginBottom: 12, padding: '18px 20px', borderLeft: '3px solid #111827' }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          Personal Best
+        </div>
+        {pb ? (
+          <>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#111827', letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {pb.weight} kg × {pb.reps} reps
+            </div>
+            <div style={{ fontSize: 12, color: '#6B7280', marginTop: 7 }}>
+              Set {timeAgo(pb.date)} · Est. 1RM: {pb.est_1rm} kg
+            </div>
+          </>
+        ) : (
+          <div style={{ fontSize: 13, color: '#9CA3AF' }}>Log a workout to see your personal best</div>
+        )}
+      </div>
+
+      {/* 2×2 grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        {[
+          { label: 'Heaviest Weight', value: stats?.heaviest_weight ? `${stats.heaviest_weight} kg` : '—' },
+          { label: 'Est. 1RM',        value: stats?.best_1rm        ? `${stats.best_1rm} kg`        : '—' },
+          { label: 'Total Sets',      value: stats?.total_sets      != null ? String(stats.total_sets) : '—' },
+          { label: 'Best Volume',     value: stats?.best_session_volume ? `${stats.best_session_volume.toLocaleString()} kg` : '—' },
+        ].map((item, i) => (
+          <div key={i} style={{ ...card, padding: '16px 14px' }}>
+            <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400, marginBottom: 9, lineHeight: 1.3 }}>{item.label}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>{item.value}</div>
+          </div>
         ))}
+      </div>
+
+      {/* Chart — only if data exists */}
+      {stats?.chart_data?.length > 0 && <ProgressChart chartData={stats.chart_data} />}
+    </>
+  )
+}
+
+// ── History tab ───────────────────────────────────────────────────────────────
+
+function HistoryTab({ name }) {
+  const [sessions,    setSessions]    = useState([])
+  const [loading,     setLoading]     = useState(true)
+  const [page,        setPage]        = useState(0)
+  const [total,       setTotal]       = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [expanded,    setExpanded]    = useState(null)
+
+  async function load(p = 0) {
+    if (p === 0) setLoading(true); else setLoadingMore(true)
+    try {
+      const token = await getToken()
+      if (!token) { setLoading(false); return }
+      const res  = await fetch(`${API}/api/exercises/${encodeURIComponent(name)}/history?page=${p}&limit=10`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const json = await res.json()
+      if (p === 0) setSessions(json.data ?? [])
+      else setSessions(prev => [...prev, ...(json.data ?? [])])
+      setTotal(json.total ?? 0)
+      setPage(p)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  useEffect(() => { load(0) }, [name])
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {[0,1,2].map(i => <div key={i} style={{ ...card, padding: 16 }}><Skeleton h={40} /></div>)}
       </div>
     )
   }
 
   if (sessions.length === 0) {
     return (
-      <div className="text-center py-20">
-        <Dumbbell size={28} className="text-zinc-700 mx-auto mb-3" />
-        <p className="text-zinc-500 text-sm">No history yet</p>
-        <p className="text-zinc-600 text-xs mt-1">Start logging to track your progress</p>
+      <div style={{ ...card, padding: 32, textAlign: 'center' }}>
+        <div style={{ fontSize: 13, color: '#9CA3AF' }}>No workouts logged yet</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
-      {sessions.map(s => (
-        <div key={s.id} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-white font-semibold text-sm">{formatDate(s.date)}</p>
-            <div className="flex items-center gap-3">
-              {s.duration && <span className="text-zinc-500 text-xs">{s.duration} min</span>}
-              <span className="text-zinc-600 text-xs">{s.totalVolume} kg total</span>
+    <>
+      {sessions.map((session) => (
+        <div key={session.id} style={{ ...card, marginBottom: 10, overflow: 'hidden' }}>
+          <button
+            onClick={() => setExpanded(expanded === session.id ? null : session.id)}
+            style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '14px 16px 12px', width: '100%', background: 'transparent',
+              border: 'none', cursor: 'pointer', fontFamily: FONT,
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{fmtDate(session.date)}</span>
+            <span style={{ fontSize: 12, color: '#6B7280' }}>{session.sets_count} sets · {session.volume} kg</span>
+          </button>
+
+          {expanded === session.id && session.sets.map((set, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', padding: '10px 16px',
+              background: set.is_pr ? '#F0FDF4' : (i % 2 === 0 ? '#F9F9F9' : '#FFF'),
+              borderTop: '0.5px solid #F3F4F6',
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', width: 46, flexShrink: 0, letterSpacing: '0.04em' }}>
+                SET {set.index}
+              </span>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#111827' }}>{set.weight} kg</span>
+              <span style={{ fontSize: 14, color: '#6B7280', marginRight: 16, minWidth: 60 }}>{set.reps} reps</span>
+              <span style={{ fontSize: 15, color: set.is_pr ? '#16A34A' : '#9CA3AF' }}>✓</span>
             </div>
+          ))}
+        </div>
+      ))}
+
+      {sessions.length < total && (
+        <button
+          onClick={() => load(page + 1)}
+          disabled={loadingMore}
+          style={{
+            width: '100%', padding: '12px 0', background: 'transparent', border: 'none',
+            fontSize: 13, color: '#6B7280', cursor: loadingMore ? 'default' : 'pointer', fontFamily: FONT,
+          }}
+        >
+          {loadingMore ? 'Loading…' : 'Load more'}
+        </button>
+      )}
+    </>
+  )
+}
+
+// ── How To tab ────────────────────────────────────────────────────────────────
+
+function HowToTab({ name, exercise }) {
+  const inst = EXERCISE_INSTRUCTIONS[name] ?? EXERCISE_INSTRUCTIONS[exercise?.name] ?? null
+
+  // Use exerciseDatabase instructions if available, else fall back to EXERCISE_INSTRUCTIONS
+  const steps = exercise?.instructions?.length
+    ? exercise.instructions
+    : inst
+      ? [inst.setup, inst.execution].filter(Boolean)
+      : []
+
+  const tips = exercise?.tips?.length
+    ? exercise.tips
+    : inst?.tips ?? []
+
+  const mistakes = inst?.common_mistakes ?? []
+
+  if (!steps.length && !tips.length && !mistakes.length) {
+    return (
+      <div style={{ ...card, padding: 32, textAlign: 'center' }}>
+        <div style={{ fontSize: 13, color: '#9CA3AF' }}>No instructions available for this exercise</div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {steps.length > 0 && (
+        <div style={{ ...card, marginBottom: 12, padding: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 18 }}>
+            HOW TO DO IT
           </div>
-          <div className="space-y-1.5">
-            {s.sets.map((set, i) => (
-              <p key={i} className="text-zinc-400 text-xs tabular-nums">
-                Set {set.set_number}: {set.weight_kg > 0 ? `${set.weight_kg} kg` : 'BW'} × {set.reps_completed}
-              </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {steps.map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#111827', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#FFF', lineHeight: 1 }}>{i + 1}</span>
+                </div>
+                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, paddingTop: 2, margin: 0 }}>{step}</p>
+              </div>
             ))}
           </div>
         </div>
-      ))}
-    </div>
-  )
-}
+      )}
 
-// ── How To Tab ────────────────────────────────────────────────────────────────
-
-function HowToTab({ exerciseName }) {
-  const instructions = EXERCISE_INSTRUCTIONS[exerciseName]
-
-  if (!instructions) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-zinc-500 text-sm">Instructions not available yet.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6 pb-4">
-
-      {/* Setup */}
-      <section>
-        <h3 className="text-white font-semibold text-sm mb-2">Setup</h3>
-        <p className="text-zinc-300 text-sm leading-relaxed">{instructions.setup}</p>
-      </section>
-
-      {/* Execution */}
-      <section>
-        <h3 className="text-white font-semibold text-sm mb-2">Execution</h3>
-        <p className="text-zinc-300 text-sm leading-relaxed">{instructions.execution}</p>
-      </section>
-
-      {/* Tips */}
-      <section>
-        <h3 className="text-white font-semibold text-sm mb-3">Tips</h3>
-        <ol className="space-y-2">
-          {instructions.tips.map((tip, i) => (
-            <li key={i} className="flex gap-3 text-sm">
-              <span className="text-emerald-400 font-bold shrink-0 tabular-nums w-4">{i + 1}.</span>
-              <span className="text-zinc-300">{tip}</span>
-            </li>
+      {tips.length > 0 && (
+        <div style={{ background: '#FFFBEB', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: 12, padding: 20, borderLeft: '3px solid #92400E' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#92400E', marginBottom: 10 }}>💡 Pro Tip</div>
+          {tips.map((tip, i) => (
+            <p key={i} style={{ fontSize: 13, color: '#78350F', lineHeight: 1.7, margin: 0, marginTop: i > 0 ? 6 : 0 }}>{tip}</p>
           ))}
-        </ol>
-      </section>
-
-      {/* Common Mistakes */}
-      <section>
-        <h3 className="text-red-400 font-semibold text-sm mb-3">Common Mistakes</h3>
-        <ol className="space-y-2">
-          {instructions.common_mistakes.map((m, i) => (
-            <li key={i} className="flex gap-3 text-sm">
-              <span className="text-red-400 font-bold shrink-0 tabular-nums w-4">{i + 1}.</span>
-              <span className="text-zinc-300">{m}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-    </div>
-  )
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-export default function ExerciseDetail() {
-  const navigate     = useNavigate()
-  const { name }     = useParams()
-  const exerciseName = decodeURIComponent(name ?? '')
-
-  const { user }       = useAuth()
-  const { allExercises } = useExercises()
-  const { loading, sessions, stats, chartData } = useExerciseHistory(exerciseName, user?.id)
-
-  const exercise = useMemo(
-    () => allExercises.find(e => e.name === exerciseName) ?? { name: exerciseName, muscle_group: '—' },
-    [allExercises, exerciseName]
-  )
-
-  const secondary = SECONDARY_MAP[exerciseName] ?? []
-  const category  = getCategory(exercise.muscle_group, exerciseName)
-
-  const [activeTab, setActiveTab] = useState('Summary')
-
-  return (
-    <div className="min-h-screen bg-gray-950 overflow-x-hidden">
-
-      {/* ── Sticky header ── */}
-      <header className="sticky top-0 z-20 bg-gray-950/95 backdrop-blur-sm px-5 pt-12 pb-4 border-b border-white/[0.05]">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-xl bg-white/[0.05] flex items-center justify-center text-zinc-400 hover:text-white transition-colors shrink-0"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <h1 className="text-white font-bold text-base truncate flex-1 text-center pr-9">
-            {exerciseName}
-          </h1>
         </div>
-      </header>
+      )}
 
-      <div className="px-5 pt-5 pb-12 space-y-5">
+      {mistakes.length > 0 && (
+        <div style={{ ...card, marginBottom: 12, padding: 20, borderLeft: '3px solid #EF4444' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#EF4444', marginBottom: 12 }}>⚠️ Avoid These</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {mistakes.map((m, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ color: '#EF4444', fontSize: 16, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>·</span>
+                <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.55 }}>{m}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {/* ── Exercise info card ── */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-          <h2 className="text-white text-xl font-bold mb-3">{exerciseName}</h2>
-          <div className="flex flex-wrap gap-2 mb-2">
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">
-              {exercise.muscle_group}
-            </span>
-            {secondary.map(m => (
-              <span key={m} className="px-3 py-1 bg-white/[0.06] text-zinc-400 text-xs rounded-full">
+      {exercise?.secondary?.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+            Secondary Muscles
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {exercise.secondary.map(m => (
+              <span key={m} style={{ background: '#F3F4F6', color: '#374151', fontSize: 12, fontWeight: 500, borderRadius: 20, padding: '5px 10px' }}>
                 {m}
               </span>
             ))}
           </div>
-          <span className="text-zinc-600 text-xs">{category}</span>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ── Related section ───────────────────────────────────────────────────────────
+
+const RELATED_COLORS = [
+  { bg: '#F3F4F6', dot: '#374151' }, { bg: '#EFF6FF', dot: '#185FA5' },
+  { bg: '#F0FDF4', dot: '#15803D' }, { bg: '#FDF4FF', dot: '#7C3AED' },
+  { bg: '#FFF7ED', dot: '#C2410C' }, { bg: '#FFF1F2', dot: '#BE123C' },
+]
+
+function RelatedSection({ exercise, currentName }) {
+  if (!exercise) return null
+  const muscle = exercise.muscle
+  const related = EXERCISE_DATABASE
+    .filter(e => e.muscle === muscle && e.name !== currentName)
+    .slice(0, 6)
+  if (related.length === 0) return null
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+        YOU MIGHT ALSO LIKE
+      </div>
+      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {related.map((r, i) => {
+          const c = RELATED_COLORS[i % RELATED_COLORS.length]
+          return (
+            <div key={r.name} style={{ minWidth: 140, height: 90, flexShrink: 0, ...card, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 14, height: 9, borderRadius: 3, background: c.dot, opacity: 0.82 }} />
+              </div>
+              <div style={{ marginTop: 'auto' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', lineHeight: 1.25 }}>{r.name}</div>
+                <div style={{ fontSize: 12, color: '#6B7280', marginTop: 1 }}>{r.muscle}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+const TABS = ['Summary', 'History', 'How To']
+
+export default function ExerciseDetail() {
+  const { name: rawName } = useParams()
+  const name     = decodeURIComponent(rawName ?? '')
+  const navigate = useNavigate()
+
+  const exercise = EXERCISE_DATABASE.find(e => e.name === name) ?? null
+
+  // ── API state ────────────────────────────────────────────────────────────────
+  const [metadata,     setMetadata]     = useState(null)
+  const [metaLoading,  setMetaLoading]  = useState(true)
+  const [stats,        setStats]        = useState(null)
+  const [statsLoading, setStatsLoading] = useState(true)
+  const [bookmarked,   setBookmarked]   = useState(false)
+  const [bmLoading,    setBmLoading]    = useState(false)
+  const [activeTab,    setActiveTab]    = useState(0)
+  const [added,        setAdded]        = useState(false)
+
+  // metadata — no auth
+  useEffect(() => {
+    setMetaLoading(true)
+    fetch(`${API}/api/exercises/${encodeURIComponent(name)}/metadata`)
+      .then(r => r.json())
+      .then(j => setMetadata(j.data ?? null))
+      .catch(() => setMetadata(null))
+      .finally(() => setMetaLoading(false))
+  }, [name])
+
+  // stats + bookmark — auth
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setStatsLoading(true)
+      const token = await getToken()
+      if (!token || cancelled) { setStatsLoading(false); return }
+      const headers = { Authorization: `Bearer ${token}` }
+      try {
+        const [sRes, bRes] = await Promise.all([
+          fetch(`${API}/api/exercises/${encodeURIComponent(name)}/stats`,    { headers }),
+          fetch(`${API}/api/exercises/${encodeURIComponent(name)}/bookmark`, { headers }),
+        ])
+        const [sJson, bJson] = await Promise.all([sRes.json(), bRes.json()])
+        if (!cancelled) {
+          setStats(sJson.data ?? null)
+          setBookmarked(bJson.bookmarked ?? false)
+        }
+      } catch {
+        // no auth / network failure → show empty states
+      } finally {
+        if (!cancelled) setStatsLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [name])
+
+  async function toggleBookmark() {
+    if (bmLoading) return
+    setBmLoading(true)
+    try {
+      const token = await getToken()
+      if (!token) return
+      const method = bookmarked ? 'DELETE' : 'POST'
+      const res  = await fetch(`${API}/api/exercises/${encodeURIComponent(name)}/bookmark`, {
+        method, headers: { Authorization: `Bearer ${token}` },
+      })
+      const json = await res.json()
+      setBookmarked(json.bookmarked ?? !bookmarked)
+    } finally {
+      setBmLoading(false)
+    }
+  }
+
+  function handleAdd() {
+    if (added) return
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2200)
+  }
+
+  return (
+    <>
+      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+      <div style={{
+        height: '100dvh', display: 'flex', flexDirection: 'column',
+        background: '#F9F9F9', fontFamily: FONT, WebkitFontSmoothing: 'antialiased',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{ flexShrink: 0, background: '#FFF', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', padding: '0 16px', height: 56 }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          <span style={{ flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 700, color: '#111827', letterSpacing: '-0.025em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 12px' }}>
+            {exercise?.name ?? name}
+          </span>
+
+          <button
+            onClick={toggleBookmark}
+            disabled={bmLoading}
+            style={{ width: 36, height: 36, border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <BookmarkIcon filled={bookmarked} />
+          </button>
         </div>
 
-        {/* ── Tabs ── */}
-        <div className="border-b border-white/[0.06]">
-          <div className="flex">
-            {TABS.map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={[
-                  'flex-1 py-2.5 text-xs font-semibold text-center transition-colors relative',
-                  activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300',
-                ].join(' ')}
-              >
-                {tab}
-                {activeTab === tab && (
-                  <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-emerald-500 rounded-full" />
-                )}
-              </button>
+        {/* Scrollable body */}
+        <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div style={{ padding: '16px 16px 0' }}>
+            <VideoHeroCard
+              videoUrl={metaLoading ? null : (metadata?.video_url ?? null)}
+              duration={metadata?.video_duration ?? null}
+              exercise={exercise}
+            />
+            <StatsRow exercise={exercise} />
+          </div>
+
+          {/* Sticky tabs */}
+          <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#FFF', display: 'flex', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
+            {TABS.map((t, i) => (
+              <button key={i} onClick={() => setActiveTab(i)} style={{
+                flex: 1, height: 44, border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FONT,
+                fontSize: 14, fontWeight: activeTab === i ? 600 : 400,
+                color: activeTab === i ? '#111827' : '#9CA3AF',
+                borderBottom: activeTab === i ? '2px solid #111827' : '2px solid transparent',
+                marginBottom: -1, transition: 'color 0.15s',
+              }}>{t}</button>
             ))}
+          </div>
+
+          <div style={{ padding: '16px 16px 0' }}>
+            {activeTab === 0 && <SummaryTab stats={stats} loading={statsLoading} />}
+            {activeTab === 1 && <HistoryTab name={name} />}
+            {activeTab === 2 && <HowToTab name={name} exercise={exercise} />}
+            <RelatedSection exercise={exercise} currentName={name} />
           </div>
         </div>
 
-        {/* ── Tab content ── */}
-        {activeTab === 'Summary' && (
-          <SummaryTab exercise={exercise} stats={stats} chartData={chartData} />
-        )}
-        {activeTab === 'History' && (
-          <HistoryTab sessions={sessions} loading={loading} />
-        )}
-        {activeTab === 'How To' && (
-          <HowToTab exerciseName={exerciseName} />
-        )}
+        {/* CTA */}
+        <div style={{ flexShrink: 0, background: '#FFF', borderTop: '1.5px solid #F3F4F6', padding: '14px 16px 28px' }}>
+          <button
+            onClick={handleAdd}
+            style={{
+              display: 'block', width: '100%', height: 52, borderRadius: 14, border: 'none',
+              background: added ? '#14532D' : '#111827',
+              fontSize: 15, fontWeight: 600, color: '#FFF',
+              cursor: 'pointer', fontFamily: FONT, letterSpacing: '-0.01em',
+              transition: 'background 0.25s',
+            }}
+          >
+            {added ? '✓  Added to Workout' : 'Add to Workout'}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

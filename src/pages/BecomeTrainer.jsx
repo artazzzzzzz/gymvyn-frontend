@@ -1,55 +1,190 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 
-const SPECIALIZATIONS = [
-  'Weight Loss', 'Muscle Building', 'Powerlifting', 'CrossFit',
-  'Calisthenics', 'Yoga', 'HIIT', 'Sports Performance',
-  'Bodybuilding', 'Functional Training', 'Rehabilitation', 'Nutrition'
+const API = import.meta.env.VITE_API_URL || '';
+
+const TOTAL_STEPS = 4;
+
+const EXPERIENCE_OPTIONS = [
+  'Less than 1 year', '1–2 years',
+  '3–5 years', '5–10 years', '10+ years'
 ];
 
+const SPECS = [
+  'Fat loss', 'Muscle gain', 'Strength', 'Powerlifting',
+  'Rehabilitation', 'Sports performance', 'Flexibility',
+  'Senior fitness', 'Nutrition', 'HIIT',
+  'Yoga / mobility', 'Pre / postnatal'
+];
+
+const parseExperience = (str) => {
+  if (!str) return 0;
+  if (str.includes('Less')) return 0;
+  if (str.includes('1–2')) return 1;
+  if (str.includes('3–5')) return 3;
+  if (str.includes('5–10')) return 5;
+  if (str.includes('10+')) return 10;
+  return 0;
+};
+
+// ── Floating label input ──────────────────────────────────────
+function FloatingInput({ label, value, onChange, type = 'text' }) {
+  const [focused, setFocused] = useState(false);
+  const raised = focused || value;
+  return (
+    <div style={{ position: 'relative', marginBottom: 24 }}>
+      <label style={{
+        position: 'absolute',
+        top: raised ? 0 : 14,
+        left: 0,
+        fontSize: raised ? 11 : 16,
+        color: focused ? '#111' : '#999',
+        transition: 'all 0.15s ease',
+        pointerEvents: 'none',
+        fontWeight: raised ? 500 : 400,
+        zIndex: 1
+      }}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: '100%',
+          border: 'none',
+          borderBottom: focused ? '1px solid #111' : '0.5px solid rgba(0,0,0,0.15)',
+          padding: '18px 0 10px',
+          fontSize: 16,
+          background: 'transparent',
+          outline: 'none',
+          transition: 'border 0.15s',
+          boxSizing: 'border-box'
+        }}
+      />
+    </div>
+  );
+}
+
+// ── Step icon header ──────────────────────────────────────────
+function StepHeader({ emoji, title, subtitle }) {
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{
+        width: 72, height: 72, borderRadius: '50%',
+        background: '#E6F1FB',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 16, fontSize: 32
+      }}>
+        {emoji}
+      </div>
+      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 6 }}>{title}</h1>
+      {subtitle && <p style={{ fontSize: 14, color: '#888', lineHeight: 1.5 }}>{subtitle}</p>}
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────
 export default function BecomeTrainer() {
-  const { user } = useAuth();
+  const { user, setRole, markOnboardingComplete } = useAuth();
   const navigate = useNavigate();
+  const photoRef = useRef(null);
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    isIndependent: true,
-    bio: '',
-    specializations: [],
-    experienceYears: '',
-    hourlyRate: '',
-    phone: '',
-    city: '',
-    gymId: null
-  });
 
-  const updateForm = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+  // Step 1
+  const [step1, setStep1] = useState({ full_name: '', phone: '', city: '', experience: '' });
+  const step1Valid = step1.full_name.trim() && step1.phone.trim() && step1.city.trim() && step1.experience;
 
-  const toggleSpec = (spec) => {
-    setForm(prev => ({
-      ...prev,
-      specializations: prev.specializations.includes(spec)
-        ? prev.specializations.filter(s => s !== spec)
-        : [...prev.specializations, spec]
-    }));
+  // Step 2
+  const [specializations, setSpecializations] = useState([]);
+  const [hourlyRate, setHourlyRate] = useState(800);
+  const [isIndependent, setIsIndependent] = useState(true);
+  const step2Valid = specializations.length > 0;
+
+  // Step 3
+  const [bio, setBio] = useState('');
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [certifications, setCertifications] = useState([]);
+  const [certInput, setCertInput] = useState('');
+  const [instagram, setInstagram] = useState('');
+
+  const toggleSpec = (spec) =>
+    setSpecializations(prev =>
+      prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
+    );
+
+  const adjustRate = (delta) =>
+    setHourlyRate(r => Math.min(5000, Math.max(0, r + delta)));
+
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
   };
+
+  const addCert = (e) => {
+    if (e.key === 'Enter' && certInput.trim()) {
+      setCertifications(c => [...c, certInput.trim()]);
+      setCertInput('');
+    }
+  };
+
+  const nextStep = () => {
+    if (step < TOTAL_STEPS) setStep(s => s + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const prevStep = () => {
+    if (step > 1) setStep(s => s - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const canNext = step === 1 ? step1Valid : step === 2 ? step2Valid : true;
 
   const handleSubmit = async () => {
     if (!user?.id) return;
     setLoading(true);
     try {
+      const payload = {
+        userId: user.id,
+        user_id: user.id,
+        full_name: step1.full_name,
+        phone: step1.phone,
+        city: step1.city,
+        experience_years: parseExperience(step1.experience),
+        specializations,
+        hourly_rate: hourlyRate,
+        is_independent: isIndependent,
+        bio,
+        instagram_handle: instagram,
+        certifications
+      };
+
       const res = await apiFetch('/api/trainer/onboard', {
         method: 'POST',
-        body: JSON.stringify({
-          userId: user.id,
-          ...form,
-          experienceYears: parseInt(form.experienceYears) || 0,
-          hourlyRate: parseFloat(form.hourlyRate) || null
-        })
+        body: JSON.stringify(payload)
       });
+
+      if (photo) {
+        const fd = new FormData();
+        fd.append('photo', photo);
+        fd.append('userId', user.id);
+        await fetch(`${API}/api/trainer/profile/${user.id}/photo`, {
+          method: 'POST',
+          body: fd
+        });
+      }
+
       if (res.success) {
+        // Safety net: ensure role + completion state are set in context
+        // regardless of whether role-select was used.
+        setRole('trainer')
+        markOnboardingComplete()
         navigate('/trainer/dashboard');
       }
     } catch (err) {
@@ -60,246 +195,433 @@ export default function BecomeTrainer() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Header */}
-      <div className="px-5 pt-12 pb-6">
-        <p className="text-emerald-400 text-sm font-medium tracking-wider uppercase mb-2">
-          Become a Trainer
-        </p>
-        <h1 className="text-2xl font-bold">
-          {step === 1 && 'How do you train?'}
-          {step === 2 && 'About you'}
-          {step === 3 && 'Your specializations'}
-          {step === 4 && 'Almost there'}
-        </h1>
-        <p className="text-zinc-400 text-sm mt-1">Step {step} of 4</p>
+  // Review checklist
+  const checks = [
+    { label: 'Basic info complete', done: !!step1.full_name },
+    { label: 'Specializations selected', done: specializations.length > 0 },
+    { label: 'Rate set', done: hourlyRate > 0 },
+    { label: 'Profile photo added', done: !!photo, optional: true },
+    { label: 'Bio written', done: bio.length > 20, optional: true },
+  ];
 
-        {/* Progress bar */}
-        <div className="mt-4 h-1 bg-zinc-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-            style={{ width: `${(step / 4) * 100}%` }}
-          />
-        </div>
+  return (
+    <div style={{ minHeight: '100vh', background: 'white' }}>
+
+      {/* Sticky progress bar */}
+      <div style={{ height: 3, background: '#F0F0EE', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{
+          height: '100%',
+          width: `${(step / TOTAL_STEPS) * 100}%`,
+          background: '#111',
+          transition: 'width 0.3s ease'
+        }} />
       </div>
 
-      <div className="px-5 pb-32">
-        {/* Step 1: Trainer type */}
+      {/* Content */}
+      <div style={{ padding: '32px 24px 120px' }}>
+
+        {/* ── Step 1: Basic Info ── */}
         {step === 1 && (
-          <div className="space-y-4">
-            <button
-              onClick={() => updateForm('isIndependent', true)}
-              className={`w-full p-5 rounded-2xl border text-left transition-all ${
-                form.isIndependent
-                  ? 'border-emerald-500 bg-emerald-500/10'
-                  : 'border-zinc-800 bg-zinc-900'
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">🌐</span>
-                <span className="font-semibold text-lg">Independent Trainer</span>
-              </div>
-              <p className="text-zinc-400 text-sm">
-                Online PT or freelance trainer. Manage your own clients from anywhere.
-              </p>
-            </button>
+          <div>
+            <StepHeader
+              emoji="👋"
+              title="Let's set up your profile"
+              subtitle="Tell us the basics — clients will see this when they find you."
+            />
 
-            <button
-              onClick={() => updateForm('isIndependent', false)}
-              className={`w-full p-5 rounded-2xl border text-left transition-all ${
-                !form.isIndependent
-                  ? 'border-emerald-500 bg-emerald-500/10'
-                  : 'border-zinc-800 bg-zinc-900'
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">🏋️</span>
-                <span className="font-semibold text-lg">Gym Trainer</span>
-              </div>
-              <p className="text-zinc-400 text-sm">
-                Affiliated with a gym. Train members 1-on-1 inside a gym on FitForge.
-              </p>
-            </button>
+            <FloatingInput
+              label="Full name"
+              value={step1.full_name}
+              onChange={v => setStep1(f => ({ ...f, full_name: v }))}
+            />
+            <FloatingInput
+              label="Phone number"
+              value={step1.phone}
+              onChange={v => setStep1(f => ({ ...f, phone: v }))}
+              type="tel"
+            />
+            <FloatingInput
+              label="City"
+              value={step1.city}
+              onChange={v => setStep1(f => ({ ...f, city: v }))}
+            />
 
-            {!form.isIndependent && (
-              <div className="mt-4">
-                <label className="block text-sm text-zinc-400 mb-2">Gym Join Code</label>
-                <input
-                  type="text"
-                  placeholder="Enter gym code from your owner"
-                  className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-                  onChange={(e) => updateForm('gymId', e.target.value)}
-                />
-                <p className="text-xs text-zinc-500 mt-1">Ask your gym owner for the code</p>
-              </div>
-            )}
+            {/* Experience dropdown */}
+            <div style={{ position: 'relative', marginBottom: 24 }}>
+              <label style={{
+                display: 'block',
+                fontSize: step1.experience ? 11 : 16,
+                color: step1.experience ? '#111' : '#999',
+                marginBottom: step1.experience ? 4 : 0,
+                paddingTop: step1.experience ? 0 : 14,
+                transition: 'all 0.15s ease',
+                fontWeight: step1.experience ? 500 : 400
+              }}>
+                Experience level
+              </label>
+              <select
+                value={step1.experience}
+                onChange={e => setStep1(f => ({ ...f, experience: e.target.value }))}
+                style={{
+                  width: '100%', border: 'none',
+                  borderBottom: '0.5px solid rgba(0,0,0,0.15)',
+                  padding: step1.experience ? '4px 0 10px' : '18px 0 10px',
+                  fontSize: 16,
+                  background: 'transparent', outline: 'none',
+                  color: step1.experience ? '#111' : '#999',
+                  appearance: 'none', boxSizing: 'border-box'
+                }}
+              >
+                <option value="" disabled>Select experience</option>
+                {EXPERIENCE_OPTIONS.map(o => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
-        {/* Step 2: Basic info */}
+        {/* ── Step 2: Specializations + Rate ── */}
         {step === 2 && (
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Your bio</label>
-              <textarea
-                rows={4}
-                placeholder="Tell clients about your training philosophy, experience, achievements..."
-                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none resize-none"
-                value={form.bio}
-                onChange={(e) => updateForm('bio', e.target.value)}
-              />
+          <div>
+            <StepHeader
+              emoji="🎯"
+              title="Your expertise"
+              subtitle="Select the areas you specialise in. Pick at least one."
+            />
+
+            {/* Specialization chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
+              {SPECS.map(spec => {
+                const active = specializations.includes(spec);
+                return (
+                  <button
+                    key={spec}
+                    onClick={() => toggleSpec(spec)}
+                    style={{
+                      height: 38, padding: '0 14px',
+                      borderRadius: 8, fontSize: 12, fontWeight: 500,
+                      border: active ? '1px solid #111' : '0.5px solid #D0D0D0',
+                      background: active ? '#111' : 'white',
+                      color: active ? 'white' : '#555',
+                      cursor: 'pointer', transition: 'all 0.15s'
+                    }}
+                  >
+                    {spec}
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-zinc-400 mb-2">Experience (years)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 3"
-                  className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-                  value={form.experienceYears}
-                  onChange={(e) => updateForm('experienceYears', e.target.value)}
-                />
+            {/* Hourly rate stepper */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Hourly rate</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                <button
+                  onClick={() => adjustRate(-100)}
+                  style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    border: '0.5px solid rgba(0,0,0,0.2)',
+                    background: 'transparent', fontSize: 20,
+                    cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center'
+                  }}
+                >−</button>
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  <span style={{ fontSize: 32, fontWeight: 500 }}>₹{hourlyRate}</span>
+                  <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>per hour</div>
+                </div>
+                <button
+                  onClick={() => adjustRate(100)}
+                  style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    border: '0.5px solid rgba(0,0,0,0.2)',
+                    background: 'transparent', fontSize: 20,
+                    cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center'
+                  }}
+                >+</button>
               </div>
-              <div>
-                <label className="block text-sm text-zinc-400 mb-2">Rate (₹/hour)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 500"
-                  className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-                  value={form.hourlyRate}
-                  onChange={(e) => updateForm('hourlyRate', e.target.value)}
-                />
+              {/* Fine-tune buttons */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 12 }}>
+                {[-500, -100, +100, +500].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => adjustRate(d)}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6,
+                      border: '0.5px solid rgba(0,0,0,0.15)',
+                      background: 'transparent', fontSize: 12,
+                      color: '#666', cursor: 'pointer'
+                    }}
+                  >
+                    {d > 0 ? `+${d}` : d}
+                  </button>
+                ))}
               </div>
             </div>
 
+            {/* Trainer type */}
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">Phone</label>
-              <input
-                type="tel"
-                placeholder="+91 98765 43210"
-                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-                value={form.phone}
-                onChange={(e) => updateForm('phone', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">City</label>
-              <input
-                type="text"
-                placeholder="e.g. Bhopal"
-                className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-                value={form.city}
-                onChange={(e) => updateForm('city', e.target.value)}
-              />
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Trainer type</div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {[
+                  { label: 'Independent', desc: 'Freelance / online', value: true, emoji: '🌐' },
+                  { label: 'Gym-based', desc: 'Affiliated with gym', value: false, emoji: '🏋️' }
+                ].map(opt => (
+                  <div
+                    key={opt.label}
+                    onClick={() => setIsIndependent(opt.value)}
+                    style={{
+                      flex: 1, padding: 16, borderRadius: 10, cursor: 'pointer',
+                      border: isIndependent === opt.value ? '1.5px solid #111' : '0.5px solid #E0E0E0',
+                      background: isIndependent === opt.value ? '#F7F7F5' : 'white',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    <div style={{ fontSize: 22, marginBottom: 6 }}>{opt.emoji}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{opt.label}</div>
+                    <div style={{ fontSize: 11, color: '#999' }}>{opt.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 3: Specializations */}
+        {/* ── Step 3: Profile Details ── */}
         {step === 3 && (
           <div>
-            <p className="text-zinc-400 text-sm mb-4">
-              Pick your areas of expertise (select at least 1)
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SPECIALIZATIONS.map(spec => (
-                <button
-                  key={spec}
-                  onClick={() => toggleSpec(spec)}
-                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    form.specializations.includes(spec)
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
-                  }`}
-                >
-                  {spec}
-                </button>
-              ))}
+            <StepHeader
+              emoji="✨"
+              title="Make your profile shine"
+              subtitle="These are optional but help clients trust you faster."
+            />
+
+            {/* Photo upload */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Profile photo</div>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                ref={photoRef}
+                onChange={handlePhoto}
+              />
+              <div
+                onClick={() => photoRef.current?.click()}
+                style={{
+                  width: 96, height: 96, borderRadius: '50%',
+                  border: photoPreview ? 'none' : '2px dashed #D0D0D0',
+                  cursor: 'pointer', overflow: 'hidden',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: photoPreview ? 'transparent' : '#FAFAFA',
+                  position: 'relative'
+                }}
+              >
+                {photoPreview
+                  ? <img src={photoPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
+                      <div style={{ fontSize: 10, color: '#999' }}>Add photo</div>
+                    </div>
+                }
+              </div>
+            </div>
+
+            {/* Bio */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Bio</div>
+              <textarea
+                rows={4}
+                placeholder="Tell clients about your training philosophy, achievements, and approach…"
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                style={{
+                  width: '100%', background: '#F7F7F5',
+                  borderRadius: 10, padding: 14, fontSize: 14,
+                  border: 'none', outline: 'none', resize: 'none',
+                  minHeight: 100, boxSizing: 'border-box',
+                  fontFamily: 'inherit', color: '#333', lineHeight: 1.5
+                }}
+              />
+              <div style={{ fontSize: 11, color: '#bbb', marginTop: 4, textAlign: 'right' }}>
+                {bio.length} chars
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Certifications</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {certifications.map((c, i) => (
+                  <span key={i} style={{
+                    background: '#F1EFE8', color: '#5F5E5A',
+                    borderRadius: 6, padding: '4px 10px', fontSize: 12,
+                    display: 'flex', alignItems: 'center', gap: 4
+                  }}>
+                    {c}
+                    <button
+                      onClick={() => setCertifications(prev => prev.filter((_, idx) => idx !== i))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 13, padding: 0, lineHeight: 1 }}
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Type a certification and press Enter…"
+                value={certInput}
+                onChange={e => setCertInput(e.target.value)}
+                onKeyDown={addCert}
+                style={{
+                  width: '100%', border: 'none',
+                  borderBottom: '0.5px solid rgba(0,0,0,0.15)',
+                  padding: '10px 0', fontSize: 14,
+                  background: 'transparent', outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Instagram */}
+            <div style={{ position: 'relative', marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Instagram handle (optional)</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16, color: '#999' }}>@</span>
+                <input
+                  type="text"
+                  placeholder="yourhandle"
+                  value={instagram}
+                  onChange={e => setInstagram(e.target.value)}
+                  style={{
+                    flex: 1, border: 'none',
+                    borderBottom: '0.5px solid rgba(0,0,0,0.15)',
+                    padding: '10px 0', fontSize: 16,
+                    background: 'transparent', outline: 'none'
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}
 
-        {/* Step 4: Review */}
+        {/* ── Step 4: Review + Submit ── */}
         {step === 4 && (
-          <div className="space-y-4">
-            <div className="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
-              <h3 className="text-sm text-zinc-400 mb-3 uppercase tracking-wider">Review</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Type</span>
-                  <span>{form.isIndependent ? 'Independent' : 'Gym Trainer'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Experience</span>
-                  <span>{form.experienceYears || 0} years</span>
-                </div>
-                {form.hourlyRate && (
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">Rate</span>
-                    <span>₹{form.hourlyRate}/hr</span>
+          <div>
+            <StepHeader
+              emoji="🚀"
+              title="Ready to launch"
+              subtitle="Review your profile before going live."
+            />
+
+            {/* Checklist */}
+            <div style={{ background: 'white', borderRadius: 12, padding: 16, border: '0.5px solid rgba(0,0,0,0.08)', marginBottom: 20 }}>
+              {checks.map((c, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    height: 40,
+                    borderBottom: i < checks.length - 1 ? '0.5px solid rgba(0,0,0,0.05)' : 'none'
+                  }}
+                >
+                  <div style={{
+                    width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                    background: c.done ? '#EAF3DE' : 'transparent',
+                    border: c.done ? 'none' : '1.5px solid #D0D0D0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {c.done && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">City</span>
-                  <span>{form.city || '—'}</span>
+                  <span style={{ fontSize: 14, color: c.done ? '#111' : '#999', flex: 1 }}>{c.label}</span>
+                  {c.optional && !c.done && (
+                    <span style={{ fontSize: 11, color: '#C0C0C0' }}>optional</span>
+                  )}
                 </div>
-                <div>
-                  <span className="text-zinc-400 block mb-2">Specializations</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {form.specializations.map(s => (
-                      <span key={s} className="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 rounded-full text-xs">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {form.bio && (
-                  <div>
-                    <span className="text-zinc-400 block mb-1">Bio</span>
-                    <p className="text-sm text-zinc-300">{form.bio}</p>
-                  </div>
-                )}
-              </div>
+              ))}
             </div>
 
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4">
-              <p className="text-emerald-400 text-sm">
-                After setup, you'll get a unique invite code to share with clients.
-                They can join using the code in the app.
-              </p>
+            {/* Summary card */}
+            <div style={{ background: '#F7F7F5', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Summary</div>
+              {[
+                { label: 'Name', value: step1.full_name || '—' },
+                { label: 'City', value: step1.city || '—' },
+                { label: 'Experience', value: step1.experience || '—' },
+                { label: 'Rate', value: `₹${hourlyRate}/hr` },
+                { label: 'Type', value: isIndependent ? 'Independent' : 'Gym-based' },
+                { label: 'Specializations', value: specializations.length ? specializations.slice(0, 3).join(', ') + (specializations.length > 3 ? ` +${specializations.length - 3}` : '') : '—' },
+              ].map((row, i, arr) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '8px 0',
+                  borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none'
+                }}>
+                  <span style={{ fontSize: 13, color: '#999' }}>{row.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, maxWidth: '55%', textAlign: 'right' }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ background: '#E6F1FB', borderRadius: 10, padding: 14, fontSize: 13, color: '#185FA5', lineHeight: 1.5 }}>
+              After setup you'll get a unique invite code to share with clients. They can join using the code in the app.
             </div>
           </div>
         )}
       </div>
 
       {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800 p-5 flex gap-3">
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '0.5px solid rgba(0,0,0,0.08)',
+        padding: '12px 24px 28px', display: 'flex', gap: 10
+      }}>
         {step > 1 && (
           <button
-            onClick={() => setStep(s => s - 1)}
-            className="flex-1 py-3.5 rounded-xl bg-zinc-800 text-white font-medium"
+            onClick={prevStep}
+            style={{
+              flex: 1, height: 52, borderRadius: 12,
+              border: '0.5px solid rgba(0,0,0,0.15)',
+              background: 'transparent', fontSize: 15,
+              fontWeight: 500, cursor: 'pointer', color: '#333'
+            }}
           >
             Back
           </button>
         )}
-        {step < 4 ? (
+        {step < TOTAL_STEPS ? (
           <button
-            onClick={() => setStep(s => s + 1)}
-            disabled={step === 3 && form.specializations.length === 0}
-            className="flex-1 py-3.5 rounded-xl bg-emerald-500 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={nextStep}
+            disabled={!canNext}
+            style={{
+              flex: 1, height: 52, borderRadius: 12,
+              background: canNext ? '#111' : '#E0E0E0',
+              color: canNext ? 'white' : '#999',
+              border: 'none', fontSize: 15, fontWeight: 500,
+              cursor: canNext ? 'pointer' : 'not-allowed',
+              transition: 'background 0.15s'
+            }}
           >
-            Next
+            Continue
           </button>
         ) : (
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 py-3.5 rounded-xl bg-emerald-500 text-white font-semibold disabled:opacity-60"
+            style={{
+              flex: 1, height: 56, borderRadius: 12,
+              background: loading ? '#ccc' : '#111',
+              color: 'white', border: 'none',
+              fontSize: 15, fontWeight: 500,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
           >
-            {loading ? 'Setting up...' : 'Launch Trainer Profile 🚀'}
+            {loading ? 'Setting up…' : 'Launch Trainer Profile 🚀'}
           </button>
         )}
       </div>

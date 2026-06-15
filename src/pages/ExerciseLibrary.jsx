@@ -1,164 +1,188 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, Search, X, ChevronRight, Dumbbell } from 'lucide-react'
-import { useExercises } from '../hooks/useExercises'
-import BottomNav from '../components/BottomNav'
+import { useState, useMemo } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { EXERCISE_DATABASE, MUSCLE_GROUPS, searchExercises, hasAIFormDetection } from '../data/exerciseDatabase'
 
-// ── Category mapping ─────────────────────────────────────────────────────────
-
-const CATEGORIES = ['All', 'Push', 'Pull', 'Legs', 'Hinge', 'Core']
-
-function getCategory(ex) {
-  const mg   = (ex.muscle_group ?? '').toLowerCase()
-  const name = (ex.name ?? '').toLowerCase()
-  if (mg === 'hamstrings' && (name.includes('deadlift') || name.includes('morning'))) return 'Hinge'
-  if (['chest', 'triceps', 'shoulders'].includes(mg)) return 'Push'
-  if (['back', 'biceps', 'forearms'].includes(mg))    return 'Pull'
-  if (['legs', 'quads', 'glutes', 'calves', 'hamstrings'].includes(mg)) return 'Legs'
-  if (mg === 'core') return 'Core'
-  return 'Other'
+const muscleColors = {
+  'Back':        { bg: '#EAF3DE', text: '#3B6D11', abbr: 'BK' },
+  'Chest':       { bg: '#E6F1FB', text: '#0C447C', abbr: 'CH' },
+  'Shoulders':   { bg: '#FAEEDA', text: '#854F0B', abbr: 'SH' },
+  'Quads':       { bg: '#FAECE7', text: '#993C1D', abbr: 'QD' },
+  'Hamstrings':  { bg: '#FAECE7', text: '#993C1D', abbr: 'HM' },
+  'Glutes':      { bg: '#FAECE7', text: '#993C1D', abbr: 'GL' },
+  'Calves':      { bg: '#FAECE7', text: '#993C1D', abbr: 'CV' },
+  'Biceps':      { bg: '#F1EFE8', text: '#5F5E5A', abbr: 'BI' },
+  'Triceps':     { bg: '#F1EFE8', text: '#5F5E5A', abbr: 'TR' },
+  'Forearms':    { bg: '#F1EFE8', text: '#5F5E5A', abbr: 'FA' },
+  'Core':        { bg: '#E1F5EE', text: '#0F6E56', abbr: 'CR' },
+  'Cardio':      { bg: '#FCEBEB', text: '#A32D2D', abbr: 'CD' },
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+const getMuscleColor = (muscle) => {
+  const primary = muscle?.split('·')[0]?.trim()
+  return muscleColors[primary] || { bg: '#F1EFE8', text: '#666', abbr: primary?.slice(0, 2)?.toUpperCase() || '??' }
+}
 
 export default function ExerciseLibrary() {
   const navigate = useNavigate()
-  const { allExercises, loading } = useExercises()
-  const [search,         setSearch]         = useState('')
-  const [activeCategory, setActiveCategory] = useState('All')
+  const { pathname } = useLocation()
+  const detailBase = pathname.startsWith('/trainer') ? '/trainer/exercise' : '/exercise'
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState('All')
+  const [sortMode, setSortMode] = useState('alpha')
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return allExercises.filter(ex => {
-      const matchSearch   = !q || ex.name.toLowerCase().includes(q)
-      const matchCategory = activeCategory === 'All' || getCategory(ex) === activeCategory
-      return matchSearch && matchCategory
+  const filters = ['All', ...MUSCLE_GROUPS]
+
+  const filteredExercises = useMemo(() => {
+    let list = searchQuery.trim()
+      ? searchExercises(searchQuery)
+      : [...EXERCISE_DATABASE]
+
+    if (activeFilter !== 'All') {
+      list = list.filter(ex => ex.muscle?.toLowerCase().includes(activeFilter.toLowerCase()))
+    }
+
+    if (sortMode === 'alpha') list.sort((a, b) => a.name.localeCompare(b.name))
+    return list
+  }, [searchQuery, activeFilter, sortMode])
+
+  const groupedExercises = useMemo(() => {
+    if (activeFilter !== 'All' || searchQuery) return null
+    const groups = {}
+    MUSCLE_GROUPS.forEach(m => { groups[m] = [] })
+    filteredExercises.forEach(ex => {
+      const primary = ex.muscle?.split('·')[0]?.trim() || 'Other'
+      if (groups[primary]) groups[primary].push(ex)
+      else groups['Other'] = [...(groups['Other'] || []), ex]
     })
-  }, [allExercises, search, activeCategory])
+    return Object.entries(groups).filter(([, v]) => v.length > 0)
+  }, [filteredExercises, activeFilter, searchQuery])
+
+  const SectionHeader = ({ muscle, count }) => (
+    <div className="flex items-center gap-2 py-2 mt-2 bg-[#F7F7F5] sticky top-[112px] z-10">
+      <span className="text-[10px] font-medium uppercase tracking-widest text-[#999]">{muscle}</span>
+      <span className="text-[10px] bg-[#F1EFE8] text-[#999] px-2 py-0.5 rounded-full">{count}</span>
+    </div>
+  )
+
+  const ExerciseRow = ({ exercise }) => {
+    const color = getMuscleColor(exercise.muscle)
+    const hasAI = hasAIFormDetection(exercise.name)
+    return (
+      <div
+        onClick={() => navigate(`${detailBase}/${encodeURIComponent(exercise.name)}`)}
+        className="bg-white rounded-xl border border-black/[0.06] p-4 mb-2 flex items-center cursor-pointer active:bg-[#F7F7F5] transition-colors"
+      >
+        <div
+          className="w-12 h-12 rounded-[10px] flex items-center justify-center shrink-0"
+          style={{ backgroundColor: color.bg }}
+        >
+          <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: color.text }}>
+            {color.abbr}
+          </span>
+        </div>
+        <div className="flex-1 ml-3 min-w-0">
+          <p className="text-sm font-medium text-[#111] truncate">{exercise.name}</p>
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            {[exercise.muscle, exercise.equipment].filter(Boolean).map((tag, i) => (
+              <span key={i} className="text-[11px] bg-[#F1EFE8] text-[#666] px-2 py-0.5 rounded-full">{tag}</span>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
+          {hasAI && (
+            <span className="text-[10px] font-medium uppercase bg-[#E1F5EE] text-[#0F6E56] px-1.5 py-0.5 rounded-md tracking-wider">AI</span>
+          )}
+          <span className="text-[#CCC] text-sm">›</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-950 pb-28 overflow-x-hidden">
+    <div className="min-h-screen bg-[#F7F7F5]">
 
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-20 bg-gray-950/95 backdrop-blur-sm px-5 pt-12 pb-4 border-b border-white/[0.05]">
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => navigate('/workout')}
-            className="w-9 h-9 rounded-xl bg-white/[0.05] flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <h1 className="text-2xl font-bold text-white">Exercises</h1>
-        </div>
+      {/* Fixed Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/5 h-14 flex items-center px-5">
+        <button onClick={() => navigate(-1)} className="text-sm font-medium text-[#999]">← Back</button>
+        <span className="absolute left-1/2 -translate-x-1/2 text-base font-medium text-[#111]">Exercise Library</span>
+      </div>
 
+      {/* Sticky Search + Filters */}
+      <div className="fixed top-14 left-0 right-0 z-40 bg-white border-b border-black/5">
         {/* Search */}
-        <div className="relative mb-3">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search exercises..."
-            className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl pl-10 pr-9 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/40 transition-colors"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              <X size={15} />
-            </button>
-          )}
+        <div className="px-5 pt-3 pb-2">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999] text-sm">🔍</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={`Search ${EXERCISE_DATABASE.length} exercises…`}
+              className="w-full h-10 bg-[#F1EFE8] rounded-xl pl-8 pr-8 text-sm text-[#111] placeholder-[#999] focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] text-sm"
+              >×</button>
+            )}
+          </div>
         </div>
-
-        {/* Category pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          {CATEGORIES.map(cat => (
+        {/* Filter chips */}
+        <div className="flex gap-1.5 px-5 pb-3 overflow-x-auto scrollbar-hide">
+          {filters.map(f => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={[
-                'shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors',
-                activeCategory === cat
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-white/[0.06] text-zinc-400 hover:text-zinc-200',
-              ].join(' ')}
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`shrink-0 h-8 px-3 rounded-xl text-[13px] font-medium transition-colors ${
+                activeFilter === f
+                  ? 'bg-[#111] text-white'
+                  : 'bg-white border border-black/10 text-[#111]'
+              }`}
             >
-              {cat}
+              {f}
             </button>
           ))}
         </div>
-      </header>
-
-      {/* ── List ── */}
-      <div className="px-5 pt-4">
-
-        {/* Count */}
-        {!loading && (
-          <p className="text-zinc-500 text-xs mb-3">
-            {filtered.length} exercise{filtered.length !== 1 ? 's' : ''}
-          </p>
-        )}
-
-        {loading ? (
-          <div className="space-y-0">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 py-3.5 border-b border-white/[0.04]">
-                <div className="w-10 h-10 rounded-full bg-white/[0.06] animate-pulse shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 w-32 bg-white/[0.06] rounded-full animate-pulse" />
-                  <div className="h-2.5 w-20 bg-white/[0.04] rounded-full animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <Dumbbell size={28} className="text-zinc-700 mx-auto mb-3" />
-            <p className="text-zinc-500 text-sm">No exercises found</p>
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="mt-2 text-emerald-400 text-sm hover:text-emerald-300 transition-colors"
-              >
-                Clear search
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl overflow-hidden">
-            {filtered.map((ex, idx) => {
-              const initial = (ex.muscle_group ?? 'X')[0].toUpperCase()
-              return (
-                <button
-                  key={ex.id ?? ex.name}
-                  onClick={() => navigate(`/exercise/${encodeURIComponent(ex.name)}`)}
-                  className={[
-                    'w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/[0.04] active:bg-white/[0.06] transition-colors text-left',
-                    idx < filtered.length - 1 ? 'border-b border-white/[0.04]' : '',
-                  ].join(' ')}
-                >
-                  {/* Initial circle */}
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                    <span className="text-emerald-400 font-bold text-sm">{initial}</span>
-                  </div>
-
-                  {/* Name + muscle */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium text-sm leading-snug truncate">{ex.name}</p>
-                    <p className="text-zinc-500 text-xs mt-0.5 truncate">{ex.muscle_group}</p>
-                  </div>
-
-                  {/* Chevron */}
-                  <ChevronRight size={15} className="text-zinc-600 shrink-0" />
-                </button>
-              )
-            })}
-          </div>
-        )}
       </div>
 
-      <BottomNav />
+      {/* Content */}
+      <div className="pt-[124px] px-5 pb-10">
+
+        {/* Results count + sort */}
+        <div className="flex items-center justify-between py-2 mb-1">
+          <span className="text-[13px] text-[#999]">{filteredExercises.length} exercises</span>
+          <button
+            onClick={() => setSortMode(s => s === 'alpha' ? 'muscle' : 'alpha')}
+            className="text-[13px] font-medium text-[#185FA5]"
+          >
+            Sort {sortMode === 'alpha' ? 'A–Z ↕' : 'Muscle ↕'}
+          </button>
+        </div>
+
+        {/* Empty state */}
+        {filteredExercises.length === 0 && (
+          <div className="flex flex-col items-center mt-20">
+            <div className="w-12 h-12 rounded-full bg-[#F1EFE8] flex items-center justify-center text-2xl">🔍</div>
+            <p className="text-base font-medium text-[#111] mt-4">No exercises found</p>
+            <p className="text-[13px] text-[#999] mt-1">Try a different search or filter</p>
+          </div>
+        )}
+
+        {/* Grouped list (All filter, no search) */}
+        {groupedExercises && groupedExercises.map(([muscle, exs]) => (
+          <div key={muscle}>
+            <SectionHeader muscle={muscle} count={exs.length} />
+            {exs.map(ex => <ExerciseRow key={ex.id || ex.name} exercise={ex} />)}
+          </div>
+        ))}
+
+        {/* Flat list (filtered or searched) */}
+        {!groupedExercises && filteredExercises.map(ex => (
+          <ExerciseRow key={ex.id || ex.name} exercise={ex} />
+        ))}
+
+      </div>
     </div>
   )
 }

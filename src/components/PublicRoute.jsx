@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
 
 function Spinner() {
   return (
@@ -12,41 +10,21 @@ function Spinner() {
 }
 
 export default function PublicRoute({ children }) {
-  const { user, loading, onboardingComplete } = useAuth()
-  const [role, setRole] = useState(null)
-  const [roleChecked, setRoleChecked] = useState(false)
+  const { user, loading, role, onboardingComplete } = useAuth()
 
-  useEffect(() => {
-    let cancelled = false
-    if (!user || !onboardingComplete) {
-      setRole(null)
-      setRoleChecked(false)
-      return
-    }
-    ;(async () => {
-      const { data } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (cancelled) return
-      setRole(data?.role ?? null)
-      setRoleChecked(true)
-    })()
-    return () => { cancelled = true }
-  }, [user, onboardingComplete])
-
-  // Wait for initial session check
   if (loading) return <Spinner />
 
-  // Logged in but onboarding check still in flight
   if (user && onboardingComplete === null) return <Spinner />
 
   if (user) {
-    if (!onboardingComplete) return <Navigate to="/onboarding" replace />
-    if (!roleChecked) return <Spinner />
-    if (role === 'gym_owner') return <Navigate to="/gym/dashboard" replace />
-    if (role === 'trainer') return <Navigate to="/trainer/dashboard" replace />
+    if (!onboardingComplete) {
+      if (role === 'gym_owner') return <Navigate to="/gym-onboarding" replace />
+      if (role === 'trainer')   return <Navigate to="/become-trainer"  replace />
+      if (!role)                return <Navigate to="/role-select"     replace />
+      return <Navigate to="/onboarding" replace />
+    }
+    if (role === 'gym_owner') return <Navigate to="/gym/dashboard"      replace />
+    if (role === 'trainer')   return <Navigate to="/trainer/dashboard"  replace />
     return <Navigate to="/home" replace />
   }
 

@@ -3,185 +3,112 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 
-const TOTAL_STEPS = 5
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-// ── Shared card ───────────────────────────────────────────────────────────────
-function OptionCard({ icon, label, sublabel, selected, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'relative flex flex-col gap-3 p-5 rounded-2xl border text-left',
-        'cursor-pointer select-none transition-all duration-150 active:scale-[0.98]',
-        selected
-          ? 'bg-emerald-500/10 border-emerald-500 ring-1 ring-emerald-500/40 shadow-emerald-500/10 shadow-lg'
-          : 'bg-[#141416] border-white/[0.08] hover:border-white/25 hover:bg-white/[0.03]',
-      ].join(' ')}
-    >
-      {selected && (
-        <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        </span>
-      )}
-      <span className="text-2xl leading-none">{icon}</span>
-      <div>
-        <p className={`text-sm font-semibold leading-snug ${selected ? 'text-emerald-300' : 'text-zinc-200'}`}>
-          {label}
-        </p>
-        {sublabel && (
-          <p className="text-xs text-zinc-500 mt-0.5 leading-snug">{sublabel}</p>
-        )}
-      </div>
-    </button>
-  )
-}
+const TOTAL_STEPS = 6
 
-// ── Steps ─────────────────────────────────────────────────────────────────────
-function StepGoal({ value, onChange }) {
-  const options = [
-    { value: 'bulk',     icon: '💪', label: 'Bulk',                 sublabel: 'Build size & strength' },
-    { value: 'cut',      icon: '🔥', label: 'Cut',                  sublabel: 'Lose fat, keep muscle' },
-    { value: 'maintain', icon: '⚖️', label: 'Maintain',             sublabel: 'Stay fit & healthy' },
-    { value: 'athletic', icon: '⚡', label: 'Athletic Performance', sublabel: 'Speed, power & endurance' },
-  ]
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {options.map(o => (
-        <OptionCard key={o.value} {...o} selected={value === o.value} onClick={() => onChange(o.value)} />
-      ))}
-    </div>
-  )
-}
-
-function StepExperience({ value, onChange }) {
-  const options = [
-    { value: 'beginner',     icon: '🌱', label: 'Beginner',     sublabel: 'Less than 1 year training' },
-    { value: 'intermediate', icon: '📈', label: 'Intermediate', sublabel: '1–3 years training' },
-    { value: 'advanced',     icon: '🏆', label: 'Advanced',     sublabel: '3+ years training' },
-  ]
-  return (
-    <div className="flex flex-col gap-3">
-      {options.map(o => (
-        <OptionCard key={o.value} {...o} selected={value === o.value} onClick={() => onChange(o.value)} />
-      ))}
-    </div>
-  )
-}
-
-function StepEquipment({ value, onChange }) {
-  const options = [
-    { value: 'full_gym',    icon: '🏋️', label: 'Full Gym',          sublabel: 'Barbells, cables, machines & more' },
-    { value: 'dumbbells',   icon: '🏃', label: 'Dumbbells Only',    sublabel: 'Free weights at home or small gym' },
-    { value: 'bodyweight',  icon: '🤸', label: 'Bodyweight Only',   sublabel: 'No equipment needed' },
-  ]
-  return (
-    <div className="flex flex-col gap-3">
-      {options.map(o => (
-        <OptionCard key={o.value} {...o} selected={value === o.value} onClick={() => onChange(o.value)} />
-      ))}
-    </div>
-  )
-}
-
-function StepBodyStats({ value, onChange }) {
-  const numFields = [
-    { key: 'current_weight', label: 'Current weight', placeholder: '75',  unit: 'kg' },
-    { key: 'target_weight',  label: 'Target weight',  placeholder: '80',  unit: 'kg' },
-    { key: 'height',         label: 'Height',         placeholder: '178', unit: 'cm' },
-    { key: 'age',            label: 'Age',            placeholder: '25',  unit: 'yrs' },
-  ]
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1.5">Full name</label>
-        <input
-          type="text"
-          value={value.full_name}
-          onChange={e => onChange({ ...value, full_name: e.target.value })}
-          placeholder="Your name"
-          className="w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        {numFields.map(({ key, label, placeholder, unit }) => (
-          <div key={key}>
-            <label className="block text-sm font-medium text-zinc-300 mb-1.5">{label}</label>
-            <div className="relative">
-              <input
-                type="number"
-                min="0"
-                value={value[key]}
-                onChange={e => onChange({ ...value, [key]: e.target.value })}
-                placeholder={placeholder}
-                className="w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all pr-12"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-500 font-medium pointer-events-none">
-                {unit}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function StepSchedule({ value, onChange }) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-zinc-300 mb-3">Days per week</p>
-        <div className="grid grid-cols-4 gap-3">
-          {[3, 4, 5, 6].map(d => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => onChange({ ...value, training_days: d })}
-              className={[
-                'py-4 rounded-xl border text-sm font-bold cursor-pointer',
-                'transition-all duration-150 active:scale-[0.97]',
-                value.training_days === d
-                  ? 'bg-emerald-500/10 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
-                  : 'bg-[#141416] border-white/[0.08] text-zinc-400 hover:border-white/25 hover:text-white',
-              ].join(' ')}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-zinc-600 mt-2">days / week</p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1.5">
-          Injuries or limitations
-          <span className="text-zinc-600 font-normal ml-1">(optional)</span>
-        </label>
-        <textarea
-          value={value.injuries}
-          onChange={e => onChange({ ...value, injuries: e.target.value })}
-          placeholder="e.g. Bad lower back, left knee pain..."
-          rows={3}
-          className="w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition-all resize-none"
-        />
-      </div>
-    </div>
-  )
-}
-
-// ── Step metadata ─────────────────────────────────────────────────────────────
 const STEPS = [
-  { title: "What's your main goal?",       subtitle: "We'll tailor everything around this." },
-  { title: 'Your experience level?',       subtitle: 'Honest answers lead to better results.' },
-  { title: 'What equipment do you have?',  subtitle: "We'll only programme exercises you can do." },
-  { title: 'Your body stats',              subtitle: 'Used to calculate your targets. You can update these later.' },
-  { title: 'Your schedule',               subtitle: "Consistency beats perfection — pick what you can stick to." },
+  {
+    id: 1,
+    question: "What's your\nprimary goal?",
+    sub: "We'll build your plan around this.",
+    field: 'goal',
+    type: 'single',
+    options: [
+      { value: 'muscle',      emoji: '💪', label: 'Build Muscle',     sub: 'Gain size and strength'    },
+      { value: 'weight_loss', emoji: '🔥', label: 'Lose Weight',      sub: 'Burn fat, lean out'        },
+      { value: 'fitness',     emoji: '🏃', label: 'Get Fit',          sub: 'Improve endurance'         },
+      { value: 'performance', emoji: '⚡', label: 'Boost Performance', sub: 'Athletic edge'            },
+      { value: 'health',      emoji: '🧘', label: 'Stay Healthy',     sub: 'Consistency and balance'   },
+    ],
+  },
+  {
+    id: 2,
+    question: "How long have you\nbeen training?",
+    sub: "Honest answer = better program.",
+    field: 'experience',
+    type: 'single',
+    options: [
+      { value: 'beginner',     emoji: '🌱', label: 'Just Starting',   sub: 'Less than 6 months'       },
+      { value: 'intermediate', emoji: '💪', label: 'Some Experience', sub: '6 months – 2 years'       },
+      { value: 'advanced',     emoji: '🏆', label: 'Experienced',     sub: '2+ years consistent'      },
+    ],
+  },
+  {
+    id: 3,
+    question: "What equipment\ndo you have?",
+    sub: "Select all that apply.",
+    field: 'equipment',
+    type: 'multi',
+    options: [
+      { value: 'full_gym',    emoji: '🏋️', label: 'Full Gym',         sub: 'Barbells, machines, racks'  },
+      { value: 'dumbbells',   emoji: '🪀', label: 'Dumbbells Only',   sub: 'Home or limited gym'        },
+      { value: 'bands',       emoji: '🪢', label: 'Resistance Bands', sub: 'Anywhere training'          },
+      { value: 'bodyweight',  emoji: '🤸', label: 'Bodyweight Only',  sub: 'No equipment needed'        },
+    ],
+  },
+  {
+    id: 4,
+    question: "How many days\nper week?",
+    sub: '',
+    field: 'trainingDays',
+    type: 'days',
+  },
+  {
+    id: 5,
+    question: "A few quick\nnumbers",
+    sub: "Used to calculate your targets. Stays private.",
+    type: 'stats',
+  },
+  {
+    id: 6,
+    question: "Any injuries\nor limitations?",
+    sub: "We'll modify exercises to keep you safe.",
+    field: 'injuries',
+    type: 'multi',
+    options: [
+      { value: 'knee',     emoji: '🦵', label: 'Knee issues',       sub: 'Avoid deep squats'        },
+      { value: 'back',     emoji: '🦴', label: 'Lower back',        sub: 'Avoid heavy deadlifts'    },
+      { value: 'shoulder', emoji: '🫀', label: 'Shoulder issues',   sub: 'Limit overhead work'      },
+      { value: 'elbow',    emoji: '💪', label: 'Elbow / wrist',     sub: 'Modify grip exercises'    },
+      { value: 'none',     emoji: '✅', label: 'None — all good',   sub: 'Full range of motion'     },
+    ],
+  },
 ]
 
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+
+function getDayRec(count) {
+  if (count <= 2) return 'Good for maintenance'
+  if (count <= 3) return 'Great for beginners'
+  if (count <= 4) return 'Great for muscle gain'
+  if (count <= 5) return 'Advanced program'
+  return 'Elite level commitment'
+}
+
+// ── Option Card ───────────────────────────────────────────────────────────────
+
+const OptionCard = ({ emoji, label, sub, selected, onSelect }) => (
+  <div
+    onClick={onSelect}
+    className={`rounded-2xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-150 min-h-[76px] ${
+      selected ? 'bg-[#111] border-transparent' : 'bg-white border border-black/[0.06]'
+    }`}
+  >
+    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[22px] ${
+      selected ? 'bg-white/10' : 'bg-[#F1EFE8]'
+    }`}>
+      {emoji}
+    </div>
+    <div className="flex-1">
+      <p className={`text-base font-semibold ${selected ? 'text-white' : 'text-[#111]'}`}>{label}</p>
+      <p className={`text-[13px] mt-0.5 ${selected ? 'text-white/60' : 'text-[#999]'}`}>{sub}</p>
+    </div>
+  </div>
+)
+
 // ── Main ──────────────────────────────────────────────────────────────────────
+
 export default function Onboarding() {
   const { user, setOnboardingComplete } = useAuth()
   const navigate = useNavigate()
@@ -190,67 +117,114 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const [form, setForm] = useState({
+  const [answers, setAnswers] = useState({
     goal: '',
     experience: '',
-    equipment: '',
-    full_name: '',
-    current_weight: '',
-    target_weight: '',
+    equipment: [],
+    trainingDays: [],
     height: '',
+    currentWeight: '',
+    targetWeight: '',
     age: '',
-    training_days: null,
-    injuries: '',
+    gender: '',
+    injuries: [],
   })
 
-  function isStepValid() {
+  // ── Handlers ────────────────────────────────────────────────────────────────
+
+  function selectSingle(field, value) {
+    setAnswers(a => ({ ...a, [field]: value }))
+  }
+
+  function toggleMulti(field, value) {
+    if (field === 'injuries' && value === 'none') {
+      setAnswers(a => ({ ...a, injuries: ['none'] }))
+      return
+    }
+    setAnswers(a => {
+      const arr = a[field]
+      const filtered = arr.filter(v => v !== 'none')
+      return {
+        ...a,
+        [field]: filtered.includes(value)
+          ? filtered.filter(v => v !== value)
+          : [...filtered, value],
+      }
+    })
+  }
+
+  function toggleDay(idx) {
+    setAnswers(a => {
+      const days = a.trainingDays
+      return {
+        ...a,
+        trainingDays: days.includes(idx)
+          ? days.filter(d => d !== idx)
+          : [...days, idx],
+      }
+    })
+  }
+
+  function canContinue() {
     switch (step) {
-      case 1: return !!form.goal
-      case 2: return !!form.experience
-      case 3: return !!form.equipment
-      case 4: return !!(form.full_name && form.current_weight && form.target_weight && form.height && form.age)
-      case 5: return !!form.training_days
+      case 1: return answers.goal !== ''
+      case 2: return answers.experience !== ''
+      case 3: return answers.equipment.length > 0
+      case 4: return answers.trainingDays.length > 0
+      case 5: return !!(answers.height && answers.currentWeight && answers.age && answers.gender)
+      case 6: return true
       default: return false
     }
   }
 
-  function update(patch) {
-    setError('')
-    setForm(f => ({ ...f, ...patch }))
-  }
-
-  async function handleNext() {
-    if (!isStepValid()) {
-      setError(step === 4 ? 'Please fill in all fields.' : 'Please select an option.')
-      return
-    }
-
-    setError('')
-
+  function handleContinue() {
     if (step < TOTAL_STEPS) {
       setStep(s => s + 1)
+    } else {
+      handleFinish()
+    }
+  }
+
+  async function handleFinish() {
+    setSaving(true)
+    setError('')
+
+    if (!user) {
+      setSaving(false)
+      setError('Your session expired. Please sign in again.')
+      navigate('/login')
       return
     }
 
-    // Step 5 — save and redirect
-    setSaving(true)
-    const { error: dbError } = await supabase.from('users').upsert({
+    const payload = {
       id: user.id,
-      full_name: form.full_name,
-      goal: form.goal,
-      experience: form.experience,
-      equipment: form.equipment,
-      current_weight: Number(form.current_weight),
-      height: Number(form.height),
-      age: Number(form.age),
-      target_weight: Number(form.target_weight),
-      training_days: form.training_days,
-      injuries: form.injuries || null,
-    })
+      full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+      goal: answers.goal,
+      experience: answers.experience,
+      equipment: answers.equipment.join(','),
+      training_days: answers.trainingDays.length,
+      height: parseFloat(answers.height) || null,
+      current_weight: parseFloat(answers.currentWeight) || null,
+      target_weight: parseFloat(answers.targetWeight) || null,
+      age: parseInt(answers.age) || null,
+      gender: answers.gender || null,
+      injuries: answers.injuries.filter(i => i !== 'none').join(',') || null,
+    }
+
+    // Retry up to 3 times with 500 ms delay between attempts
+    let dbError = null
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const { error: e } = await supabase.from('users').upsert(payload, { onConflict: 'id' })
+      if (!e) { dbError = null; break }
+      dbError = e
+      console.warn(`Onboarding save attempt ${attempt} failed:`, e)
+      if (attempt < 3) await new Promise(r => setTimeout(r, 500))
+    }
+
     setSaving(false)
 
     if (dbError) {
-      console.error('Onboarding save error:', dbError)
+      console.error('Onboarding save error (all retries exhausted):', dbError)
       setError(dbError.message || 'Failed to save your profile. Please try again.')
       return
     }
@@ -259,135 +233,204 @@ export default function Onboarding() {
     navigate('/home')
   }
 
-  const meta = STEPS[step - 1]
+  // ── Step renderers ────────────────────────────────────────────────────────
+
+  function renderOptions(stepObj) {
+    const isMulti = stepObj.type === 'multi'
+    return stepObj.options.map(opt => (
+      <OptionCard
+        key={opt.value}
+        {...opt}
+        selected={isMulti
+          ? answers[stepObj.field].includes(opt.value)
+          : answers[stepObj.field] === opt.value}
+        onSelect={() => isMulti
+          ? toggleMulti(stepObj.field, opt.value)
+          : selectSingle(stepObj.field, opt.value)}
+      />
+    ))
+  }
+
+  function renderDays() {
+    return (
+      <div className="mt-8">
+        <div className="flex justify-between gap-2">
+          {DAY_LABELS.map((d, i) => (
+            <button
+              key={i}
+              onClick={() => toggleDay(i)}
+              className={`w-11 h-11 rounded-full text-sm font-semibold transition-all flex-1 ${
+                answers.trainingDays.includes(i)
+                  ? 'bg-[#111] text-white'
+                  : 'bg-white border border-black/10 text-[#999]'
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+        <div className="text-center mt-6">
+          <p className="text-[64px] font-black text-[#111] leading-none tabular-nums">
+            {answers.trainingDays.length}
+          </p>
+          <p className="text-sm text-[#999] mt-1">days per week</p>
+          {answers.trainingDays.length > 0 && (
+            <div className="inline-flex items-center gap-1.5 bg-[#EAF3DE] text-[#3B6D11] rounded-full px-4 py-2 mt-4">
+              <span className="text-[13px] font-medium">
+                ✓ {getDayRec(answers.trainingDays.length)}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  function renderStats() {
+    const fields = [
+      { key: 'height',        label: 'Height',  unit: 'cm'  },
+      { key: 'currentWeight', label: 'Current', unit: 'kg'  },
+      { key: 'targetWeight',  label: 'Target',  unit: 'kg'  },
+      { key: 'age',           label: 'Age',     unit: 'yrs' },
+    ]
+    return (
+      <div className="mt-8 space-y-3">
+        {fields.map(f => (
+          <div
+            key={f.key}
+            className="bg-white rounded-2xl border border-black/[0.06] px-5 py-4 flex items-center"
+          >
+            <span className="text-sm font-medium text-[#111] w-28 shrink-0">{f.label}</span>
+            <input
+              type="number"
+              value={answers[f.key]}
+              onChange={e => setAnswers(a => ({ ...a, [f.key]: e.target.value }))}
+              placeholder="—"
+              className="flex-1 text-[28px] font-semibold text-[#111] tabular-nums bg-transparent focus:outline-none text-right w-full placeholder-[#CCC]"
+            />
+            <span className="text-sm text-[#999] ml-2 shrink-0">{f.unit}</span>
+          </div>
+        ))}
+
+        {/* Gender */}
+        <div>
+          <p className="text-sm font-medium text-[#111] mb-2 mt-1">Gender</p>
+          <div className="flex gap-2">
+            {['Male', 'Female', 'Prefer not to say'].map(g => {
+              const val = g.toLowerCase().replace(/ /g, '_')
+              return (
+                <button
+                  key={g}
+                  onClick={() => setAnswers(a => ({ ...a, gender: val }))}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    answers.gender === val
+                      ? 'bg-[#111] text-white'
+                      : 'border border-black/10 text-[#111]'
+                  }`}
+                >
+                  {g}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
+
+  const currentStep = STEPS[step - 1]
   const progress = (step / TOTAL_STEPS) * 100
 
   return (
-    <div className="min-h-screen bg-[#0c0c0e] flex flex-col">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/10 blur-[120px] rounded-full" />
+    <div className="min-h-screen bg-[#F7F7F5] flex flex-col pb-28">
+
+      {/* Progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-[#E5E5E3]">
+        <div
+          className="h-full bg-[#111] transition-all duration-[400ms]"
+          style={{ width: `${progress}%` }}
+        />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 px-6 pt-8 pb-0 shrink-0">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="text-lg font-bold text-white tracking-tight">
-              FitForge <span className="text-emerald-400">AI</span>
-            </span>
-          </div>
+      {/* Back button */}
+      {step > 1 && (
+        <button
+          onClick={() => setStep(s => s - 1)}
+          className="fixed top-4 left-5 z-50 text-xl text-[#999] w-10 h-10 flex items-center justify-center"
+        >
+          ←
+        </button>
+      )}
 
-          {/* Progress bar */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <span className="text-xs text-zinc-500 tabular-nums shrink-0">{step} / {TOTAL_STEPS}</span>
-          </div>
+      {/* Content */}
+      <div className="flex-1 px-5 pt-12">
 
-          {/* Step segments */}
-          <div className="flex gap-1.5">
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
-                  i < step ? 'bg-emerald-500' : 'bg-white/[0.06]'
-                }`}
-              />
-            ))}
-          </div>
+        {/* Step label */}
+        <p className="text-[12px] text-[#999] mt-2">Step {step} of {TOTAL_STEPS}</p>
+
+        {/* Question */}
+        <h1 className="text-[28px] font-bold text-[#111] mt-3 leading-tight whitespace-pre-line">
+          {currentStep.question}
+        </h1>
+
+        {/* Subtext */}
+        {currentStep.sub && (
+          <p className="text-[15px] text-[#999] mt-2 leading-relaxed">{currentStep.sub}</p>
+        )}
+
+        {/* Step content */}
+        <div className="mt-8 space-y-2.5">
+          {currentStep.type === 'days'  && renderDays()}
+          {currentStep.type === 'stats' && renderStats()}
+          {(currentStep.type === 'single' || currentStep.type === 'multi') && renderOptions(currentStep)}
         </div>
-      </header>
 
-      {/* Body */}
-      <main className="relative z-10 flex-1 px-6 py-8 overflow-y-auto">
-        <div className="max-w-lg mx-auto flex flex-col min-h-full">
-          {/* Heading */}
-          <div className="mb-7">
-            <h1 className="text-2xl font-bold text-white mb-1">{meta.title}</h1>
-            <p className="text-zinc-400 text-sm">{meta.subtitle}</p>
+        {/* Equipment note */}
+        {step === 3 && (
+          <p className="text-[12px] text-[#999] text-center mt-4">
+            You can update this anytime in settings.
+          </p>
+        )}
+
+        {/* Skip for injuries */}
+        {step === 6 && (
+          <button
+            onClick={() => handleFinish()}
+            className="w-full text-center text-[14px] font-medium text-[#999] mt-4 underline underline-offset-2"
+          >
+            Skip for now →
+          </button>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="mt-4 px-4 py-3 rounded-xl bg-[#FCEBEB] border border-[#A32D2D]/20 text-[#A32D2D] text-sm">
+            {error}
           </div>
+        )}
+      </div>
 
-          {/* Step content */}
-          <div>
-            {step === 1 && (
-              <StepGoal
-                value={form.goal}
-                onChange={v => update({ goal: v })}
-              />
-            )}
-            {step === 2 && (
-              <StepExperience
-                value={form.experience}
-                onChange={v => update({ experience: v })}
-              />
-            )}
-            {step === 3 && (
-              <StepEquipment
-                value={form.equipment}
-                onChange={v => update({ equipment: v })}
-              />
-            )}
-            {step === 4 && (
-              <StepBodyStats
-                value={form}
-                onChange={patch => { setError(''); setForm(patch) }}
-              />
-            )}
-            {step === 5 && (
-              <StepSchedule
-                value={form}
-                onChange={patch => { setError(''); setForm(patch) }}
-              />
-            )}
-          </div>
+      {/* Fixed CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#F7F7F5] px-5 pt-3 pb-10">
+        <button
+          onClick={handleContinue}
+          disabled={!canContinue() || saving}
+          className={`w-full h-[52px] rounded-xl text-base font-semibold transition-all ${
+            canContinue() && !saving
+              ? 'bg-[#111] text-white'
+              : 'bg-[#E5E5E3] text-[#999] cursor-not-allowed'
+          }`}
+        >
+          {saving
+            ? 'Saving…'
+            : step === TOTAL_STEPS
+              ? 'Build My Plan →'
+              : 'Continue →'}
+        </button>
+      </div>
 
-          {/* Error */}
-          {error && (
-            <div className="mt-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Navigation */}
-          <div className="flex gap-3 mt-8 pb-4">
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={() => { setError(''); setStep(s => s - 1) }}
-                className="px-6 py-3 rounded-xl border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/25 text-sm font-medium transition-all duration-150 cursor-pointer"
-              >
-                Back
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={saving}
-              className="flex-1 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all duration-150 text-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : step === TOTAL_STEPS ? (
-                'Finish & go to dashboard'
-              ) : (
-                'Continue'
-              )}
-            </button>
-          </div>
-        </div>
-      </main>
     </div>
   )
 }

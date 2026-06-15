@@ -3,12 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 
+const accentColors = {
+  0: '#185FA5', 1: '#1D9E75',
+  2: '#BA7517', 3: '#D85A30',
+  4: '#534AB7', 5: '#0F6E56'
+};
+
 export default function TrainerTemplates() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [tab, setTab] = useState('workout');
+  const [sort, setSort] = useState('recent');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -17,7 +25,7 @@ export default function TrainerTemplates() {
 
   const loadTemplates = async () => {
     try {
-      const data = await apiFetch(`/api/trainer/templates/${user.id}?type=workout`);
+      const data = await apiFetch(`/api/trainer/templates/${user.id}`);
       setTemplates(data || []);
     } catch (err) {
       console.error('Load templates error:', err);
@@ -39,143 +47,226 @@ export default function TrainerTemplates() {
     }
   };
 
+  const workoutTemplates = templates.filter(t => t.type === 'workout');
+  const dietTemplates = templates.filter(t => t.type === 'diet');
+  const displayed = tab === 'workout' ? workoutTemplates : dietTemplates;
+
+  const sorted = [...displayed].sort((a, b) => {
+    if (sort === 'recent') return new Date(b.updated_at) - new Date(a.updated_at);
+    if (sort === 'most-used') return b.times_assigned - a.times_assigned;
+    if (sort === 'name') return a.name.localeCompare(b.name);
+    return 0;
+  });
+
+  const handleCreate = () => navigate(
+    tab === 'workout' ? '/trainer/templates/new' : '/trainer/diet-templates/new'
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div style={{ minHeight: '100vh', background: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-32">
+    <div style={{ minHeight: '100vh', background: '#F7F7F5', paddingBottom: 100 }}>
       {/* Header */}
-      <div className="px-5 pt-12 pb-6">
-        <button onClick={() => navigate('/trainer/dashboard')} className="text-zinc-400 text-sm mb-3 flex items-center gap-1">
-          ← Dashboard
+      <div style={{ padding: '52px 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 600, margin: 0 }}>Templates</h1>
+        <button
+          onClick={handleCreate}
+          style={{
+            width: 34, height: 34, borderRadius: '50%',
+            background: '#111', color: 'white', border: 'none',
+            fontSize: 20, cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', lineHeight: 1
+          }}
+        >
+          +
         </button>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Templates</h1>
-            <p className="text-zinc-400 text-sm mt-0.5">{templates.length} workout plan{templates.length !== 1 ? 's' : ''}</p>
-          </div>
-          <button
-            onClick={() => navigate('/trainer/templates/new')}
-            className="px-4 py-2.5 bg-emerald-500 rounded-xl font-semibold text-sm"
-          >
-            + New
-          </button>
-        </div>
       </div>
 
-      <div className="px-5 space-y-3">
-        {templates.length === 0 ? (
-          <div className="bg-zinc-900 rounded-2xl p-10 border border-zinc-800 text-center">
-            <p className="text-4xl mb-3">📋</p>
-            <h2 className="font-semibold mb-2">No templates yet</h2>
-            <p className="text-zinc-400 text-sm mb-6">
-              Build reusable workout plans to assign to any client
-            </p>
-            <button
-              onClick={() => navigate('/trainer/templates/new')}
-              className="px-6 py-3 bg-emerald-500 rounded-xl font-semibold text-sm"
-            >
-              Create your first template
-            </button>
-          </div>
-        ) : (
-          templates.map(template => {
-            const days = template.template_data?.days || [];
-            const totalExercises = days.reduce((sum, d) => sum + (d.exercises?.length || 0), 0);
+      {/* Tabs */}
+      <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
+        {['workout', 'diet'].map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              padding: '7px 18px',
+              borderRadius: 20,
+              border: 'none',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              background: tab === t ? '#111' : 'white',
+              color: tab === t ? 'white' : '#555',
+              boxShadow: tab === t ? 'none' : '0 0 0 0.5px rgba(0,0,0,0.12)'
+            }}
+          >
+            {t === 'workout' ? 'Workout' : 'Diet'} ({t === 'workout' ? workoutTemplates.length : dietTemplates.length})
+          </button>
+        ))}
+      </div>
 
-            return (
-              <div key={template.id} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base truncate">{template.name}</h3>
-                      {template.description && (
-                        <p className="text-zinc-400 text-sm mt-0.5 line-clamp-1">{template.description}</p>
-                      )}
-                      <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
-                        <span>{days.length} day{days.length !== 1 ? 's' : ''}</span>
-                        <span>·</span>
-                        <span>{totalExercises} exercises</span>
-                        {template.template_data?.difficulty && (
-                          <>
-                            <span>·</span>
-                            <span>{template.template_data.difficulty}</span>
-                          </>
-                        )}
-                        {template.times_assigned > 0 && (
-                          <>
-                            <span>·</span>
-                            <span className="text-emerald-400">Assigned {template.times_assigned}×</span>
-                          </>
-                        )}
-                      </div>
-                      {template.tags?.length > 0 && (
-                        <div className="flex gap-1.5 mt-2 flex-wrap">
-                          {template.tags.map(tag => (
-                            <span key={tag} className="text-[10px] px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-full">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+      {/* Sort row */}
+      <div style={{ padding: '0 16px 10px', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontSize: 13, color: '#999' }}>Sort:</span>
+        <select
+          value={sort}
+          onChange={e => setSort(e.target.value)}
+          style={{ fontSize: 13, border: 'none', background: 'transparent', color: '#666', cursor: 'pointer' }}
+        >
+          <option value="recent">Recent</option>
+          <option value="most-used">Most used</option>
+          <option value="name">Name</option>
+        </select>
+      </div>
+
+      {/* Cards */}
+      <div style={{ padding: '0 16px' }}>
+        {sorted.map((template, index) => {
+          const accent = accentColors[index % 6];
+          const days = template.template_data?.days?.length || 0;
+          const exercises = template.template_data?.days
+            ?.reduce((sum, d) => sum + (d.exercises?.length || 0), 0) || 0;
+          const lastUsed = template.updated_at
+            ? new Date(template.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : '—';
+
+          return (
+            <div
+              key={template.id}
+              style={{
+                background: 'white',
+                border: '0.5px solid rgba(0,0,0,0.08)',
+                borderRadius: 12,
+                overflow: 'hidden',
+                marginBottom: 10
+              }}
+            >
+              <div style={{ height: 3, background: accent }} />
+              <div style={{ padding: 16 }}>
+                {/* Row 1: name + type badge */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 16, fontWeight: 500 }}>{template.name}</span>
+                  <span style={{
+                    fontSize: 11,
+                    background: tab === 'workout' ? '#E6F1FB' : '#E1F5EE',
+                    color: tab === 'workout' ? '#185FA5' : '#0F6E56',
+                    padding: '2px 8px',
+                    borderRadius: 20
+                  }}>
+                    {tab === 'workout' ? 'Workout' : 'Diet'}
+                  </span>
                 </div>
 
-                {/* Action row */}
-                <div className="flex border-t border-zinc-800">
+                {/* Row 2: metadata */}
+                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>
+                  {tab === 'workout'
+                    ? `${days} days · ${exercises} exercises`
+                    : `${template.template_data?.calories || 0} kcal · P:${template.template_data?.protein || 0}g C:${template.template_data?.carbs || 0}g F:${template.template_data?.fat || 0}g`
+                  }
+                </div>
+
+                {/* Row 3: usage stats */}
+                <div style={{ fontSize: 12, color: '#999', marginBottom: 0 }}>
+                  Assigned {template.times_assigned || 0}× · Last used {lastUsed}
+                </div>
+
+                {/* Row 4: action buttons */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                   <button
-                    onClick={() => navigate(`/trainer/assign-plan?templateId=${template.id}`)}
-                    className="flex-1 py-3 text-emerald-400 text-sm font-medium hover:bg-emerald-500/5 transition-colors"
-                  >
-                    Assign
-                  </button>
-                  <div className="w-px bg-zinc-800" />
-                  <button
-                    onClick={() => navigate(`/trainer/templates/${template.id}/edit`)}
-                    className="flex-1 py-3 text-zinc-400 text-sm font-medium hover:bg-zinc-800/50 transition-colors"
+                    onClick={() => navigate(
+                      tab === 'workout'
+                        ? `/trainer/templates/${template.id}/edit`
+                        : `/trainer/diet-templates/${template.id}/edit`
+                    )}
+                    style={{
+                      flex: 1, height: 36,
+                      border: '0.5px solid rgba(0,0,0,0.15)',
+                      borderRadius: 8, background: 'transparent',
+                      fontSize: 13, fontWeight: 500, cursor: 'pointer'
+                    }}
                   >
                     Edit
                   </button>
-                  <div className="w-px bg-zinc-800" />
+                  <button
+                    onClick={() => navigate(`/trainer/assign-plan?templateId=${template.id}&type=${tab}`)}
+                    style={{
+                      flex: 1, height: 36,
+                      background: '#111', color: 'white',
+                      border: 'none', borderRadius: 8,
+                      fontSize: 13, fontWeight: 500, cursor: 'pointer'
+                    }}
+                  >
+                    Assign
+                  </button>
                   <button
                     onClick={() => deleteTemplate(template.id)}
                     disabled={deleting === template.id}
-                    className="flex-1 py-3 text-red-400 text-sm font-medium hover:bg-red-500/5 transition-colors disabled:opacity-40"
+                    style={{
+                      width: 36, height: 36,
+                      border: '0.5px solid rgba(0,0,0,0.1)',
+                      borderRadius: 8, background: 'transparent',
+                      fontSize: 15, cursor: 'pointer',
+                      color: '#D85A30', opacity: deleting === template.id ? 0.4 : 1
+                    }}
                   >
-                    {deleting === template.id ? '...' : 'Delete'}
+                    {deleting === template.id ? '…' : '🗑'}
                   </button>
                 </div>
               </div>
-            );
-          })
-        )}
+            </div>
+          );
+        })}
+
+        {/* Dashed create card */}
+        <div
+          onClick={handleCreate}
+          style={{
+            border: '1.5px dashed #D0D0D0',
+            borderRadius: 12,
+            padding: 24,
+            textAlign: 'center',
+            cursor: 'pointer',
+            marginBottom: 10
+          }}
+        >
+          <div style={{ fontSize: 20, color: '#C0C0C0', marginBottom: 6 }}>+</div>
+          <div style={{ fontSize: 13, color: '#999' }}>
+            New {tab === 'workout' ? 'Workout' : 'Diet'} Template
+          </div>
+        </div>
       </div>
 
       {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800">
-        <div className="flex justify-around py-3">
-          {[
-            { label: 'Clients', icon: '👥', path: '/trainer/dashboard' },
-            { label: 'Templates', icon: '📋', path: '/trainer/templates', active: true },
-            { label: 'Chat', icon: '💬', path: '/trainer/chat' },
-            { label: 'Profile', icon: '👤', path: '/trainer/settings' }
-          ].map(tab => (
-            <button
-              key={tab.label}
-              onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-1 px-3 ${tab.active ? 'text-emerald-400' : 'text-zinc-500'}`}
-            >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </button>
-          ))}
-        </div>
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'white', borderTop: '0.5px solid rgba(0,0,0,0.08)',
+        display: 'flex', justifyContent: 'space-around', padding: '10px 0 24px'
+      }}>
+        {[
+          { label: 'Clients', icon: '👥', path: '/trainer/dashboard' },
+          { label: 'Templates', icon: '📋', path: '/trainer/templates', active: true },
+          { label: 'Chat', icon: '💬', path: '/trainer/chat' },
+          { label: 'Profile', icon: '👤', path: '/trainer/settings' }
+        ].map(t => (
+          <button
+            key={t.label}
+            onClick={() => navigate(t.path)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 3, background: 'none', border: 'none', cursor: 'pointer',
+              color: t.active ? '#111' : '#999', padding: '0 12px'
+            }}
+          >
+            <span style={{ fontSize: 18 }}>{t.icon}</span>
+            <span style={{ fontSize: 10, fontWeight: t.active ? 600 : 400 }}>{t.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
