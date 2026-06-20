@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getInitials } from '../../utils/avatarColor'
 import { useAuth } from '../../hooks/useAuth'
+import { useTheme } from '../../contexts/ThemeContext'
+import { supabase } from '../../utils/supabase'
+import { useOwnerGymId } from '../../hooks/useOwnerGymId'
 
 const GYM_TYPES = ['Commercial', 'Boutique', 'CrossFit', 'Yoga Studio', 'Other']
 
@@ -31,6 +35,40 @@ const DEFAULT_NOTIFICATIONS = {
   low_attendance_alert: false,
 }
 
+// ─── ThemeSwatch ─────────────────────────────────────────────────────────────
+function ThemeSwatch({ id }) {
+  const outer = {
+    width: 42, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0,
+    border: '1px solid rgba(0,0,0,0.12)', position: 'relative',
+    display: 'flex', flexDirection: 'column', gap: 3,
+    padding: '5px 6px', boxSizing: 'border-box',
+  }
+  if (id === 'system') {
+    return (
+      <div style={{ ...outer, padding: 0 }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, width: '50%', height: '100%', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
+          <div style={{ height: 4, borderRadius: 2, background: '#111', width: '65%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: '#185FA5', width: '45%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,0.1)', width: '80%' }} />
+        </div>
+        <div style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', background: '#0F0F0F', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
+          <div style={{ height: 4, borderRadius: 2, background: '#F5F5F5', width: '65%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: '#4A9EE0', width: '45%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.15)', width: '80%' }} />
+        </div>
+      </div>
+    )
+  }
+  const light = id === 'light'
+  return (
+    <div style={{ ...outer, background: light ? '#FFFFFF' : '#0F0F0F' }}>
+      <div style={{ height: 4, borderRadius: 2, background: light ? '#111' : '#F5F5F5', width: '65%' }} />
+      <div style={{ height: 3, borderRadius: 2, background: light ? '#185FA5' : '#4A9EE0', width: '45%' }} />
+      <div style={{ height: 3, borderRadius: 2, background: light ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)', width: '80%' }} />
+    </div>
+  )
+}
+
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 const Toggle = ({ value, onChange }) => (
   <div
@@ -56,12 +94,13 @@ const Toggle = ({ value, onChange }) => (
 export default function GymSettings() {
   const navigate = useNavigate()
   const { signOut } = useAuth()
+  const { theme, setThemeMode } = useTheme()
 
   const handleLogout = async () => {
     await signOut()
     navigate('/login', { replace: true })
   }
-  const gymId = localStorage.getItem('gymId')
+  const gymId = useOwnerGymId()
   const API = import.meta.env.VITE_API_URL || ''
   const logoInputRef = useRef(null)
 
@@ -83,6 +122,11 @@ export default function GymSettings() {
   const [deactivating, setDeactivating] = useState(false)
   const [toast, setToast] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
+
+  // ── Locker toggle ──────────────────────────────────────────────────────────
+  const [lockersEnabled, setLockersEnabled] = useState(false)
+  const [lockersLoading, setLockersLoading] = useState(true)
+  const [showLockersOffConfirm, setShowLockersOffConfirm] = useState(false)
 
   // ─── Fetch settings ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -108,6 +152,26 @@ export default function GymSettings() {
       }
     }
     fetchSettings()
+  }, [gymId])
+
+  useEffect(() => {
+    if (!gymId) { setLockersLoading(false); return }
+    const fetchLockerSettings = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        const res = await fetch(`${API}/api/lockers/settings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setLockersEnabled(data.lockers_enabled ?? false)
+        }
+      } catch { /* non-critical */ } finally {
+        setLockersLoading(false)
+      }
+    }
+    fetchLockerSettings()
   }, [gymId])
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -223,6 +287,45 @@ export default function GymSettings() {
       else setPlans(prev => prev.map(p => p.id === planId ? { ...p, is_active: isActive } : p))
     } catch (err) {
       console.error('Toggle plan failed:', err)
+    }
+  }
+
+  // ─── Locker toggle ─────────────────────────────────────────────────────────
+  const handleLockerToggle = async (value) => {
+    if (!value) { setShowLockersOffConfirm(true); return }
+    setLockersEnabled(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      const res = await fetch(`${API}/api/lockers/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ lockers_enabled: true }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      showToastMsg('✓ Locker Management enabled')
+    } catch {
+      setLockersEnabled(false)
+      showToastMsg('Failed to enable Locker Management', 'error')
+    }
+  }
+
+  const confirmLockersOff = async () => {
+    setShowLockersOffConfirm(false)
+    setLockersEnabled(false)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      const res = await fetch(`${API}/api/lockers/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ lockers_enabled: false }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      showToastMsg('Locker Management disabled')
+    } catch {
+      setLockersEnabled(true)
+      showToastMsg('Failed to disable Locker Management', 'error')
     }
   }
 
@@ -489,6 +592,64 @@ export default function GymSettings() {
           </div>
         </div>
 
+        {/* ── SECTION 4b: FEATURE MODULES ────────────────────────────────────── */}
+        <div>
+          {sectionLabel('FEATURE MODULES')}
+          <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 12, minHeight: 64,
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Locker Management</div>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Enable if your gym offers locker rentals to members
+                </div>
+              </div>
+              {lockersLoading
+                ? <div style={{ width: 44, height: 26, borderRadius: 13, backgroundColor: '#E0E0E0', flexShrink: 0 }} />
+                : <Toggle value={lockersEnabled} onChange={handleLockerToggle} />
+              }
+            </div>
+          </div>
+        </div>
+
+        {/* ── APPEARANCE ──────────────────────────────────────────────────────── */}
+        <div>
+          {sectionLabel('APPEARANCE')}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            border: '0.5px solid rgba(0,0,0,0.08)',
+            overflow: 'hidden',
+          }}>
+            {[
+              { id: 'light',  label: 'Light',  sub: null },
+              { id: 'dark',   label: 'Dark',   sub: null },
+              { id: 'system', label: 'System', sub: 'Follows your device setting' },
+            ].map((item, i) => (
+              <div
+                key={item.id}
+                onClick={() => setThemeMode(item.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '14px 16px', cursor: 'pointer',
+                  background: theme === item.id ? 'rgba(0,122,255,0.06)' : 'white',
+                  borderBottom: i < 2 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <ThemeSwatch id={item.id} />
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: '#111' }}>{item.label}</div>
+                    {item.sub && <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>{item.sub}</div>}
+                  </div>
+                </div>
+                {theme === item.id && <Check size={18} color="#007AFF" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* ── SECTION 5: DANGER ZONE ──────────────────────────────────────────── */}
         <div style={{ paddingBottom: 20 }}>
           {sectionLabel('DANGER ZONE', '#A32D2D')}
@@ -561,6 +722,40 @@ export default function GymSettings() {
                   opacity: (!planForm.name || !planForm.price || !planForm.duration_days) ? 0.4 : 1,
                 }}
               >Save Plan</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* LOCKERS OFF CONFIRM */}
+      {showLockersOffConfirm && (
+        <>
+          <div onClick={() => setShowLockersOffConfirm(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }} />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            zIndex: 51, padding: '0 20px 32px',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>Turn off Locker Management?</div>
+            <div style={{ fontSize: 13, color: '#666', marginTop: 10 }}>
+              Your locker data will be saved but hidden until you re-enable this.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
+              <button
+                onClick={confirmLockersOff}
+                style={{
+                  width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                  border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                }}
+              >Turn Off</button>
+              <button
+                onClick={() => setShowLockersOffConfirm(false)}
+                style={{
+                  width: '100%', height: 52, backgroundColor: 'white', color: '#111',
+                  border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                }}
+              >Cancel</button>
             </div>
           </div>
         </>

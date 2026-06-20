@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
+import { useOwnerGymId } from '../../hooks/useOwnerGymId'
 
 const statusConfig = {
   active:  { label: 'Active',  bg: '#EAF3DE', color: '#3B6D11' },
@@ -17,7 +18,7 @@ const formatSpecializations = (specs) => {
 
 export default function GymTrainers() {
   const navigate = useNavigate()
-  const gymId = localStorage.getItem('gymId')
+  const gymId = useOwnerGymId()
   const API = import.meta.env.VITE_API_URL || ''
 
   const [trainers, setTrainers] = useState([])

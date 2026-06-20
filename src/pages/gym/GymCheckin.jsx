@@ -3,9 +3,10 @@ import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
 import { formatRelative } from '../../utils/dateHelpers'
+import { useOwnerGymId } from '../../hooks/useOwnerGymId'
 
 export default function GymCheckin() {
-  const gymId = localStorage.getItem('gymId')
+  const gymId = useOwnerGymId()
   const API = import.meta.env.VITE_API_URL || ''
 
   const [activeTab, setActiveTab] = useState('scan')

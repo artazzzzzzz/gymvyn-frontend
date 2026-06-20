@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
-
-const gymId = typeof localStorage !== 'undefined' ? localStorage.getItem('gymId') : null
+import { useOwnerGymId } from '../../hooks/useOwnerGymId'
 
 // ─── Revenue bar chart ────────────────────────────────────────────────────────
 function RevenueBarChart({ data }) {
@@ -83,6 +82,7 @@ const rankConfig = {
 
 export default function GymInsights() {
   const API = import.meta.env.VITE_API_URL || ''
+  const gymId = useOwnerGymId()
   const [stats, setStats] = useState(null)
   const [churnScores, setChurnScores] = useState(null)
   const [heatmap, setHeatmap] = useState(null)

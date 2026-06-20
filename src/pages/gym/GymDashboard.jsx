@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Settings } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import {
   getGymByUserId,
@@ -10,6 +11,7 @@ import {
 import { getAvatarColor } from '../../utils/avatarColor'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
+import { GymCodeCard } from '../../components/GymCodeCard'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -59,13 +61,17 @@ const sectionLabel = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function KpiCard({ label, value, sub, subColor, subBg }) {
+function KpiCard({ label, value, sub, subColor, subBg, loading: cardLoading }) {
   return (
     <div style={card}>
       <p style={sectionLabel}>{label}</p>
-      <p style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '8px 0 8px' }}>
-        {value}
-      </p>
+      {cardLoading ? (
+        <div style={{ height: 32, width: '65%', background: '#F0F0EE', borderRadius: 6, margin: '8px 0 8px', animation: 'skel 1.2s ease infinite alternate' }} />
+      ) : (
+        <p style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '8px 0 8px' }}>
+          {value}
+        </p>
+      )}
       <span style={{
         fontSize: 12, color: subColor, background: subBg,
         padding: '2px 8px', borderRadius: 20, fontWeight: 500,
@@ -210,6 +216,8 @@ export default function GymDashboard() {
   const [occupancy, setOccupancy] = useState({ current: 0, capacity: 0 })
   const [churnCount, setChurnCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  // null = loading, number = resolved, 'error' = failed
+  const [revenue, setRevenue] = useState(null)
 
   useEffect(() => {
     if (!user) return
@@ -221,11 +229,16 @@ export default function GymDashboard() {
         const gymData = await getGymByUserId(user.id)
         if (cancelled) return
         setGym(gymData)
+        // Cache for owner pages that read via useOwnerGymId.
+        try { if (gymData?.id) localStorage.setItem('gymId', gymData.id) } catch {}
 
-        const [membersRes, occupancyRes, churnRes] = await Promise.all([
+        const [membersRes, occupancyRes, churnRes, revenueRes] = await Promise.all([
           getGymMembers(gymData.id).catch(() => []),
           getGymOccupancy(gymData.id).catch(() => ({ current: 0, capacity: 0 })),
           getChurnScores(gymData.id).catch(() => null),
+          fetch(`${import.meta.env.VITE_API_URL || ''}/api/gym/revenue?gym_id=${encodeURIComponent(gymData.id)}`)
+            .then(r => r.json())
+            .catch(() => null),
         ])
         if (cancelled) return
 
@@ -238,6 +251,9 @@ export default function GymDashboard() {
           churnRes?.summary?.high
           ?? churnRes?.high_risk_count
           ?? 0
+        )
+        setRevenue(
+          typeof revenueRes?.revenue === 'number' ? revenueRes.revenue : 'error'
         )
       } catch (err) {
         console.error('GymDashboard load error:', err)
@@ -312,15 +328,14 @@ export default function GymDashboard() {
           <button style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
             <IconBell />
           </button>
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: getAvatarColor(gymName).bg,
-            color: getAvatarColor(gymName).text,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 13, fontWeight: 600,
-          }}>
-            {getInitials(gymName)}
-          </div>
+          <button
+            onClick={() => navigate('/gym/settings')}
+            className="rounded-full p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            style={{ border: 'none', cursor: 'pointer', display: 'flex' }}
+            aria-label="Settings"
+          >
+            <Settings size={18} />
+          </button>
         </div>
       </div>
 
@@ -335,7 +350,9 @@ export default function GymDashboard() {
         </div>
 
         {/* 3 — KPI 2×2 grid */}
+        <style>{`@keyframes skel { from { opacity: 0.4 } to { opacity: 1 } }`}</style>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          {/* members.length is real — from getGymMembers API */}
           <KpiCard
             label="Total Members"
             value={members.length}
@@ -345,11 +362,17 @@ export default function GymDashboard() {
           />
           <KpiCard
             label="Monthly Revenue"
-            value="₹1,84,500"
-            sub="+12% vs last month"
+            loading={revenue === null}
+            value={
+              revenue === 'error'
+                ? '₹—'
+                : `₹${Number(revenue).toLocaleString('en-IN')}`
+            }
+            sub="Paid this month"
             subColor="#3B6D11"
             subBg="#EAF3DE"
           />
+          {/* TODO: occupancy.current is real (check_ins table) but capacity comes from gyms.capacity which may be unset */}
           <KpiCard
             label="Active Today"
             value={occupancy.current}
@@ -357,6 +380,7 @@ export default function GymDashboard() {
             subColor="#555"
             subBg="#F0F0EE"
           />
+          {/* churnCount is real — from ML scoring endpoint */}
           <KpiCard
             label="Churn Risk"
             value={churnCount}
@@ -364,6 +388,11 @@ export default function GymDashboard() {
             subColor={churnCount > 0 ? '#A32D2D' : '#3B6D11'}
             subBg={churnCount > 0 ? '#FCEBEB' : '#EAF3DE'}
           />
+        </div>
+
+        {/* Gym Join Code */}
+        <div style={{ marginBottom: 16 }}>
+          <GymCodeCard />
         </div>
 
         {/* 4 — Live Occupancy */}
