@@ -4,26 +4,26 @@ import { useAuth } from '../hooks/useAuth'
 import { apiFetch } from '../utils/api'
 
 const C = {
-  bg: '#f5f5f7',
-  card: '#ffffff',
-  border: '#e8e8ed',
-  text: '#1a1a1a',
-  sub: '#6e6e73',
+  bg: 'var(--bg-pill)',
+  card: "var(--bg-card)",
+  border: 'var(--border)',
+  text: 'var(--text-primary)',
+  sub: 'var(--text-secondary)',
   green: '#1a9955',
-  greenBg: '#e8f5ee',
+  greenBg: 'var(--success-bg)',
   amber: '#c07800',
-  amberBg: '#fff4d9',
+  amberBg: 'var(--warning-bg)',
   blue: '#1a6fd4',
-  blueBg: '#e8f0fb',
-  gray: '#9e9ea8',
-  grayBg: '#f0f0f3',
+  blueBg: 'var(--accent-bg)',
+  gray: 'var(--text-tertiary)',
+  grayBg: 'var(--bg-pill)',
 }
 
 const AVATAR_COLORS = [
-  { bg: '#e8f0fb', text: '#1a6fd4' },
-  { bg: '#fce8e6', text: '#c0392b' },
-  { bg: '#e8f5ee', text: '#1a9955' },
-  { bg: '#fff4d9', text: '#c07800' },
+  { bg: 'var(--accent-bg)', text: '#1a6fd4' },
+  { bg: 'var(--error-bg)', text: '#c0392b' },
+  { bg: 'var(--success-bg)', text: '#1a9955' },
+  { bg: 'var(--warning-bg)', text: '#c07800' },
   { bg: '#f3e8fb', text: '#7b2fbf' },
 ]
 
@@ -211,7 +211,7 @@ export default function TrainerClients() {
                 whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
                 border: activeFilter === f ? 'none' : `1px solid ${C.border}`,
                 background: activeFilter === f ? C.text : C.card,
-                color: activeFilter === f ? '#fff' : C.sub,
+                color: activeFilter === f ? "var(--bg-card)" : C.sub,
                 transition: 'all 0.15s',
               }}
             >{f}</button>

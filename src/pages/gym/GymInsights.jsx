@@ -21,8 +21,8 @@ function RevenueBarChart({ data }) {
         const isCurrentMonth = i === data.length - 1
         return (
           <g key={i}>
-            <rect x={x} y={y} width={barW} height={barH} rx={4} fill={isCurrentMonth ? '#111' : '#E0E0E0'} />
-            <text x={x + barW / 2} y={chartH + 14} textAnchor="middle" fontSize={9} fill="#999">{d.month}</text>
+            <rect x={x} y={y} width={barW} height={barH} rx={4} fill={isCurrentMonth ? 'var(--text-primary)' : 'var(--border)'} />
+            <text x={x + barW / 2} y={chartH + 14} textAnchor="middle" fontSize={9} fill="var(--text-tertiary)">{d.month}</text>
           </g>
         )
       })}
@@ -46,9 +46,9 @@ function OccupancyBarChart({ data }) {
         const isMax = d.count === max
         return (
           <g key={i}>
-            <rect x={x} y={y} width={barW} height={barH} rx={4} fill={isMax ? '#111' : '#E0E0E0'} />
-            <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight={600} fill="#555">{d.count}</text>
-            <text x={x + barW / 2} y={chartH + 16} textAnchor="middle" fontSize={10} fill="#999">{d.day?.slice(0, 3)}</text>
+            <rect x={x} y={y} width={barW} height={barH} rx={4} fill={isMax ? 'var(--text-primary)' : 'var(--border)'} />
+            <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight={600} fill="var(--text-secondary)">{d.count}</text>
+            <text x={x + barW / 2} y={chartH + 16} textAnchor="middle" fontSize={10} fill="var(--text-tertiary)">{d.day?.slice(0, 3)}</text>
           </g>
         )
       })}
@@ -58,26 +58,26 @@ function OccupancyBarChart({ data }) {
 
 // ─── Heatmap helpers ──────────────────────────────────────────────────────────
 const getHeatColor = (count) => {
-  if (count === 0) return '#F0F0F0'
-  if (count <= 5) return '#DBEAFE'
-  if (count <= 15) return '#93C5FD'
-  if (count <= 25) return '#3B82F6'
-  return '#1D4ED8'
+  if (count === 0) return 'var(--heatmap-0)'
+  if (count <= 5) return 'var(--heatmap-1)'
+  if (count <= 15) return 'var(--heatmap-2)'
+  if (count <= 25) return 'var(--heatmap-3)'
+  return 'var(--heatmap-4)'
 }
 
 // ─── Churn helpers ────────────────────────────────────────────────────────────
 const getRiskBarWidth = (score) => `${Math.round(score * 100)}%`
 
 const riskConfig = {
-  high:   { label: 'High',   bg: '#FCEBEB', color: '#A32D2D', barColor: '#A32D2D' },
-  medium: { label: 'Medium', bg: '#FAEEDA', color: '#854F0B', barColor: '#854F0B' },
-  low:    { label: 'Low',    bg: '#EAF3DE', color: '#3B6D11', barColor: '#3B6D11' },
+  high:   { label: 'High',   bg: 'var(--error-bg)', color: 'var(--error)', barColor: 'var(--error)' },
+  medium: { label: 'Medium', bg: 'var(--warning-bg)', color: 'var(--warning)', barColor: 'var(--warning)' },
+  low:    { label: 'Low',    bg: 'var(--success-bg)', color: 'var(--success)', barColor: 'var(--success)' },
 }
 
 const rankConfig = {
-  0: { label: '#1', bg: '#FAEEDA', color: '#854F0B' },
-  1: { label: '#2', bg: '#F1EFE8', color: '#5F5E5A' },
-  2: { label: '#3', bg: '#F1EFE8', color: '#5F5E5A' },
+  0: { label: '#1', bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  1: { label: '#2', bg: 'var(--bg-pill)', color: 'var(--text-secondary)' },
+  2: { label: '#3', bg: 'var(--bg-pill)', color: 'var(--text-secondary)' },
 }
 
 export default function GymInsights() {
@@ -119,28 +119,28 @@ export default function GymInsights() {
 
   if (loading) return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5',
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
-      <span style={{ fontSize: 14, color: '#999' }}>Loading insights...</span>
+      <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>Loading insights...</span>
     </div>
   )
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* STICKY HEADER */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        backgroundColor: 'white', padding: '16px 20px 12px',
+        backgroundColor: "var(--bg-card)", padding: '16px 20px 12px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
-        <span style={{ fontSize: 20, fontWeight: 600, color: '#111' }}>Insights</span>
-        <span style={{ fontSize: 12, color: '#999' }}>Last updated: just now</span>
+        <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Insights</span>
+        <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Last updated: just now</span>
       </div>
 
       <div style={{ padding: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -148,25 +148,25 @@ export default function GymInsights() {
         {/* ── SECTION 1: REVENUE ─────────────────────────────────────────── */}
         <div>
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
           }}>REVENUE</div>
 
           {/* Hero revenue card */}
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)',
             padding: 20, marginBottom: 8,
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#111' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>
                   ₹{stats?.revenue?.this_month?.toLocaleString('en-IN') || '—'}
                 </div>
-                <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>This month</div>
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>This month</div>
                 <span style={{
                   display: 'inline-block', marginTop: 8,
-                  backgroundColor: '#EAF3DE', color: '#3B6D11',
+                  backgroundColor: 'var(--success-bg)', color: 'var(--success)',
                   fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                 }}>
                   +{stats?.revenue?.growth_percent || 0}% vs last month
@@ -178,7 +178,7 @@ export default function GymInsights() {
 
           {/* Secondary stats */}
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)', padding: 12,
             display: 'flex', alignItems: 'center',
           }}>
@@ -190,9 +190,9 @@ export default function GymInsights() {
                 flex: 1, textAlign: 'center',
                 borderRight: i === 0 ? '0.5px solid rgba(0,0,0,0.08)' : 'none',
               }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{stat.value}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{stat.value}</div>
                 <div style={{
-                  fontSize: 11, fontWeight: 600, color: '#999',
+                  fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
                   textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2,
                 }}>{stat.label}</div>
               </div>
@@ -203,19 +203,19 @@ export default function GymInsights() {
         {/* ── SECTION 2: ACTIVITY HEATMAP ─────────────────────────────────── */}
         <div>
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
           }}>ACTIVITY HEATMAP</div>
 
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)', padding: 16,
           }}>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16,
             }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>Check-in Patterns</span>
-              <span style={{ fontSize: 12, color: '#999' }}>Past 28 days</span>
+              <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Check-in Patterns</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Past 28 days</span>
             </div>
 
             {heatmap ? (() => {
@@ -229,12 +229,12 @@ export default function GymInsights() {
                 <div style={{ overflowX: 'auto' }}>
                   <div style={{ display: 'flex', marginLeft: 32, marginBottom: 4 }}>
                     {hourLabels.map((h, i) => (
-                      <div key={i} style={{ flex: 1, fontSize: 9, color: '#999', textAlign: 'center' }}>{h}</div>
+                      <div key={i} style={{ flex: 1, fontSize: 9, color: 'var(--text-tertiary)', textAlign: 'center' }}>{h}</div>
                     ))}
                   </div>
                   {sortedDays.map(row => (
                     <div key={row.day} style={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
-                      <div style={{ width: 28, fontSize: 9, color: '#999', flexShrink: 0 }}>{row.day.slice(0, 3)}</div>
+                      <div style={{ width: 28, fontSize: 9, color: 'var(--text-tertiary)', flexShrink: 0 }}>{row.day.slice(0, 3)}</div>
                       <div style={{ display: 'flex', flex: 1, gap: 2 }}>
                         {visibleHours.map(h => {
                           const cell = row.hours?.find(hr => hr.hour === h)
@@ -250,17 +250,17 @@ export default function GymInsights() {
                     </div>
                   ))}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, marginLeft: 32 }}>
-                    <span style={{ fontSize: 9, color: '#999' }}>Low</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-tertiary)' }}>Low</span>
                     <div style={{
                       flex: 1, height: 8, borderRadius: 4,
-                      background: 'linear-gradient(to right, #F0F0F0, #DBEAFE, #93C5FD, #3B82F6, #1D4ED8)',
+                      background: 'linear-gradient(to right, var(--heatmap-0), var(--heatmap-1), var(--heatmap-2), var(--heatmap-3), var(--heatmap-4))',
                     }} />
-                    <span style={{ fontSize: 9, color: '#999' }}>High</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-tertiary)' }}>High</span>
                   </div>
                 </div>
               )
             })() : (
-              <div style={{ textAlign: 'center', padding: '20px 0', fontSize: 13, color: '#999' }}>
+              <div style={{ textAlign: 'center', padding: '20px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
                 No heatmap data available
               </div>
             )}
@@ -270,15 +270,15 @@ export default function GymInsights() {
         {/* ── SECTION 3: OCCUPANCY ────────────────────────────────────────── */}
         <div>
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
           }}>OCCUPANCY</div>
 
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)', padding: 16,
           }}>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#111', marginBottom: 16 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
               Weekly Pattern
             </div>
             <OccupancyBarChart data={stats?.occupancy?.weekly_chart} />
@@ -288,8 +288,8 @@ export default function GymInsights() {
                 { label: `📅 ${stats?.occupancy?.peak_day || '—'} Peak day` },
               ].map((pill, i) => (
                 <span key={i} style={{
-                  backgroundColor: '#F7F7F5', borderRadius: 8, padding: '8px 12px',
-                  fontSize: 12, fontWeight: 500, color: '#555',
+                  backgroundColor: 'var(--bg-primary)', borderRadius: 8, padding: '8px 12px',
+                  fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)',
                 }}>{pill.label}</span>
               ))}
             </div>
@@ -300,7 +300,7 @@ export default function GymInsights() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <span style={{
-              fontSize: 11, fontWeight: 600, color: '#999',
+              fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
               textTransform: 'uppercase', letterSpacing: '0.08em',
             }}>CHURN RISK</span>
             <span style={{
@@ -312,14 +312,14 @@ export default function GymInsights() {
 
           {churnScores?.summary && (
             <div style={{
-              backgroundColor: 'white', borderRadius: 12,
+              backgroundColor: "var(--bg-card)", borderRadius: 12,
               border: '0.5px solid rgba(0,0,0,0.08)', padding: 12,
               marginBottom: 10, display: 'flex', alignItems: 'center',
             }}>
               {[
-                { value: churnScores.summary.high_risk_count, label: 'High', color: '#A32D2D' },
-                { value: churnScores.summary.medium_risk_count, label: 'Medium', color: '#854F0B' },
-                { value: churnScores.summary.low_risk_count, label: 'Low', color: '#3B6D11' },
+                { value: churnScores.summary.high_risk_count, label: 'High', color: 'var(--error)' },
+                { value: churnScores.summary.medium_risk_count, label: 'Medium', color: 'var(--warning)' },
+                { value: churnScores.summary.low_risk_count, label: 'Low', color: 'var(--success)' },
               ].map((stat, i) => (
                 <div key={i} style={{
                   flex: 1, textAlign: 'center',
@@ -327,7 +327,7 @@ export default function GymInsights() {
                 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: stat.color }}>{stat.value}</div>
                   <div style={{
-                    fontSize: 11, fontWeight: 600, color: '#999',
+                    fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
                     textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2,
                   }}>{stat.label}</div>
                 </div>
@@ -347,7 +347,7 @@ export default function GymInsights() {
 
                 return (
                   <div key={member.user_id} style={{
-                    backgroundColor: 'white', borderRadius: 12,
+                    backgroundColor: "var(--bg-card)", borderRadius: 12,
                     border: '0.5px solid rgba(0,0,0,0.08)', padding: 16,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -358,8 +358,8 @@ export default function GymInsights() {
                         fontSize: 14, fontWeight: 600, flexShrink: 0,
                       }}>{getInitials(member.full_name)}</div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{member.full_name}</div>
-                        <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{member.membership_type}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{member.full_name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{member.membership_type}</div>
                       </div>
                       <span style={{
                         backgroundColor: risk.bg, color: risk.color,
@@ -369,10 +369,10 @@ export default function GymInsights() {
 
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, color: '#999' }}>Risk score</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>{scorePercent}%</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Risk score</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>{scorePercent}%</span>
                       </div>
-                      <div style={{ height: 4, borderRadius: 8, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>
+                      <div style={{ height: 4, borderRadius: 8, backgroundColor: 'var(--bg-pill)', overflow: 'hidden' }}>
                         <div style={{
                           height: '100%', width: getRiskBarWidth(member.risk_score),
                           backgroundColor: risk.barColor, borderRadius: 8,
@@ -384,23 +384,23 @@ export default function GymInsights() {
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                         {visibleFactors.map((f, i) => (
                           <span key={i} style={{
-                            backgroundColor: '#F7F7F5', borderRadius: 6, padding: '5px 9px', fontSize: 11, color: '#555',
+                            backgroundColor: 'var(--bg-primary)', borderRadius: 6, padding: '5px 9px', fontSize: 11, color: 'var(--text-secondary)',
                           }}>{f}</span>
                         ))}
                         {hiddenCount > 0 && (
                           <span style={{
-                            backgroundColor: '#F1EFE8', borderRadius: 6, padding: '5px 9px', fontSize: 11, color: '#5F5E5A',
+                            backgroundColor: 'var(--bg-pill)', borderRadius: 6, padding: '5px 9px', fontSize: 11, color: 'var(--text-secondary)',
                           }}>+{hiddenCount} more</span>
                         )}
                       </div>
                     )}
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 12, color: '#666' }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                         Last visit: {member.last_visit_days_ago} days ago
                       </span>
                       <button style={{
-                        backgroundColor: 'white', color: '#111', border: '0.5px solid #111',
+                        backgroundColor: "var(--bg-card)", color: 'var(--text-primary)', border: '0.5px solid var(--text-primary)',
                         borderRadius: 8, height: 28, padding: '0 12px',
                         fontSize: 11, fontWeight: 500, cursor: 'pointer',
                       }}>Remind</button>
@@ -414,7 +414,7 @@ export default function GymInsights() {
             <button
               onClick={() => setShowLowRisk(prev => !prev)}
               style={{
-                background: 'none', border: 'none', color: '#185FA5',
+                background: 'none', border: 'none', color: 'var(--text-cta)',
                 fontSize: 13, cursor: 'pointer', marginTop: 8,
                 padding: '8px 0', display: 'block',
               }}
@@ -430,7 +430,7 @@ export default function GymInsights() {
         {/* ── SECTION 5: TOP TRAINERS ──────────────────────────────────────── */}
         <div style={{ paddingBottom: 20 }}>
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
           }}>TOP TRAINERS</div>
 
@@ -440,7 +440,7 @@ export default function GymInsights() {
               const rank = rankConfig[i] || rankConfig[2]
               return (
                 <div key={trainer.id} style={{
-                  backgroundColor: 'white', borderRadius: 12,
+                  backgroundColor: "var(--bg-card)", borderRadius: 12,
                   border: '0.5px solid rgba(0,0,0,0.08)', padding: 16,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -451,9 +451,9 @@ export default function GymInsights() {
                       fontSize: 14, fontWeight: 600, flexShrink: 0,
                     }}>{getInitials(trainer.name)}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{trainer.name}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{trainer.name}</div>
                       <div style={{
-                        fontSize: 13, color: '#666', marginTop: 2,
+                        fontSize: 13, color: 'var(--text-secondary)', marginTop: 2,
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>
                         {trainer.specializations?.join(' · ') || 'No specializations'}
@@ -471,8 +471,8 @@ export default function GymInsights() {
                       { label: `⏱ ${trainer.avg_sessions_per_client || 0} sessions/client` },
                     ].map((pill, j) => (
                       <span key={j} style={{
-                        backgroundColor: '#F7F7F5', borderRadius: 6, padding: '6px 10px',
-                        fontSize: 12, fontWeight: 500, color: '#555',
+                        backgroundColor: 'var(--bg-primary)', borderRadius: 6, padding: '6px 10px',
+                        fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)',
                       }}>{pill.label}</span>
                     ))}
                   </div>
@@ -481,7 +481,7 @@ export default function GymInsights() {
             })}
 
             {(!stats?.trainers?.top_trainers || stats.trainers.top_trainers.length === 0) && (
-              <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#999' }}>
+              <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
                 No trainers added yet
               </div>
             )}

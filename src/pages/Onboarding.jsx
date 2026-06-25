@@ -91,18 +91,16 @@ function getDayRec(count) {
 const OptionCard = ({ emoji, label, sub, selected, onSelect }) => (
   <div
     onClick={onSelect}
-    className={`rounded-2xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-150 min-h-[76px] ${
-      selected ? 'bg-[#111] border-transparent' : 'bg-white border border-black/[0.06]'
+    className={`rounded-2xl p-5 flex items-center gap-4 cursor-pointer transition-all duration-150 min-h-[76px] bg-[var(--bg-card)] ${
+      selected ? 'border-2 border-[var(--text-cta)]' : 'border border-[var(--border)]'
     }`}
   >
-    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[22px] ${
-      selected ? 'bg-white/10' : 'bg-[#F1EFE8]'
-    }`}>
+    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[22px] bg-[var(--bg-pill)]">
       {emoji}
     </div>
     <div className="flex-1">
-      <p className={`text-base font-semibold ${selected ? 'text-white' : 'text-[#111]'}`}>{label}</p>
-      <p className={`text-[13px] mt-0.5 ${selected ? 'text-white/60' : 'text-[#999]'}`}>{sub}</p>
+      <p className={`text-base font-semibold ${selected ? 'text-[var(--text-cta)]' : 'text-[var(--text-primary)]'}`}>{label}</p>
+      <p className={`text-[13px] mt-0.5 ${selected ? 'text-[var(--text-secondary)]' : 'text-[var(--text-tertiary)]'}`}>{sub}</p>
     </div>
   </div>
 )
@@ -229,6 +227,16 @@ export default function Onboarding() {
       return
     }
 
+    // Seed starting weight into progress_entries so the chart shows immediately
+    if (payload.current_weight) {
+      await supabase.from('progress_entries').insert({
+        user_id: user.id,
+        weight_kg: payload.current_weight,
+        logged_at: new Date().toISOString(),
+        notes: 'Starting weight',
+      })
+    }
+
     setOnboardingComplete(true)
     navigate('/home')
   }
@@ -259,10 +267,10 @@ export default function Onboarding() {
             <button
               key={i}
               onClick={() => toggleDay(i)}
-              className={`w-11 h-11 rounded-full text-sm font-semibold transition-all flex-1 ${
+              className={`w-11 h-11 rounded-full text-sm font-semibold transition-all flex-1 bg-[var(--bg-card)] ${
                 answers.trainingDays.includes(i)
-                  ? 'bg-[#111] text-white'
-                  : 'bg-white border border-black/10 text-[#999]'
+                  ? 'border-2 border-[var(--text-cta)] text-[var(--text-cta)]'
+                  : 'border border-[var(--border)] text-[var(--text-tertiary)]'
               }`}
             >
               {d}
@@ -270,12 +278,12 @@ export default function Onboarding() {
           ))}
         </div>
         <div className="text-center mt-6">
-          <p className="text-[64px] font-black text-[#111] leading-none tabular-nums">
+          <p className="text-[64px] font-black text-[var(--text-primary)] leading-none tabular-nums">
             {answers.trainingDays.length}
           </p>
-          <p className="text-sm text-[#999] mt-1">days per week</p>
+          <p className="text-sm text-[var(--text-tertiary)] mt-1">days per week</p>
           {answers.trainingDays.length > 0 && (
-            <div className="inline-flex items-center gap-1.5 bg-[#EAF3DE] text-[#3B6D11] rounded-full px-4 py-2 mt-4">
+            <div className="inline-flex items-center gap-1.5 bg-[var(--success-bg)] text-[var(--success)] rounded-full px-4 py-2 mt-4">
               <span className="text-[13px] font-medium">
                 ✓ {getDayRec(answers.trainingDays.length)}
               </span>
@@ -298,23 +306,23 @@ export default function Onboarding() {
         {fields.map(f => (
           <div
             key={f.key}
-            className="bg-white rounded-2xl border border-black/[0.06] px-5 py-4 flex items-center"
+            className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] px-5 py-4 flex items-center"
           >
-            <span className="text-sm font-medium text-[#111] w-28 shrink-0">{f.label}</span>
+            <span className="text-sm font-medium text-[var(--text-primary)] w-28 shrink-0">{f.label}</span>
             <input
               type="number"
               value={answers[f.key]}
               onChange={e => setAnswers(a => ({ ...a, [f.key]: e.target.value }))}
               placeholder="—"
-              className="flex-1 text-[28px] font-semibold text-[#111] tabular-nums bg-transparent focus:outline-none text-right w-full placeholder-[#CCC]"
+              className="flex-1 text-[28px] font-semibold text-[var(--text-primary)] tabular-nums bg-transparent focus:outline-none text-right w-full placeholder-[var(--text-tertiary)]"
             />
-            <span className="text-sm text-[#999] ml-2 shrink-0">{f.unit}</span>
+            <span className="text-sm text-[var(--text-tertiary)] ml-2 shrink-0">{f.unit}</span>
           </div>
         ))}
 
         {/* Gender */}
         <div>
-          <p className="text-sm font-medium text-[#111] mb-2 mt-1">Gender</p>
+          <p className="text-sm font-medium text-[var(--text-primary)] mb-2 mt-1">Gender</p>
           <div className="flex gap-2">
             {['Male', 'Female', 'Prefer not to say'].map(g => {
               const val = g.toLowerCase().replace(/ /g, '_')
@@ -322,10 +330,10 @@ export default function Onboarding() {
                 <button
                   key={g}
                   onClick={() => setAnswers(a => ({ ...a, gender: val }))}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all bg-[var(--bg-card)] ${
                     answers.gender === val
-                      ? 'bg-[#111] text-white'
-                      : 'border border-black/10 text-[#111]'
+                      ? 'border-2 border-[var(--text-cta)] text-[var(--text-cta)]'
+                      : 'border border-[var(--border)] text-[var(--text-primary)]'
                   }`}
                 >
                   {g}
@@ -344,12 +352,12 @@ export default function Onboarding() {
   const progress = (step / TOTAL_STEPS) * 100
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex flex-col pb-28">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col pb-28">
 
       {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-[#E5E5E3]">
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-[var(--border)]">
         <div
-          className="h-full bg-[#111] transition-all duration-[400ms]"
+          className="h-full bg-[var(--text-primary)] transition-all duration-[400ms]"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -358,7 +366,7 @@ export default function Onboarding() {
       {step > 1 && (
         <button
           onClick={() => setStep(s => s - 1)}
-          className="fixed top-4 left-5 z-50 text-xl text-[#999] w-10 h-10 flex items-center justify-center"
+          className="fixed top-4 left-5 z-50 text-xl text-[var(--text-tertiary)] w-10 h-10 flex items-center justify-center"
         >
           ←
         </button>
@@ -368,16 +376,16 @@ export default function Onboarding() {
       <div className="flex-1 px-5 pt-12">
 
         {/* Step label */}
-        <p className="text-[12px] text-[#999] mt-2">Step {step} of {TOTAL_STEPS}</p>
+        <p className="text-[12px] text-[var(--text-tertiary)] mt-2">Step {step} of {TOTAL_STEPS}</p>
 
         {/* Question */}
-        <h1 className="text-[28px] font-bold text-[#111] mt-3 leading-tight whitespace-pre-line">
+        <h1 className="text-[28px] font-bold text-[var(--text-primary)] mt-3 leading-tight whitespace-pre-line">
           {currentStep.question}
         </h1>
 
         {/* Subtext */}
         {currentStep.sub && (
-          <p className="text-[15px] text-[#999] mt-2 leading-relaxed">{currentStep.sub}</p>
+          <p className="text-[15px] text-[var(--text-tertiary)] mt-2 leading-relaxed">{currentStep.sub}</p>
         )}
 
         {/* Step content */}
@@ -389,7 +397,7 @@ export default function Onboarding() {
 
         {/* Equipment note */}
         {step === 3 && (
-          <p className="text-[12px] text-[#999] text-center mt-4">
+          <p className="text-[12px] text-[var(--text-tertiary)] text-center mt-4">
             You can update this anytime in settings.
           </p>
         )}
@@ -398,7 +406,7 @@ export default function Onboarding() {
         {step === 6 && (
           <button
             onClick={() => handleFinish()}
-            className="w-full text-center text-[14px] font-medium text-[#999] mt-4 underline underline-offset-2"
+            className="w-full text-center text-[14px] font-medium text-[var(--text-tertiary)] mt-4 underline underline-offset-2"
           >
             Skip for now →
           </button>
@@ -406,21 +414,21 @@ export default function Onboarding() {
 
         {/* Error */}
         {error && (
-          <div className="mt-4 px-4 py-3 rounded-xl bg-[#FCEBEB] border border-[#A32D2D]/20 text-[#A32D2D] text-sm">
+          <div className="mt-4 px-4 py-3 rounded-xl bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-sm">
             {error}
           </div>
         )}
       </div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#F7F7F5] px-5 pt-3 pb-10">
+      <div className="fixed bottom-0 left-0 right-0 bg-[var(--bg-primary)] px-5 pt-3 pb-10">
         <button
           onClick={handleContinue}
           disabled={!canContinue() || saving}
-          className={`w-full h-[52px] rounded-xl text-base font-semibold transition-all ${
+          className={`w-full h-[52px] rounded-2xl text-base font-semibold transition-all border ${
             canContinue() && !saving
-              ? 'bg-[#111] text-white'
-              : 'bg-[#E5E5E3] text-[#999] cursor-not-allowed'
+              ? 'bg-[var(--bg-card)] border-[var(--text-primary)] text-[var(--text-primary)]'
+              : 'bg-[var(--bg-pill)] border-[var(--border)] text-[var(--text-tertiary)] cursor-not-allowed'
           }`}
         >
           {saving

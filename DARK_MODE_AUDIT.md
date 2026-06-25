@@ -1,0 +1,2566 @@
+# Dark Mode Audit
+
+## Summary
+Total files with hardcoded colors: 94
+Total hardcoded color occurrences: 3461
+
+## By directory
+- src/pages: 41 files, 1702 occurrences
+- src/pages/gym: 14 files, 1048 occurrences
+- src/components: 36 files, 632 occurrences
+- other: 1 files, 63 occurrences
+- src/utils: 2 files, 16 occurrences
+
+## File-by-file
+
+### src/pages
+
+#### src/pages/BecomeTrainer.jsx
+- Line 43: `#111, #999`
+- Line 58: `#111, rgba(0,0,0,0.15)`
+- Line 77: `#E6F1FB`
+- Line 84: `#888`
+- Line 211: `#F0F0EE`
+- Line 215: `#111`
+- Line 254: `#111, #999`
+- Line 267: `rgba(0,0,0,0.15)`
+- Line 271: `#111, #999`
+- Line 304: `#111, #D0D0D0`
+- Line 305: `#111`
+- Line 306: `#555`
+- Line 318: `#999`
+- Line 324: `rgba(0,0,0,0.2)`
+- Line 332: `#999`
+- Line 338: `rgba(0,0,0,0.2)`
+- Line 353: `rgba(0,0,0,0.15)`
+- Line 355: `#666`
+- Line 366: `#999`
+- Line 377: `#111, #E0E0E0`
+- Line 378: `#F7F7F5`
+- Line 384: `#999`
+- Line 403: `#999`
+- Line 415: `#D0D0D0`
+- Line 418: `#FAFAFA`
+- Line 426: `#999`
+- Line 434: `#999`
+- Line 441: `#F7F7F5`
+- Line 445: `#333`
+- Line 448: `#bbb`
+- Line 455: `#999`
+- Line 459: `#F1EFE8, #5F5E5A`
+- Line 466: `#888`
+- Line 479: `rgba(0,0,0,0.15)`
+- Line 489: `#999`
+- Line 491: `#999`
+- Line 499: `rgba(0,0,0,0.15)`
+- Line 519: `rgba(0,0,0,0.08)`
+- Line 526: `rgba(0,0,0,0.05)`
+- Line 531: `#EAF3DE`
+- ... and 15 more occurrences
+
+#### src/pages/Chat.jsx
+- Line 56: `text-white, #111`
+- Line 59: `#CCC`
+- Line 68: `#111`
+- Line 69: `text-white`
+- Line 72: `bg-white, border-black`
+- Line 75: `#111`
+- Line 79: `#111`
+- Line 80: `#444`
+- Line 85: `border-black, #F7F7F5`
+- Line 86: `#999`
+- Line 89: `#111`
+- Line 94: `#111`
+- Line 97: `#CCC`
+- Line 106: `#111`
+- Line 107: `text-white`
+- Line 109: `bg-white, border-black`
+- Line 114: `#BBB`
+- Line 215: `#F7F7F5`
+- Line 226: `bg-white, border-black`
+- Line 227: `#999`
+- Line 231: `#111`
+- Line 233: `#3B6D11`
+- Line 234: `#3B6D11`
+- Line 237: `#F1EFE8`
+- Line 239: `#111`
+- Line 253: `#111`
+- Line 254: `text-white`
+- Line 256: `#111`
+- Line 259: `#999`
+- Line 274: `bg-white, border-black, #F7F7F5`
+- Line 277: `#111`
+- Line 286: `bg-black`
+- Line 287: `#CCC`
+- Line 288: `bg-black`
+- Line 318: `bg-white, border-black`
+- Line 333: `border-black, #666`
+- Line 344: `#F1EFE8`
+- Line 346: `#999`
+- Line 362: `#F1EFE8, #111, #999`
+- Line 371: `#111, #F1EFE8`
+- ... and 1 more occurrences
+
+#### src/pages/ChatWindow.jsx
+- Line 131: `bg-zinc-950">`
+- Line 133: `bg-zinc-950">`
+- Line 165: `bg-zinc-800"`
+- Line 169: `bg-zinc-800"`
+- Line 199: `bg-zinc-800`
+- Line 205: `text-white`
+- Line 210: `text-white`
+- Line 211: `bg-zinc-800`
+- Line 232: `bg-zinc-950">`
+- Line 234: `bg-zinc-900`
+- Line 247: `text-white`
+- Line 256: `text-white`
+
+#### src/pages/ClientChatPage.jsx
+- Line 45: `bg-zinc-950`
+- Line 53: `bg-zinc-950, text-white`
+
+#### src/pages/Community.jsx
+- Line 45: `#111`
+- Line 53: `#999`
+- Line 266: `bg-white, border-black`
+- Line 270: `#111`
+- Line 272: `#999`
+- Line 275: `#111`
+- Line 285: `border-black`
+- Line 288: `#999`
+- Line 292: `#999`
+- Line 301: `#F7F7F5`
+- Line 305: `text-white, #111`
+- Line 311: `bg-white, border-black`
+- Line 312: `#111`
+- Line 315: `#F1EFE8`
+- Line 317: `#111`
+- Line 325: `bg-white, border-black`
+- Line 337: `#111`
+- Line 338: `#999`
+- Line 365: `#999`
+- Line 378: `bg-white, border-black, #111`
+- Line 381: `text-white, #999`
+- Line 386: `text-white, #111`
+- Line 390: `text-white, #111`
+- Line 412: `#999`
+- Line 415: `bg-white, border-black`
+- Line 418: `#111`
+- Line 419: `#999`
+- Line 423: `text-white, #111`
+- Line 434: `#999`
+- Line 438: `#999`
+- Line 444: `bg-white, border-black`
+- Line 447: `#111`
+- Line 458: `#999`
+- Line 461: `bg-white, border-black`
+- Line 464: `#111`
+- Line 468: `text-white, #111`
+- Line 488: `bg-black`
+- Line 492: `bg-white`
+- Line 496: `#111`
+- Line 499: `#999`
+- ... and 3 more occurrences
+
+#### src/pages/Diet.jsx
+- Line 60: `#0D0D0D, #2E7D32, rgba(0,0,0,0.15)`
+- Line 61: `#4CAF50`
+- Line 62: `#FFFFFF`
+- Line 63: `#6B6B6B`
+- Line 293: `#F2F2F7`
+- Line 298: `#F2F2F7`
+- Line 300: `#AAAAAA`
+- Line 301: `#AAAAAA`
+- Line 304: `#0D0D0D`
+- Line 308: `#AAAAAA`
+- Line 310: `#AAAAAA`
+- Line 315: `#0D0D0D`
+- Line 321: `#FFFFFF`
+- Line 325: `#0D0D0D`
+- Line 328: `#AAAAAA`
+- Line 331: `#0D0D0D`
+- Line 334: `#FFEBEE, #E8F5E9`
+- Line 335: `#C62828, #2E7D32`
+- Line 346: `#F0F0F0`
+- Line 349: `#C62828, #0D0D0D`
+- Line 358: `#5B8FF9`
+- Line 359: `#F6C244`
+- Line 360: `#FF6B6B`
+- Line 365: `#E8E8E8`
+- Line 367: `#0D0D0D`
+- Line 368: `#AAAAAA`
+- Line 369: `#AAAAAA`
+- Line 370: `#F0F0F0`
+- Line 389: `#FFFFFF, #E8E8E8`
+- Line 392: `#0D0D0D`
+- Line 409: `#0D0D0D`
+- Line 411: `#0D0D0D, #FFFFFF`
+- Line 417: `#FFFFFF, #F0F0F0`
+- Line 418: `#AAAAAA`
+- Line 419: `#AAAAAA`
+- Line 422: `#FFFFFF`
+- Line 426: `#F5F5F5`
+- Line 429: `#0D0D0D`
+- Line 430: `#AAAAAA`
+- Line 435: `#0D0D0D`
+- ... and 18 more occurrences
+
+#### src/pages/ExerciseDetail.jsx
+- Line 11: `#111827`
+- Line 12: `#111827, #6B7280`
+- Line 72: `#F9F9F9`
+- Line 76: `#FFF, #F3F4F6`
+- Line 79: `#F3F4F6`
+- Line 81: `#111827`
+- Line 86: `#111827`
+- Line 105: `#FFF, #F3F4F6`
+- Line 110: `#14532D, #111827`
+- Line 111: `#FFF`
+
+#### src/pages/ExerciseLibrary.jsx
+- Line 6: `#EAF3DE, #3B6D11`
+- Line 7: `#E6F1FB, #0C447C`
+- Line 8: `#FAEEDA, #854F0B`
+- Line 9: `#FAECE7, #993C1D`
+- Line 10: `#FAECE7, #993C1D`
+- Line 11: `#FAECE7, #993C1D`
+- Line 12: `#FAECE7, #993C1D`
+- Line 13: `#F1EFE8, #5F5E5A`
+- Line 14: `#F1EFE8, #5F5E5A`
+- Line 15: `#F1EFE8, #5F5E5A`
+- Line 16: `#E1F5EE, #0F6E56`
+- Line 17: `#FCEBEB, #A32D2D`
+- Line 22: `#F1EFE8, #666`
+- Line 61: `#F7F7F5`
+- Line 62: `#999`
+- Line 63: `#F1EFE8, #999`
+- Line 73: `bg-white, border-black, #F7F7F5`
+- Line 84: `#111`
+- Line 87: `#F1EFE8, #666`
+- Line 93: `#E1F5EE, #0F6E56`
+- Line 95: `#CCC`
+- Line 102: `#F7F7F5`
+- Line 105: `bg-white, border-black`
+- Line 106: `#999`
+- Line 107: `#111`
+- Line 111: `bg-white, border-black`
+- Line 115: `#999`
+- Line 121: `#F1EFE8, #111, #999`
+- Line 126: `#999`
+- Line 139: `text-white, #111`
+- Line 140: `bg-white, border-black, #111`
+- Line 154: `#999`
+- Line 157: `#185FA5`
+- Line 166: `#F1EFE8`
+- Line 167: `#111`
+- Line 168: `#999`
+
+#### src/pages/FormCoach.jsx
+- Line 16: `#FAECE7, #993C1D`
+- Line 17: `#EAF3DE, #3B6D11`
+- Line 18: `#E6F1FB, #0C447C`
+- Line 19: `#E6F1FB, #0C447C`
+- Line 20: `#F1EFE8, #5F5E5A`
+- Line 21: `#FAEEDA, #854F0B`
+- Line 22: `#EAF3DE, #3B6D11`
+- Line 23: `#FAECE7, #993C1D`
+- Line 31: `#EAF3DE, #3B6D11`
+- Line 32: `#E6F1FB, #0C447C`
+- Line 33: `#FAEEDA, #854F0B`
+- Line 34: `#FAECE7, #993C1D`
+- Line 35: `#F1EFE8, #5F5E5A`
+- Line 36: `#F1EFE8, #5F5E5A`
+- Line 37: `#E1F5EE, #0F6E56`
+- Line 40: `#F1EFE8, #666`
+- Line 47: `#3B6D11, #854F0B, #A32D2D`
+- Line 48: `#EAF3DE, #FAEEDA, #FCEBEB`
+- Line 210: `rgba(255,255,255,0.55)`
+- Line 216: `#00FF9F`
+- Line 399: `#F7F7F5`
+- Line 402: `bg-white, border-black`
+- Line 403: `#999`
+- Line 406: `#111`
+- Line 407: `#185FA5`
+- Line 414: `#0D0D0D`
+- Line 473: `text-white`
+- Line 486: `border-white`
+- Line 491: `bg-black`
+- Line 492: `#E53E3E`
+- Line 493: `text-white`
+- Line 498: `bg-black`
+- Line 499: `text-white`
+- Line 501: `bg-white, text-white, #0F6E56`
+- Line 514: `bg-white`
+- Line 525: `bg-white, border-black`
+- Line 527: `#999`
+- Line 545: `#FAEEDA`
+- Line 546: `#854F0B`
+- Line 553: `#111`
+- ... and 22 more occurrences
+
+#### src/pages/GymAnnouncements.jsx
+- Line 20: `bg-white, border-white`
+- Line 62: `border-white, #1a1a1d`
+- Line 66: `text-white`
+- Line 78: `bg-black`
+- Line 80: `border-white, #141416`
+- Line 88: `text-white`
+- Line 96: `bg-white, text-white`
+- Line 103: `text-white`
+- Line 158: `bg-black`
+- Line 161: `border-white, #141416`
+- Line 164: `text-white`
+- Line 177: `text-white, border-white, #1c1c1f`
+- Line 190: `text-white, border-white, #1c1c1f`
+- Line 201: `text-white, border-white, #1c1c1f`
+- Line 217: `bg-white, text-white`
+- Line 224: `text-white`
+- Line 303: `#0c0c0e`
+- Line 309: `text-white`
+- Line 319: `text-white`
+- Line 336: `border-white, #141416`
+- Line 337: `bg-white`
+- Line 338: `bg-white`
+- Line 339: `bg-white`
+- Line 344: `border-white, #141416`
+- Line 348: `text-white`
+- Line 355: `text-white`
+- Line 366: `border-white, #141416`
+- Line 370: `text-white`
+
+#### src/pages/GymComingSoon.jsx
+- Line 17: `#0c0c0e`
+- Line 24: `text-white`
+
+#### src/pages/GymImport.jsx
+- Line 140: `#0c0c0e`
+- Line 146: `text-white`
+- Line 152: `text-white`
+- Line 167: `border-white, #141416`
+- Line 172: `text-white`
+- Line 180: `bg-white, text-white`
+- Line 195: `border-white, #141416`
+- Line 201: `text-white`
+- Line 215: `bg-white, text-white`
+- Line 223: `border-white, #141416`
+- Line 228: `text-white`
+- Line 236: `bg-white, text-white`
+- Line 254: `text-white`
+- Line 266: `border-white, #141416`
+- Line 275: `text-white`
+- Line 287: `text-white`
+- Line 294: `#141416`
+- Line 297: `text-white`
+- Line 317: `bg-white, text-white`
+- Line 323: `text-white`
+
+#### src/pages/Home.jsx
+- Line 45: `#111111`
+- Line 52: `#999`
+- Line 222: `#F7F7F5`
+- Line 231: `#111111`
+- Line 234: `#999999`
+- Line 239: `#E53E3E, #F7F7F5`
+- Line 243: `#111111`
+- Line 250: `rgba(0,0,0,0.08)`
+- Line 253: `#999999`
+- Line 258: `#111111`
+- Line 263: `#999999`
+- Line 269: `#999999`
+- Line 276: `#111111`
+- Line 277: `#CCCCCC`
+- Line 294: `#999999`
+- Line 309: `rgba(0,0,0,0.08)`
+- Line 312: `#111111`
+- Line 315: `#999999`
+- Line 319: `rgba(0,0,0,0.08)`
+- Line 321: `#111111`
+- Line 322: `#999999`
+- Line 324: `#999999`
+- Line 326: `#3B6D11, #A32D2D`
+- Line 333: `rgba(0,0,0,0.08)`
+- Line 335: `#111111`
+- Line 336: `#999999`
+- Line 338: `#999999`
+- Line 339: `#999999`
+- Line 343: `rgba(0,0,0,0.08)`
+- Line 346: `#111111`
+- Line 348: `#999999`
+- Line 349: `#999999`
+- Line 350: `#BBBBBB`
+- Line 362: `#111`
+- Line 370: `#111`
+- Line 378: `#111`
+- Line 389: `#111`
+- Line 402: `#111`
+- Line 417: `rgba(0,0,0,0.08)`
+- Line 424: `#111111`
+- ... and 25 more occurrences
+
+#### src/pages/Leaderboard.jsx
+- Line 23: `#FAEEDA, #EF9F27, #854F0B`
+- Line 25: `#FAECE7, #F0997B, #993C1D`
+- Line 193: `rgba(0,0,0,0.08)`
+
+#### src/pages/LiveSession.jsx
+- Line 29: `bg-gray-500/15, text-gray-300`
+- Line 61: `bg-gray-900, border-white`
+- Line 71: `text-gray-500`
+- Line 72: `text-white`
+- Line 77: `bg-white, text-gray-300, text-white`
+- Line 82: `bg-white`
+- Line 97: `bg-white, text-gray-400, text-white`
+- Line 119: `bg-white`
+- Line 122: `text-gray-300'}`}>`
+- Line 126: `text-gray-500`
+- Line 134: `bg-gray-800/60, text-white, border-white`
+- Line 143: `bg-gray-800/60, text-white, border-white`
+- Line 156: `bg-white, text-gray-500, text-white`
+- Line 197: `bg-gray-900, border-white`
+- Line 200: `text-white`
+- Line 222: `bg-white, text-gray-500`
+- Line 230: `text-gray-500">`
+- Line 253: `bg-white, text-gray-400, text-white`
+- Line 303: `rgba(0,122,255,0.06)`
+- Line 304: `#007AFF`
+- Line 315: `#EF4444`
+- Line 341: `#999`
+- Line 346: `#C0C0C0`
+- Line 360: `#F7F7F5, #111, rgba(0,0,0,0.1)`
+- Line 374: `#F7F7F5, #111, rgba(0,0,0,0.1)`
+- Line 382: `rgba(0,122,255,0.1)`
+- Line 390: `#F1EFE8`
+- Line 393: `#CCC`
+- Line 408: `rgba(0,0,0,0.4)`
+- Line 413: `#ffffff`
+- Line 421: `#FEE2E2`
+- Line 424: `#111827`
+- Line 427: `#6B7280`
+- Line 432: `#EF4444, #fff`
+- Line 438: `#F3F4F6, #111827`
+- Line 601: `#F7F7F5`
+- Line 606: `rgba(0,0,0,0.05)`
+- Line 612: `#A32D2D`
+- Line 616: `#111`
+- Line 632: `#FEF2F2, rgba(220,38,38,0.15)`
+- ... and 26 more occurrences
+
+#### src/pages/Login.jsx
+- Line 17: `#CCC`
+- Line 24: `#CCC`
+- Line 31: `#CCC`
+- Line 55: `#4285F4`
+- Line 56: `#34A853`
+- Line 57: `#FBBC05`
+- Line 58: `#EA4335`
+- Line 68: `bg-white`
+- Line 69: `border-black, #111`
+- Line 71: `#111, #CCC`
+- Line 81: `#111, #BBB`
+- Line 92: `#111`
+- Line 95: `text-white`
+- Line 99: `bg-white, border-black, #F7F7F5`
+- Line 102: `#111`
+- Line 113: `border-black, #F1EFE8`
+- Line 114: `bg-white, #111`
+- Line 117: `#999, #111`
+- Line 120: `bg-black`
+- Line 121: `#999, #111`
+- Line 128: `bg-black`
+- Line 129: `#BBB`
+- Line 130: `bg-black`
+- Line 173: `#0D0D0D`
+- Line 176: `#0D0D0D`
+- Line 180: `bg-white`
+- Line 181: `#0D0D0D`
+- Line 184: `text-white`
+- Line 185: `text-white`
+- Line 191: `text-white`
+- Line 192: `text-white`
+- Line 205: `#EAF3DE, #3B6D11`
+- Line 206: `#E6F1FB, #0C447C`
+- Line 207: `#FAEEDA, #854F0B`
+- Line 211: `#0D0D0D`
+- Line 218: `text-white`
+- Line 223: `border-white, #F7F7F5`
+- Line 225: `#999`
+- Line 229: `#FCEBEB, #A32D2D`
+- Line 230: `#A32D2D`
+- ... and 7 more occurrences
+
+#### src/pages/MyGym.jsx
+- Line 25: `#3B6D11, #854F0B, #A32D2D`
+- Line 42: `#F1EFE8, #E8E6DF`
+- Line 52: `#999`
+- Line 80: `#E1F5EE`
+- Line 81: `#0F6E56`
+- Line 83: `#111`
+- Line 84: `#999`
+- Line 94: `#F1EFE8, #111, #CCC`
+- Line 96: `#A32D2D`
+- Line 100: `bg-white, border-black, #111, #F1EFE8, #999`
+- Line 195: `#F7F7F5`
+- Line 200: `bg-white, border-black`
+- Line 201: `#111`
+- Line 202: `#F1EFE8`
+- Line 204: `#111`
+- Line 213: `#999`
+- Line 223: `#111`
+- Line 225: `rgba(255,255,255,0.06)`
+- Line 228: `#D4A017`
+- Line 235: `text-white`
+- Line 240: `rgba(255,255,255,0.5)`
+- Line 246: `rgba(255,255,255,0.10)`
+- Line 251: `rgba(255,255,255,0.9)`
+- Line 263: `rgba(255,255,255,0.10)`
+- Line 264: `rgba(255,255,255,0.20)`
+- Line 265: `#D4A017`
+- Line 271: `#3B6D11`
+- Line 272: `rgba(255,255,255,0.7)`
+- Line 276: `rgba(255,255,255,0.4)`
+- Line 279: `rgba(255,255,255,0.5)`
+- Line 286: `bg-white, border-black`
+- Line 288: `#999`
+- Line 290: `#3B6D11`
+- Line 291: `#3B6D11`
+- Line 307: `#111`
+- Line 308: `#CCC`
+- Line 309: `#999`
+- Line 311: `#999`
+- Line 314: `#F1EFE8`
+- Line 322: `border-black`
+- ... and 41 more occurrences
+
+#### src/pages/MyTrainer.jsx
+- Line 36: `#F1EFE8, #E8E6DF`
+- Line 57: `#E1F5EE, #0F6E56`
+- Line 58: `#E6F1FB, #185FA5`
+- Line 59: `#EAF3DE, #3B6D11`
+- Line 60: `#FAEEDA, #854F0B`
+- Line 118: `#F7F7F5`
+- Line 120: `bg-white, border-black`
+- Line 121: `#111`
+- Line 125: `bg-white, border-black`
+- Line 140: `bg-white, border-black`
+- Line 153: `bg-zinc-950, text-white`
+- Line 160: `bg-zinc-900`
+- Line 185: `bg-zinc-800, text-white`
+- Line 190: `bg-zinc-800`
+- Line 206: `bg-zinc-900`
+- Line 262: `#F7F7F5`
+- Line 266: `bg-white, border-black`
+- Line 267: `#111`
+- Line 270: `text-white, #111`
+- Line 280: `#E1F5EE, #0F6E56`
+- Line 283: `#0F6E56`
+- Line 284: `#999`
+- Line 293: `#0F6E56`
+- Line 302: `text-white`
+- Line 306: `bg-white, border-black`
+- Line 308: `#111`
+- Line 309: `#999`
+- Line 313: `border-black`
+- Line 320: `border-black`
+- Line 322: `#111`
+- Line 323: `#999`
+- Line 326: `border-black`
+- Line 332: `#999`
+- Line 352: `#666`
+- Line 359: `#999`
+- Line 361: `bg-white, border-black`
+- Line 362: `#999`
+- Line 367: `bg-white, border-black`
+- Line 369: `#E1F5EE, #0F6E56`
+- Line 373: `#999`
+- ... and 25 more occurrences
+
+#### src/pages/Onboarding.jsx
+- Line 95: `bg-white, border-black, #111`
+- Line 99: `bg-white, #F1EFE8`
+- Line 104: `text-white, #111`
+- Line 105: `text-white, #999`
+- Line 274: `text-white, #111`
+- Line 275: `bg-white, border-black, #999`
+- Line 283: `#111`
+- Line 286: `#999`
+- Line 288: `#EAF3DE, #3B6D11`
+- Line 311: `bg-white, border-black`
+- Line 313: `#111`
+- Line 319: `#111, #CCC`
+- Line 321: `#999`
+- Line 327: `#111`
+- Line 337: `text-white, #111`
+- Line 338: `border-black, #111`
+- Line 357: `#F7F7F5`
+- Line 360: `#E5E5E3`
+- Line 362: `#111`
+- Line 371: `#999`
+- Line 381: `#999`
+- Line 384: `#111`
+- Line 390: `#999`
+- Line 402: `#999`
+- Line 411: `#999`
+- Line 419: `#FCEBEB, #A32D2D`
+- Line 426: `#F7F7F5`
+- Line 432: `bg-white, #111`
+- Line 433: `border-black, #F1EFE8, #999`
+
+#### src/pages/Progress.jsx
+- Line 29: `bg-gray-800, border-white`
+- Line 118: `bg-gray-800, bg-gray-700, text-white`
+- Line 128: `bg-gray-900">`
+- Line 139: `bg-white`
+- Line 142: `bg-white`
+- Line 162: `bg-gray-800, bg-gray-700, text-white`
+- Line 167: `bg-gray-900`
+- Line 180: `text-black`
+- Line 188: `bg-gray-800, bg-gray-700, text-white`
+- Line 204: `bg-white`
+- Line 219: `bg-gray-900`
+- Line 221: `#0c0c0e`
+- Line 234: `text-black`
+- Line 240: `text-white`
+- Line 251: `bg-black`
+- Line 255: `bg-white, text-white`
+- Line 321: `bg-gray-900`
+- Line 322: `text-white`
+- Line 332: `bg-gray-800, text-white`
+- Line 339: `text-black`
+- Line 359: `bg-gray-900`
+- Line 361: `text-white`
+- Line 373: `bg-gray-900`
+- Line 378: `bg-gray-900`
+- Line 379: `text-white`
+- Line 382: `#ffffff0d`
+- Line 385: `#71717a`
+- Line 390: `#71717a`
+- Line 399: `#10b981`
+- Line 401: `#10b981`
+- Line 402: `#10b981`
+- Line 467: `bg-gray-900`
+- Line 468: `text-white`
+- Line 481: `bg-gray-800, text-white`
+- Line 491: `text-black`
+- Line 504: `bg-gray-900`
+- Line 505: `text-white`
+- Line 513: `bg-gray-800`
+- Line 515: `text-white`
+- Line 523: `bg-gray-900`
+- ... and 72 more occurrences
+
+#### src/pages/RoleSelect.jsx
+- Line 76: `#111`
+- Line 82: `#111`
+- Line 85: `#888`
+- Line 104: `#111, rgba(0,0,0,0.12)`
+- Line 116: `#F7F7F5`
+- Line 122: `#111`
+- Line 129: `#111`
+- Line 132: `#888`
+- Line 136: `#CCC`
+- Line 142: `#C0C0C0`
+
+#### src/pages/Settings.jsx
+- Line 18: `rgba(0,0,0,0.12)`
+- Line 25: `#FFFFFF`
+- Line 26: `#111`
+- Line 27: `#185FA5`
+- Line 28: `rgba(0,0,0,0.1)`
+- Line 30: `#0F0F0F`
+- Line 31: `#F5F5F5`
+- Line 32: `#4A9EE0`
+- Line 33: `rgba(255,255,255,0.15)`
+- Line 40: `#FFFFFF, #0F0F0F`
+- Line 41: `#111, #F5F5F5`
+- Line 42: `#185FA5, #4A9EE0`
+- Line 43: `rgba(0,0,0,0.1), rgba(255,255,255,0.15)`
+- Line 54: `#111, #E0E0E0`
+- Line 63: `rgba(0,0,0,0.2)`
+- Line 78: `#111`
+- Line 79: `#111`
+- Line 80: `rgba(0,0,0,0.15)`
+- Line 90: `#999`
+- Line 277: `rgba(0,0,0,0.06)`
+- Line 281: `#999`
+- Line 282: `#111`
+- Line 284: `#111`
+- Line 289: `rgba(0,0,0,0.15)`
+- Line 297: `#F7F7F5`
+- Line 301: `#999`
+- Line 307: `#F7F7F5`
+- Line 315: `rgba(0,0,0,0.08)`
+- Line 319: `#185FA5`
+- Line 321: `#111`
+- Line 325: `#111`
+- Line 341: `rgba(0,0,0,0.08)`
+- Line 352: `#111`
+- Line 357: `#E6F1FB, #185FA5`
+- Line 362: `#999`
+- Line 375: `rgba(0,0,0,0.08)`
+- Line 405: `rgba(0,0,0,0.06)`
+- Line 426: `rgba(0,0,0,0.08)`
+- Line 437: `rgba(0,0,0,0.06)`
+- Line 453: `rgba(0,0,0,0.06)`
+- ... and 48 more occurrences
+
+#### src/pages/Signup.jsx
+- Line 18: `#CCC`
+- Line 25: `#CCC`
+- Line 32: `#CCC`
+- Line 39: `#CCC`
+- Line 63: `#4285F4`
+- Line 64: `#34A853`
+- Line 65: `#FBBC05`
+- Line 66: `#EA4335`
+- Line 76: `bg-white`
+- Line 77: `border-black, #111`
+- Line 79: `#111, #CCC`
+- Line 89: `#111, #BBB`
+- Line 100: `#111`
+- Line 103: `text-white`
+- Line 107: `bg-white, border-black, #F7F7F5`
+- Line 110: `#111`
+- Line 121: `border-black, #F1EFE8`
+- Line 122: `bg-white, #111`
+- Line 125: `#999, #111`
+- Line 128: `bg-black`
+- Line 129: `#999, #111`
+- Line 136: `bg-black`
+- Line 137: `#BBB`
+- Line 138: `bg-black`
+- Line 154: `#999999`
+- Line 155: `#A32D2D`
+- Line 156: `#854F0B`
+- Line 157: `#185FA5`
+- Line 158: `#3B6D11`
+- Line 216: `#0D0D0D`
+- Line 223: `bg-white`
+- Line 224: `#0D0D0D`
+- Line 227: `text-white`
+- Line 228: `text-white`
+- Line 234: `text-white`
+- Line 235: `text-white`
+- Line 249: `text-white, border-white`
+- Line 250: `rgba(255,255,255,0.06)`
+- Line 259: `border-white, #F7F7F5`
+- Line 261: `#999`
+- ... and 9 more occurrences
+
+#### src/pages/SupplementCart.jsx
+- Line 63: `#F7F7F5`
+- Line 67: `#fff, rgba(0,0,0,0.06)`
+- Line 71: `#111`
+- Line 73: `#111`
+- Line 74: `#999`
+- Line 80: `#999`
+- Line 84: `#fff`
+- Line 85: `#111`
+- Line 97: `#fff`
+- Line 98: `rgba(0,0,0,0.06)`
+- Line 102: `#F7F7F5`
+- Line 108: `#CCC`
+- Line 113: `#111`
+- Line 114: `#111`
+- Line 117: `#F1EFE8`
+- Line 122: `#111`
+- Line 124: `#111`
+- Line 129: `#111`
+- Line 137: `#A32D2D`
+- Line 147: `#999`
+- Line 157: `#fff, rgba(0,0,0,0.08)`
+- Line 158: `#111`
+- Line 166: `#999`
+- Line 181: `#fff`
+- Line 182: `#111, #666`
+- Line 184: `#111, rgba(0,0,0,0.12)`
+- Line 196: `#fff`
+- Line 197: `#111, #666`
+- Line 199: `#111, rgba(0,0,0,0.12)`
+- Line 210: `#FEF2F2, rgba(163,45,45,0.2)`
+- Line 211: `#A32D2D`
+- Line 224: `#fff, rgba(0,0,0,0.06)`
+- Line 229: `#999`
+- Line 230: `#111`
+- Line 237: `#F7F7F5, #fff`
+- Line 238: `#999, #111`
+- Line 239: `#111, rgba(0,0,0,0.08)`
+- Line 241: `rgba(0,0,0,0.08)`
+- Line 255: `#111, #fff`
+- Line 257: `rgba(0,0,0,0.15)`
+
+#### src/pages/SupplementCatalog.jsx
+- Line 28: `#F1EFE8, #E8E6DF`
+- Line 47: `rgba(0,0,0,0.4)`
+- Line 53: `#fff`
+- Line 60: `#111`
+- Line 61: `#F1EFE8`
+- Line 62: `#111`
+- Line 66: `#F7F7F5`
+- Line 69: `#CCC`
+- Line 75: `#999`
+- Line 79: `#111`
+- Line 80: `#111`
+- Line 84: `#666`
+- Line 91: `#A32D2D`
+- Line 93: `#3B6D11`
+- Line 101: `#F1EFE8`
+- Line 106: `#111`
+- Line 108: `#111`
+- Line 113: `#111`
+- Line 121: `#fff, #111`
+- Line 124: `rgba(0,0,0,0.08)`
+- Line 170: `#F7F7F5`
+- Line 176: `#fff, rgba(0,0,0,0.06)`
+- Line 180: `#111`
+- Line 182: `#111`
+- Line 187: `#111`
+- Line 191: `#111, #fff`
+- Line 205: `#fff`
+- Line 206: `rgba(0,0,0,0.08)`
+- Line 208: `#999`
+- Line 215: `#111`
+- Line 229: `rgba(0,0,0,0.12)`
+- Line 230: `#111, #fff`
+- Line 231: `#fff, #666`
+- Line 244: `#fff, rgba(0,0,0,0.06)`
+- Line 252: `#999`
+- Line 262: `#fff, rgba(0,0,0,0.06)`
+- Line 266: `#F7F7F5`
+- Line 269: `#CCC`
+- Line 274: `#999`
+- Line 278: `#111`
+- ... and 4 more occurrences
+
+#### src/pages/SupplementOrderDetail.jsx
+- Line 24: `#FEF3C7, #854F0B`
+- Line 25: `#DBEAFE, #1E40AF`
+- Line 26: `#D1FAE5, #065F46`
+- Line 27: `#FEE2E2, #991B1B`
+- Line 97: `#F1EFE8, #666`
+- Line 100: `#F7F7F5`
+- Line 104: `#fff, rgba(0,0,0,0.06)`
+- Line 108: `#111`
+- Line 110: `#111`
+- Line 116: `#999`
+- Line 120: `#A32D2D`
+- Line 141: `#fff`
+- Line 142: `rgba(0,0,0,0.06)`
+- Line 145: `#999`
+- Line 146: `#111`
+- Line 149: `#999`
+- Line 152: `#065F46, #854F0B`
+- Line 159: `rgba(0,0,0,0.04)`
+- Line 160: `#999`
+- Line 161: `#666`
+- Line 168: `#fff`
+- Line 169: `rgba(0,0,0,0.06)`
+- Line 171: `#999`
+- Line 179: `#111`
+- Line 180: `#999`
+- Line 182: `#111`
+- Line 189: `rgba(0,0,0,0.06)`
+- Line 190: `#111`
+- Line 191: `#111`
+- Line 202: `#fff, #A32D2D`
+- Line 203: `#A32D2D`
+- Line 214: `#FEF2F2, #A32D2D`
+- Line 227: `#111, #fff`
+- Line 229: `rgba(0,0,0,0.15)`
+
+#### src/pages/SupplementOrders.jsx
+- Line 24: `#FEF3C7, #854F0B`
+- Line 25: `#DBEAFE, #1E40AF`
+- Line 26: `#D1FAE5, #065F46`
+- Line 27: `#FEE2E2, #991B1B`
+- Line 31: `#F1EFE8, #666`
+- Line 56: `#F1EFE8, #E8E6DF`
+- Line 109: `#F7F7F5`
+- Line 115: `#fff, rgba(0,0,0,0.06)`
+- Line 119: `#111`
+- Line 121: `#111`
+- Line 134: `rgba(0,0,0,0.12)`
+- Line 135: `#111, #fff`
+- Line 136: `#fff, #666`
+- Line 148: `#fff, rgba(0,0,0,0.06)`
+- Line 157: `#CCC`
+- Line 158: `#999`
+- Line 177: `#fff`
+- Line 178: `rgba(0,0,0,0.06)`
+- Line 184: `#999`
+- Line 187: `#111`
+- Line 192: `#111`
+- Line 194: `#999`
+- Line 197: `#CCC`
+- Line 210: `#111, #fff`
+- Line 212: `rgba(0,0,0,0.15)`
+
+#### src/pages/TrainerAssignPlan.jsx
+- Line 8: `#185FA5, #1D9E75, #BA7517, #D85A30, #534AB7`
+- Line 139: `#F7F7F5`
+- Line 146: `#F7F7F5`
+- Line 147: `#EAF3DE`
+- Line 148: `#3B6D11`
+- Line 151: `#888`
+- Line 157: `rgba(0,0,0,0.15)`
+- Line 163: `#111`
+- Line 175: `#F7F7F5`
+- Line 180: `#666`
+- Line 193: `#111`
+- Line 194: `#D0D0D0`
+- Line 199: `#999`
+- Line 202: `#999`
+- Line 207: `#111, #E0E0E0`
+- Line 221: `#888`
+- Line 230: `rgba(0,0,0,0.12)`
+- Line 237: `#999`
+- Line 250: `#111, rgba(0,0,0,0.08)`
+- Line 251: `#F7F7F5`
+- Line 258: `#F0EDE6`
+- Line 260: `#5F5E5A`
+- Line 266: `#999`
+- Line 270: `#D0D0D0`
+- Line 271: `#111`
+- Line 288: `#888`
+- Line 295: `rgba(0,0,0,0.15)`
+- Line 296: `#111`
+- Line 297: `#555`
+- Line 304: `#FAEEDA, #854F0B`
+- Line 305: `#854F0B`
+- Line 312: `#999`
+- Line 328: `#111, rgba(0,0,0,0.08)`
+- Line 329: `#F7F7F5`
+- Line 337: `#999`
+- Line 346: `#D0D0D0`
+- Line 347: `#111`
+- Line 362: `#D0D0D0`
+- Line 363: `#185FA5`
+- Line 375: `#888`
+- ... and 26 more occurrences
+
+#### src/pages/TrainerChatPage.jsx
+- Line 8: `#f5f5f7, #fff, #e8e8ed`
+- Line 9: `#1a1a1a, #6e6e73`
+- Line 10: `#1a9955, #e8f5ee`
+- Line 11: `#1a6fd4, #e8f0fb`
+- Line 12: `#9e9ea8, #f0f0f3`
+- Line 13: `#d93025`
+- Line 18: `#e8f0fb, #1a6fd4`
+- Line 19: `#e8f5ee, #1a9955`
+- Line 20: `#fce8f3, #c0397b`
+- Line 21: `#fff4d9, #c07800`
+- Line 22: `#f0f0f3, #6e6e73`
+- Line 23: `#e4f5f0, #0a8c6c`
+- Line 53: `#fff`
+- Line 77: `#fff`
+- Line 111: `#111111, #F5F5F3`
+- Line 112: `#fff`
+- Line 329: `#fff`
+- Line 367: `#fff`
+- Line 396: `#f0f0f3`
+- Line 408: `#fff`
+- Line 463: `#fff`
+- Line 485: `#fff`
+- Line 561: `#111`
+- Line 568: `#fff`
+
+#### src/pages/TrainerClientDetail.jsx
+- Line 14: `#f7f7f5, #ffffff, rgba(0,0,0,0.08)`
+- Line 15: `#1a1a1a, #888888`
+- Line 16: `#3B6D11, #EAF3DE`
+- Line 17: `#854F0B, #FAEEDA`
+- Line 18: `#185FA5, #E6F1FB`
+- Line 19: `#A32D2D, #FCEBEB`
+- Line 20: `#0F6E56, #e4f5f0`
+- Line 21: `#9e9ea8, #f0f0f3`
+- Line 22: `#D85A30, #FAECE7`
+- Line 38: `#e8f0fb, #185FA5`
+- Line 39: `#fce8e6, #A32D2D`
+- Line 40: `#e8f5ee, #3B6D11`
+- Line 41: `#fff4d9, #854F0B`
+- Line 42: `#f3e8fb, #7b2fbf`
+- Line 99: `#BA7517`
+- Line 106: `#C0C0C0`
+- Line 161: `#5F5E5A, #F1EFE8`
+- Line 322: `#fff`
+- Line 473: `#fff`
+- Line 498: `#D0D0D0`
+- Line 537: `#FFF5F5`
+- Line 566: `rgba(0,0,0,0.06)`
+- Line 571: `rgba(0,0,0,0.06)`
+- Line 585: `rgba(0,0,0,0.06)`
+- Line 637: `#111, #fff`
+- Line 640: `rgba(0,0,0,0.2)`
+- Line 649: `rgba(0,0,0,0.45)`
+- Line 656: `rgba(0,0,0,0.12)`
+- Line 783: `#BA7517`
+- Line 829: `#F5F5F3`
+- Line 846: `#0C447C, #E6F1FB`
+- Line 849: `#633806, #FAEEDA`
+- Line 852: `#712B13, #FAECE7`
+- Line 882: `#B5D4F4`
+- Line 963: `#C0C0C0`
+- Line 970: `rgba(0,0,0,0.06)`
+- Line 977: `rgba(0,0,0,0.06)`
+- Line 1004: `#fff`
+- Line 1123: `#D0D0D0`
+- Line 1124: `#111`
+- ... and 25 more occurrences
+
+#### src/pages/TrainerClients.jsx
+- Line 7: `#f5f5f7`
+- Line 8: `#ffffff`
+- Line 9: `#e8e8ed`
+- Line 10: `#1a1a1a`
+- Line 11: `#6e6e73`
+- Line 12: `#1a9955`
+- Line 13: `#e8f5ee`
+- Line 14: `#c07800`
+- Line 15: `#fff4d9`
+- Line 16: `#1a6fd4`
+- Line 17: `#e8f0fb`
+- Line 18: `#9e9ea8`
+- Line 19: `#f0f0f3`
+- Line 23: `#e8f0fb, #1a6fd4`
+- Line 24: `#fce8e6, #c0392b`
+- Line 25: `#e8f5ee, #1a9955`
+- Line 26: `#fff4d9, #c07800`
+- Line 27: `#f3e8fb, #7b2fbf`
+- Line 100: `#f9f9fb`
+- Line 214: `#fff`
+
+#### src/pages/TrainerDashboard.jsx
+- Line 8: `#f5f5f7`
+- Line 9: `#ffffff`
+- Line 10: `#e8e8ed`
+- Line 11: `#1a1a1a`
+- Line 12: `#6e6e73`
+- Line 13: `#1a9955`
+- Line 14: `#e8f5ee`
+- Line 15: `#c07800`
+- Line 16: `#fff4d9`
+- Line 17: `#1a6fd4`
+- Line 18: `#e8f0fb`
+- Line 19: `#9e9ea8`
+- Line 20: `#f0f0f3`
+- Line 21: `#d93025`
+- Line 25: `#e8f0fb, #1a6fd4`
+- Line 26: `#fce8e6, #c0392b`
+- Line 27: `#e8f5ee, #1a9955`
+- Line 28: `#fff4d9, #c07800`
+- Line 29: `#f3e8fb, #7b2fbf`
+- Line 139: `#f9f9fb`
+- Line 278: `#fff`
+- Line 400: `#fff`
+
+#### src/pages/TrainerDietBuilder.jsx
+- Line 148: `bg-zinc-950, text-white`
+- Line 176: `bg-zinc-900`
+- Line 185: `bg-zinc-900`
+- Line 191: `bg-zinc-950/95`
+- Line 226: `bg-zinc-900`
+- Line 235: `bg-zinc-900">{t}</option>)}`
+- Line 278: `bg-zinc-800`
+- Line 285: `bg-zinc-800`
+- Line 292: `bg-zinc-800`
+- Line 299: `bg-zinc-800`
+- Line 306: `bg-zinc-800`
+- Line 313: `bg-zinc-800`
+- Line 336: `bg-zinc-800`
+- Line 345: `bg-zinc-900`
+
+#### src/pages/TrainerExerciseDetail.jsx
+- Line 43: `text-gray-900', text-gray-300'}`}`
+- Line 53: `bg-gray-200`
+- Line 181: `#F9F9F9`
+- Line 185: `bg-gray-900, text-white`
+- Line 191: `border-gray-100">, #F9F9F9`
+- Line 193: `text-gray-900"`
+- Line 195: `text-gray-900`
+- Line 200: `text-gray-900"`
+- Line 201: `text-gray-400"`
+- Line 209: `#1C1C1E`
+- Line 232: `bg-white`
+- Line 235: `text-black`
+- Line 240: `text-white`
+- Line 242: `text-white`
+- Line 245: `text-white`
+- Line 251: `text-gray-500">`
+- Line 261: `bg-gray-900, text-white`
+- Line 264: `text-gray-900, border-gray-300`
+- Line 267: `text-gray-900, border-gray-300`
+- Line 275: `bg-white, divide-gray-100">`
+- Line 282: `text-gray-400`
+- Line 283: `text-gray-900`
+- Line 290: `border-gray-100`
+- Line 297: `text-gray-900, border-gray-900'`
+- Line 298: `text-gray-400'`
+- Line 311: `bg-white, border-gray-900`
+- Line 312: `text-gray-400`
+- Line 317: `text-gray-900`
+- Line 320: `text-gray-500`
+- Line 325: `text-gray-400`
+- Line 336: `bg-white`
+- Line 337: `text-gray-400`
+- Line 340: `text-gray-900">{value}</p>}`
+- Line 346: `bg-white`
+- Line 347: `text-gray-900`
+- Line 354: `bg-gray-900, text-white, text-gray-500', border-gray-900', border-gray-200`
+- Line 363: `#9CA3AF`
+- Line 365: `#fff, #E5E7EB`
+- Line 371: `#111827`
+- Line 373: `#111827`
+- ... and 21 more occurrences
+
+#### src/pages/TrainerSettings.jsx
+- Line 26: `#111, #D0D0D0`
+- Line 46: `#999`
+- Line 48: `#F7F7F5`
+- Line 59: `rgba(0,0,0,0.06)`
+- Line 64: `#A32D2D, #888`
+- Line 67: `#A32D2D, #111`
+- Line 69: `#999`
+- Line 75: `#C0C0C0`
+- Line 231: `#F7F7F5`
+- Line 247: `#F7F7F5`
+- Line 250: `#F7F7F5`
+- Line 254: `rgba(0,0,0,0.08)`
+- Line 268: `#E6F1FB`
+- Line 272: `#185FA5`
+- Line 279: `#111`
+- Line 297: `#999`
+- Line 305: `#C0C0C0`
+- Line 315: `rgba(0,0,0,0.08)`
+- Line 324: `#999`
+- Line 383: `#FFF0F0, #A32D2D`
+- Line 384: `#A32D2D`
+- Line 388: `rgba(0,0,0,0.15)`
+- Line 394: `#A32D2D`
+- Line 403: `#C0C0C0`
+- Line 404: `#A32D2D`
+- Line 405: `#C0C0C0`
+- Line 456: `#F3F4F6`
+- Line 461: `#FEF2F2, #EF4444`
+- Line 474: `rgba(0,0,0,0.1)`
+- Line 481: `#999`
+- Line 487: `#999`
+- Line 494: `#F7F7F5`
+- Line 495: `#333`
+- Line 504: `#999`
+- Line 509: `rgba(0,0,0,0.12)`
+- Line 513: `#999`
+- Line 518: `rgba(0,0,0,0.12)`
+- Line 526: `#999`
+- Line 531: `rgba(0,0,0,0.12)`
+- Line 535: `#999`
+- ... and 8 more occurrences
+
+#### src/pages/TrainerTemplateBuilder.jsx
+- Line 164: `rgba(0,0,0,0.15)`
+- Line 169: `rgba(0,0,0,0.15)`
+- Line 175: `#F7F7F5`
+- Line 180: `#666`
+- Line 192: `rgba(0,0,0,0.08)`
+- Line 200: `rgba(0,0,0,0.1)`
+- Line 212: `rgba(0,0,0,0.08)`
+- Line 214: `#555`
+- Line 220: `#999`
+- Line 228: `rgba(0,0,0,0.2)`
+- Line 229: `#111`
+- Line 230: `#555`
+- Line 242: `#999`
+- Line 248: `#F1EFE8, #5F5E5A`
+- Line 256: `#888`
+- Line 266: `#555`
+- Line 279: `rgba(0,0,0,0.08)`
+- Line 283: `#C0C0C0`
+- Line 291: `#aaa`
+- Line 293: `#bbb`
+- Line 296: `#bbb`
+- Line 303: `#D85A30`
+- Line 314: `rgba(0,0,0,0.06)`
+- Line 319: `#bbb`
+- Line 324: `#F5F5F3`
+- Line 325: `#666`
+- Line 333: `#ccc`
+- Line 337: `#ccc`
+- Line 341: `#D85A30`
+- Line 350: `rgba(0,0,0,0.1)`
+- Line 353: `#185FA5`
+- Line 369: `#D0D0D0`
+- Line 371: `#999`
+- Line 385: `rgba(0,0,0,0.1)`
+- Line 392: `#999`
+- Line 397: `#999`
+- Line 402: `#999`
+- Line 410: `rgba(0,0,0,0.15)`
+- Line 411: `#111`
+- Line 412: `#555`
+- ... and 8 more occurrences
+
+#### src/pages/TrainerTemplates.jsx
+- Line 7: `#185FA5, #1D9E75`
+- Line 8: `#BA7517, #D85A30`
+- Line 9: `#534AB7, #0F6E56`
+- Line 67: `#F7F7F5`
+- Line 74: `#F7F7F5`
+- Line 82: `#111`
+- Line 104: `#111`
+- Line 105: `#555`
+- Line 106: `rgba(0,0,0,0.12)`
+- Line 116: `#999`
+- Line 120: `#666`
+- Line 144: `rgba(0,0,0,0.08)`
+- Line 157: `#E6F1FB, #E1F5EE`
+- Line 158: `#185FA5, #0F6E56`
+- Line 167: `#999`
+- Line 175: `#999`
+- Line 189: `rgba(0,0,0,0.15)`
+- Line 200: `#111`
+- Line 212: `rgba(0,0,0,0.1)`
+- Line 215: `#D85A30`
+- Line 230: `#D0D0D0`
+- Line 238: `#C0C0C0`
+- Line 239: `#999`
+- Line 248: `rgba(0,0,0,0.08)`
+- Line 263: `#111, #999`
+
+#### src/pages/UserPlanBuilder.jsx
+- Line 140: `#F2F2F7`
+- Line 145: `#FFFFFF, #E8E8E8`
+- Line 153: `#6B6B6B`
+- Line 154: `#6B6B6B`
+- Line 165: `rgba(0,0,0,0.08)`
+- Line 175: `#FFFFFF`
+- Line 185: `#0D0D0D`
+- Line 190: `#F0F0F0`
+- Line 198: `#6B6B6B`
+- Line 219: `#0D0D0D, #FFFFFF`
+- Line 220: `#FFFFFF, #0D0D0D`
+- Line 221: `#E8E8E8`
+- Line 234: `#FFFFFF, #007AFF`
+- Line 235: `#007AFF`
+- Line 240: `#007AFF`
+- Line 247: `#FFFFFF`
+- Line 253: `#F0F0F0`
+- Line 265: `#0D0D0D`
+- Line 266: `#007AFF`
+- Line 279: `#0D0D0D`
+- Line 280: `#AAAAAA`
+- Line 291: `#CCCCCC`
+- Line 299: `#CCCCCC`
+- Line 300: `#AAAAAA`
+- Line 301: `#CCCCCC`
+- Line 311: `#F5F5F5`
+- Line 315: `#CCCCCC`
+- Line 317: `#0D0D0D`
+- Line 318: `#6B6B6B`
+- Line 320: `#CCCCCC`
+- Line 333: `#FFFFFF, #E8E8E8`
+- Line 337: `#0D0D0D`
+- Line 338: `#0D0D0D`
+- Line 358: `rgba(0,0,0,0.4)`
+- Line 364: `#FFFFFF`
+- Line 373: `#E0E0E0`
+- Line 379: `#0D0D0D`
+- Line 383: `#F2F2F7`
+- Line 384: `#6B6B6B`
+- Line 394: `#AAAAAA`
+- ... and 13 more occurrences
+
+#### src/pages/Workout.jsx
+- Line 68: `#FF6B6B`
+- Line 69: `#F6C244`
+- Line 70: `#5B8FF9`
+- Line 187: `#F2F2F7`
+- Line 191: `#0D0D0D`
+- Line 194: `#AAAAAA`
+- Line 216: `#AAAAAA`
+- Line 221: `#FFFFFF`
+- Line 222: `#F0F0F0, #007AFF`
+- Line 224: `#0D0D0D`
+- Line 226: `#AAAAAA`
+- Line 228: `#E8E8E8`
+- Line 229: `#0D0D0D`
+- Line 231: `#AAAAAA`
+- Line 249: `#0D0D0D`
+- Line 253: `#AAAAAA, #E24B4A, #0D0D0D`
+- Line 256: `#AAAAAA, rgba(255,255,255,0.6)`
+- Line 260: `#3B6D11`
+- Line 261: `#E24B4A`
+- Line 262: `#CCCCCC`
+- Line 273: `#AAAAAA`
+- Line 276: `#007AFF`
+- Line 284: `#FFFFFF`
+- Line 286: `#F0F0F0`
+- Line 288: `#AAAAAA`
+- Line 289: `#0D0D0D`
+- Line 290: `#AAAAAA`
+- Line 296: `#0D0D0D`
+- Line 297: `#0D0D0D`
+- Line 318: `#FFFFFF`
+- Line 319: `#F0F0F0`
+- Line 322: `#0D0D0D`
+- Line 323: `#AAAAAA`
+- Line 326: `#E8E8E8`
+- Line 327: `#0D0D0D`
+- Line 329: `#AAAAAA`
+- Line 341: `#AAAAAA`
+- Line 366: `#FFFFFF, #E8E8E8`
+- Line 370: `#0D0D0D`
+- Line 371: `#0D0D0D`
+- ... and 29 more occurrences
+
+#### src/pages/WorkoutSummary.jsx
+- Line 169: `#F7F7F5`
+- Line 170: `#111`
+- Line 178: `#F7F7F5`
+- Line 179: `#111`
+- Line 180: `#999`
+- Line 207: `#F7F7F5`
+- Line 212: `rgba(0,0,0,0.05)`
+- Line 215: `#111`
+- Line 216: `#3B6D11`
+- Line 223: `rgba(0,0,0,0.06)`
+- Line 224: `#111`
+- Line 225: `#999`
+- Line 226: `rgba(0,0,0,0.06)`
+- Line 227: `rgba(0,0,0,0.06)`
+- Line 234: `rgba(0,0,0,0.06)`
+- Line 235: `#111`
+- Line 236: `#999`
+- Line 248: `#999`
+- Line 250: `rgba(0,0,0,0.06)`
+- Line 251: `#FAEEDA`
+- Line 255: `#FAEEDA, #854F0B`
+- Line 256: `#111`
+- Line 257: `#999`
+- Line 258: `#CCC`
+- Line 267: `#999`
+- Line 269: `#999`
+- Line 276: `rgba(0,0,0,0.06)`
+- Line 281: `#111`
+- Line 282: `#999`
+- Line 283: `#CCC`
+- Line 287: `rgba(0,0,0,0.06)`
+- Line 290: `#999`
+- Line 302: `#3B6D11`
+- Line 304: `rgba(59,109,17,0.03)`
+- Line 309: `#999`
+- Line 310: `#111`
+- Line 313: `#EAF3DE, #3B6D11`
+- Line 316: `#111`
+- Line 317: `#999`
+- Line 330: `rgba(0,0,0,0.06)`
+- ... and 12 more occurrences
+
+#### src/pages/XPProfile.jsx
+- Line 66: `#3B6D11, #EAF3DE`
+- Line 222: `#A32D2D, #FCEBEB`
+- Line 340: `#EAF3DE`
+- Line 341: `#3B6D11`
+- Line 365: `#A32D2D`
+- Line 370: `#A32D2D`
+- Line 379: `#A32D2D`
+- Line 426: `#3B6D11, #A32D2D`
+
+### src/pages/gym
+
+#### src/pages/gym/BecomeGymOwner.jsx
+- Line 9: `#0c0c0e`
+- Line 73: `#0c0c0e`
+- Line 89: `bg-white, border-white`
+- Line 93: `text-white`
+- Line 107: `border-white, #141416`
+- Line 112: `text-white`
+- Line 119: `bg-white, border-white`
+- Line 120: `text-white`
+- Line 130: `text-white`
+
+#### src/pages/gym/GymCheckin.jsx
+- Line 151: `#F7F7F5`
+- Line 157: `rgba(0,0,0,0.08)`
+- Line 163: `#111`
+- Line 165: `#EAF3DE, #3B6D11`
+- Line 182: `#111, #999`
+- Line 183: `#111`
+- Line 197: `#1a1a1a`
+- Line 216: `#10b981`
+- Line 217: `#10b981`
+- Line 219: `rgba(255,255,255,0.7)`
+- Line 230: `#111`
+- Line 231: `#111`
+- Line 238: `#999`
+- Line 243: `#999`
+- Line 249: `rgba(0,0,0,0.08)`
+- Line 257: `rgba(0,0,0,0.06)`
+- Line 266: `#111`
+- Line 267: `#999`
+- Line 270: `#E1F5EE, #0F6E56`
+- Line 278: `#185FA5`
+- Line 279: `rgba(0,0,0,0.06)`
+- Line 294: `#999`
+- Line 302: `rgba(0,0,0,0.15)`
+- Line 312: `#999`
+- Line 319: `#999`
+- Line 331: `rgba(0,0,0,0.08)`
+- Line 341: `#111`
+- Line 342: `#666`
+- Line 348: `#E1F5EE, #0F6E56`
+- Line 355: `#111`
+- Line 369: `#999`
+- Line 375: `rgba(0,0,0,0.08)`
+- Line 378: `rgba(0,0,0,0.06)`
+- Line 381: `#111`
+- Line 383: `#E1F5EE, #0F6E56`
+- Line 389: `#999`
+- Line 400: `rgba(0,0,0,0.06)`
+- Line 410: `#111`
+- Line 411: `#999`
+- Line 418: `#A32D2D`
+- ... and 22 more occurrences
+
+#### src/pages/gym/GymDashboard.jsx
+- Line 47: `#fff`
+- Line 48: `rgba(0,0,0,0.08)`
+- Line 56: `#999`
+- Line 69: `#F0F0EE`
+- Line 71: `#111`
+- Line 103: `#111`
+- Line 122: `rgba(0,0,0,0.06)`
+- Line 133: `#111`
+- Line 136: `#888`
+- Line 140: `#aaa`
+- Line 147: `#3B6D11`
+- Line 190: `#555`
+- Line 199: `#A32D2D`
+- Line 296: `#F7F7F5`
+- Line 298: `#3B6D11`
+- Line 299: `#999`
+- Line 308: `#F7F7F5`
+- Line 312: `#fff`
+- Line 313: `rgba(0,0,0,0.08)`
+- Line 318: `#111`
+- Line 320: `#EAF3DE, #3B6D11`
+- Line 333: `bg-gray-100, bg-gray-200, text-gray-600`
+- Line 346: `#111`
+- Line 349: `#888`
+- Line 360: `#3B6D11`
+- Line 361: `#EAF3DE`
+- Line 372: `#3B6D11`
+- Line 373: `#EAF3DE`
+- Line 380: `#555`
+- Line 381: `#F0F0EE`
+- Line 388: `#A32D2D, #3B6D11`
+- Line 389: `#FCEBEB, #EAF3DE`
+- Line 402: `#111`
+- Line 403: `#888`
+- Line 405: `#F0F0EE`
+- Line 409: `#3B6D11`
+- Line 414: `#888`
+- Line 432: `#3B6D11`
+- Line 438: `#bbb`
+- Line 453: `#FCEBEB`
+- ... and 3 more occurrences
+
+#### src/pages/gym/GymExpenses.jsx
+- Line 45: `#FFF3E0, #D84315`
+- Line 46: `#E3F2FD, #1565C0`
+- Line 47: `#F3E5F5, #7B1FA2`
+- Line 48: `#E8F5E9, #2E7D32`
+- Line 49: `#FCE4EC, #AD1457`
+- Line 50: `#FFF9C4, #F57F17`
+- Line 51: `#F5F5F5, #616161`
+- Line 62: `#F2F2F7`
+- Line 63: `#FFFFFF`
+- Line 64: `rgba(0,0,0,0.08)`
+- Line 65: `#0D0D0D`
+- Line 66: `#6B6B6B`
+- Line 67: `#AAAAAA`
+- Line 68: `#007AFF`
+- Line 69: `#FF3B30`
+- Line 144: `#D32F2F, #111`
+- Line 145: `#fff`
+- Line 146: `rgba(0,0,0,0.2)`
+- Line 168: `rgba(0,0,0,0.4)`
+- Line 176: `#FFFFFF`
+- Line 182: `#E0E0E0`
+- Line 185: `#0D0D0D`
+- Line 187: `#666`
+- Line 218: `#F2F2F7`
+- Line 219: `rgba(0,0,0,0.08)`
+- Line 221: `#0D0D0D`
+- Line 252: `#6B6B6B`
+- Line 264: `#F2F2F7`
+- Line 265: `#6B6B6B`
+- Line 279: `#6B6B6B`
+- Line 290: `#6B6B6B`
+- Line 301: `#6B6B6B`
+- Line 374: `#EF4444`
+- Line 422: `#6B6B6B`
+- Line 442: `#fff, rgba(0,0,0,0.08)`
+- Line 443: `rgba(0,0,0,0.1)`
+- Line 445: `#0D0D0D`
+- Line 446: `#007AFF`
+- Line 601: `#0D0D0D, rgba(0,0,0,0.08)`
+- Line 602: `#FFFFFF`
+- ... and 27 more occurrences
+
+#### src/pages/gym/GymInsights.jsx
+- Line 24: `#111, #E0E0E0`
+- Line 25: `#999`
+- Line 49: `#111, #E0E0E0`
+- Line 50: `#555`
+- Line 51: `#999`
+- Line 61: `#F0F0F0`
+- Line 62: `#DBEAFE`
+- Line 63: `#93C5FD`
+- Line 64: `#3B82F6`
+- Line 65: `#1D4ED8`
+- Line 72: `#FCEBEB, #A32D2D`
+- Line 73: `#FAEEDA, #854F0B`
+- Line 74: `#EAF3DE, #3B6D11`
+- Line 78: `#FAEEDA, #854F0B`
+- Line 79: `#F1EFE8, #5F5E5A`
+- Line 80: `#F1EFE8, #5F5E5A`
+- Line 122: `#F7F7F5`
+- Line 126: `#999`
+- Line 132: `#F7F7F5`
+- Line 140: `rgba(0,0,0,0.08)`
+- Line 142: `#111`
+- Line 143: `#999`
+- Line 151: `#999`
+- Line 158: `rgba(0,0,0,0.08)`
+- Line 163: `#111`
+- Line 166: `#999`
+- Line 169: `#EAF3DE, #3B6D11`
+- Line 182: `rgba(0,0,0,0.08)`
+- Line 191: `rgba(0,0,0,0.08)`
+- Line 193: `#111`
+- Line 195: `#999`
+- Line 206: `#999`
+- Line 212: `rgba(0,0,0,0.08)`
+- Line 217: `#111`
+- Line 218: `#999`
+- Line 232: `#999`
+- Line 237: `#999`
+- Line 253: `#999`
+- Line 256: `#F0F0F0, #DBEAFE, #93C5FD, #3B82F6, #1D4ED8`
+- Line 258: `#999`
+- ... and 32 more occurrences
+
+#### src/pages/gym/GymLockers.jsx
+- Line 47: `#E8F5E9, #2E7D32`
+- Line 48: `#E3F2FD, #1565C0`
+- Line 49: `#FFF8E1, #F57F17`
+- Line 68: `rgba(0,0,0,0.4)`
+- Line 75: `#E0E0E0`
+- Line 77: `#111`
+- Line 79: `#666`
+- Line 96: `#111, #E0E0E0`
+- Line 107: `rgba(0,0,0,0.2)`
+- Line 116: `#666`
+- Line 124: `#D32F2F, rgba(0,0,0,0.15)`
+- Line 126: `#111`
+- Line 129: `#D32F2F`
+- Line 139: `#FCEBEB, #EAF3DE`
+- Line 141: `rgba(0,0,0,0.1)`
+- Line 143: `#A32D2D, #3B6D11`
+- Line 187: `#111`
+- Line 188: `#666`
+- Line 196: `#D32F2F`
+- Line 261: `#666`
+- Line 265: `#111, #F7F7F5`
+- Line 267: `#111`
+- Line 269: `#666`
+- Line 279: `rgba(0,0,0,0.15)`
+- Line 281: `#111`
+- Line 286: `rgba(0,0,0,0.1)`
+- Line 290: `#999`
+- Line 292: `#999`
+- Line 299: `rgba(0,0,0,0.06)`
+- Line 300: `#111`
+- Line 304: `#999`
+- Line 315: `#666`
+- Line 322: `#111, rgba(0,0,0,0.15)`
+- Line 323: `#111`
+- Line 324: `#111`
+- Line 333: `#111, rgba(0,0,0,0.15)`
+- Line 334: `#111`
+- Line 335: `#111`
+- Line 350: `#E3F2FD`
+- Line 351: `#1565C0`
+- ... and 84 more occurrences
+
+#### src/pages/gym/GymMemberDetail.jsx
+- Line 80: `#fff`
+- Line 81: `rgba(0,0,0,0.08)`
+- Line 90: `#999`
+- Line 101: `rgba(0,0,0,0.06)`
+- Line 109: `#FCEBEB, #A32D2D`
+- Line 111: `#FAEEDA, #854F0B`
+- Line 113: `#F1EFE8, #5F5E5A`
+- Line 115: `#EAF3DE, #3B6D11`
+- Line 179: `rgba(0,0,0,0.4)`
+- Line 187: `#fff`
+- Line 193: `#E0E0E0`
+- Line 196: `#111`
+- Line 198: `#666`
+- Line 205: `#F7F7F5`
+- Line 206: `#111`
+- Line 207: `#888`
+- Line 221: `#111`
+- Line 222: `rgba(0,0,0,0.06)`
+- Line 226: `#111, #444`
+- Line 229: `#111`
+- Line 241: `#111, #fff`
+- Line 284: `rgba(0,0,0,0.4)`
+- Line 292: `#fff`
+- Line 298: `#E0E0E0`
+- Line 302: `#FCEBEB`
+- Line 306: `#A32D2D`
+- Line 313: `#111`
+- Line 316: `#666`
+- Line 324: `#F1EFE8`
+- Line 325: `#555`
+- Line 334: `#A32D2D`
+- Line 335: `#fff`
+- Line 359: `#aaa`
+- Line 371: `#bbb`
+- Line 372: `#111, #fff`
+- Line 373: `#ddd`
+- Line 374: `#3B6D11, #fff`
+- Line 375: `#F0F0EE, #bbb`
+- Line 425: `#F7F7F5`
+- Line 426: `#3B6D11`
+- ... and 62 more occurrences
+
+#### src/pages/gym/GymMembers.jsx
+- Line 40: `#FCEBEB, #A32D2D`
+- Line 42: `#FAEEDA, #854F0B`
+- Line 44: `#F1EFE8, #5F5E5A`
+- Line 46: `#EAF3DE, #3B6D11`
+- Line 74: `rgba(0,0,0,0.06)`
+- Line 86: `#111`
+- Line 89: `#999`
+- Line 99: `#CCC`
+- Line 115: `rgba(0,0,0,0.06)`
+- Line 117: `#F0F0EE`
+- Line 119: `#F0F0EE`
+- Line 120: `#F0F0EE`
+- Line 122: `#F0F0EE`
+- Line 301: `rgba(0,0,0,0.4)`
+- Line 309: `#fff`
+- Line 316: `#E0E0E0`
+- Line 327: `#111`
+- Line 332: `#111`
+- Line 335: `#666`
+- Line 358: `#EBF2FB`
+- Line 363: `#185FA5`
+- Line 366: `rgba(0,0,0,0.06)`
+- Line 382: `#E53E3E`
+- Line 389: `rgba(0,0,0,0.18)`
+- Line 390: `#888`
+- Line 397: `#D97706`
+- Line 404: `#111, #999`
+- Line 439: `#185FA5, rgba(0,0,0,0.15)`
+- Line 444: `#EBF2FB, #FAFAFA`
+- Line 457: `#185FA5`
+- Line 465: `#111`
+- Line 466: `#888`
+- Line 470: `#185FA5`
+- Line 471: `#888`
+- Line 479: `#185FA5`
+- Line 491: `rgba(0,0,0,0.1)`
+- Line 495: `#F7F7F5`
+- Line 497: `#555`
+- Line 503: `rgba(0,0,0,0.06)`
+- Line 504: `#111`
+- ... and 44 more occurrences
+
+#### src/pages/gym/GymOnboarding.jsx
+- Line 37: `#E0E0E0`
+- Line 39: `#111, #E0E0E0`
+- Line 42: `#999`
+- Line 50: `rgba(0,0,0,0.15)`
+- Line 211: `#111`
+- Line 217: `#111`
+- Line 218: `#111`
+- Line 223: `#F7F7F5`
+- Line 228: `rgba(0,0,0,0.08)`
+- Line 232: `#999`
+- Line 234: `#111`
+- Line 238: `#185FA5`
+- Line 253: `#111`
+- Line 254: `#666`
+- Line 260: `#999`
+- Line 267: `#111`
+- Line 273: `#111`
+- Line 274: `#111`
+- Line 275: `rgba(0,0,0,0.12)`
+- Line 282: `#A32D2D`
+- Line 291: `#111`
+- Line 292: `#666`
+- Line 299: `#888`
+- Line 316: `rgba(0,0,0,0.15)`
+- Line 321: `#999`
+- Line 324: `#999`
+- Line 338: `#111`
+- Line 339: `#666`
+- Line 343: `#FAEEDA, #854F0B`
+- Line 350: `#F7F7F5`
+- Line 351: `rgba(0,0,0,0.2)`
+- Line 364: `rgba(0,0,0,0.12)`
+- Line 365: `#999`
+- Line 372: `#999`
+- Line 373: `#666`
+- Line 378: `#999`
+- Line 385: `#A32D2D`
+- Line 399: `#111`
+- Line 400: `#666`
+- Line 406: `rgba(0,0,0,0.08)`
+- ... and 42 more occurrences
+
+#### src/pages/gym/GymPayments.jsx
+- Line 28: `#fff`
+- Line 29: `rgba(0,0,0,0.08)`
+- Line 37: `#999`
+- Line 45: `#EAF3DE, #3B6D11`
+- Line 46: `#FCEBEB, #A32D2D`
+- Line 47: `#F1EFE8, #5F5E5A`
+- Line 67: `rgba(0,0,0,0.06)`
+- Line 78: `#111`
+- Line 81: `#999`
+- Line 88: `#111`
+- Line 103: `rgba(0,0,0,0.06)`
+- Line 104: `#F0F0EE`
+- Line 106: `#F0F0EE`
+- Line 107: `#F0F0EE`
+- Line 109: `#F0F0EE`
+- Line 188: `rgba(0,0,0,0.4)`
+- Line 192: `#fff`
+- Line 199: `#E0E0E0`
+- Line 207: `#111`
+- Line 212: `#111`
+- Line 215: `#666`
+- Line 228: `#999`
+- Line 236: `#F1EFE8, #111`
+- Line 247: `rgba(0,0,0,0.06)`
+- Line 253: `#111`
+- Line 254: `#999`
+- Line 256: `#CCC`
+- Line 263: `#aaa`
+- Line 273: `#F7F7F5`
+- Line 278: `#111`
+- Line 279: `#888`
+- Line 296: `#111`
+- Line 297: `rgba(0,0,0,0.06)`
+- Line 301: `#111, #444`
+- Line 304: `#111`
+- Line 317: `#fff, #111, rgba(0,0,0,0.12)`
+- Line 323: `#111, #fff`
+- Line 455: `#111, #fff`
+- Line 456: `#fff, #ddd, #666`
+- Line 463: `#F7F7F5`
+- ... and 33 more occurrences
+
+#### src/pages/gym/GymSchedule.jsx
+- Line 13: `#0F6E56, #E1F5EE`
+- Line 14: `#185FA5, #E6F1FB`
+- Line 15: `#854F0B, #FAEEDA`
+- Line 16: `#A32D2D, #FCEBEB`
+- Line 17: `#3B6D11, #EAF3DE`
+- Line 18: `#3C3489, #EEEDFE`
+- Line 19: `#5F5E5A, #F1EFE8`
+- Line 54: `#fff`
+- Line 55: `rgba(0,0,0,0.08)`
+- Line 70: `#111`
+- Line 75: `#999`
+- Line 81: `#111`
+- Line 82: `#fff, #111`
+- Line 93: `#3B6D11`
+- Line 124: `#fff`
+- Line 126: `rgba(0,0,0,0.08)`
+- Line 135: `#F1EFE8, #5F5E5A`
+- Line 141: `#FCEBEB, #A32D2D`
+- Line 142: `#EAF3DE, #3B6D11`
+- Line 147: `#111`
+- Line 162: `#666`
+- Line 168: `#F1EFE8, #5F5E5A`
+- Line 169: `#F1EFE8, #5F5E5A`
+- Line 171: `#FCEBEB, #A32D2D`
+- Line 172: `#EAF3DE, #3B6D11`
+- Line 183: `#fff`
+- Line 184: `rgba(0,0,0,0.08)`
+- Line 191: `#F1EFE8`
+- Line 268: `#fff, rgba(0,0,0,0.15)`
+- Line 269: `#111`
+- Line 278: `rgba(0,0,0,0.4)`
+- Line 284: `#F7F7F5`
+- Line 291: `rgba(0,0,0,0.15)`
+- Line 294: `#111`
+- Line 315: `rgba(0,0,0,0.15)`
+- Line 316: `#111, #fff`
+- Line 317: `#fff, #333`
+- Line 351: `rgba(0,0,0,0.15)`
+- Line 352: `#111, #fff`
+- Line 353: `#fff, #666`
+- ... and 37 more occurrences
+
+#### src/pages/gym/GymSettings.jsx
+- Line 42: `rgba(0,0,0,0.12)`
+- Line 49: `#FFFFFF`
+- Line 50: `#111`
+- Line 51: `#185FA5`
+- Line 52: `rgba(0,0,0,0.1)`
+- Line 54: `#0F0F0F`
+- Line 55: `#F5F5F5`
+- Line 56: `#4A9EE0`
+- Line 57: `rgba(255,255,255,0.15)`
+- Line 64: `#FFFFFF, #0F0F0F`
+- Line 65: `#111, #F5F5F5`
+- Line 66: `#185FA5, #4A9EE0`
+- Line 67: `rgba(0,0,0,0.1), rgba(255,255,255,0.15)`
+- Line 78: `#111, #E0E0E0`
+- Line 89: `rgba(0,0,0,0.2)`
+- Line 347: `#F7F7F5`
+- Line 351: `#999`
+- Line 355: `#999`
+- Line 363: `rgba(0,0,0,0.06)`
+- Line 368: `rgba(0,0,0,0.12)`
+- Line 369: `#111`
+- Line 375: `#F7F7F5`
+- Line 382: `rgba(0,0,0,0.08)`
+- Line 386: `#111`
+- Line 388: `#111`
+- Line 393: `#111`
+- Line 409: `rgba(0,0,0,0.08)`
+- Line 413: `#F1EFE8`
+- Line 418: `#5F5E5A`
+- Line 422: `#111`
+- Line 423: `#999`
+- Line 429: `#111`
+- Line 437: `#A32D2D`
+- Line 449: `rgba(0,0,0,0.08)`
+- Line 457: `#111`
+- Line 461: `#111`
+- Line 468: `#111`
+- Line 472: `#111`
+- Line 476: `#999`
+- Line 487: `#111`
+- ... and 57 more occurrences
+
+#### src/pages/gym/GymSupplements.jsx
+- Line 75: `#F2F2F7`
+- Line 76: `#FFFFFF`
+- Line 77: `#F2F2F7`
+- Line 78: `rgba(0,0,0,0.08)`
+- Line 79: `rgba(0,0,0,0.06)`
+- Line 80: `#0D0D0D`
+- Line 81: `#6B6B6B`
+- Line 82: `#AAAAAA`
+- Line 83: `#007AFF`
+- Line 84: `#D32F2F`
+- Line 85: `#2E7D32`
+- Line 95: `#FFF3E0, #E65100`
+- Line 96: `#E3F2FD, #007AFF`
+- Line 97: `#F5F5F5, #666`
+- Line 98: `#FFEBEE, #D32F2F`
+- Line 102: `#D32F2F`
+- Line 103: `#2E7D32`
+- Line 125: `#D32F2F, #111`
+- Line 126: `#fff`
+- Line 127: `rgba(0,0,0,0.2)`
+- Line 149: `rgba(0,0,0,0.4)`
+- Line 157: `#FFFFFF`
+- Line 163: `#E0E0E0`
+- Line 166: `#0D0D0D`
+- Line 168: `#666`
+- Line 272: `#F2F2F7, rgba(0,0,0,0.08)`
+- Line 273: `#0D0D0D`
+- Line 282: `#6B6B6B`
+- Line 296: `#AAAAAA`
+- Line 297: `#AAAAAA`
+- Line 304: `#6B6B6B`
+- Line 309: `#6B6B6B`
+- Line 319: `#6B6B6B`
+- Line 327: `#6B6B6B`
+- Line 331: `#6B6B6B`
+- Line 337: `#6B6B6B`
+- Line 375: `#F2F2F7`
+- Line 380: `#AAAAAA`
+- Line 387: `#0D0D0D`
+- Line 391: `#999, #F5F5F5`
+- ... and 64 more occurrences
+
+#### src/pages/gym/GymTrainers.jsx
+- Line 9: `#EAF3DE, #3B6D11`
+- Line 10: `#FAEEDA, #854F0B`
+- Line 11: `#F1EFE8, #5F5E5A`
+- Line 122: `rgba(0,0,0,0.15)`
+- Line 129: `#F7F7F5`
+- Line 135: `#F7F7F5`
+- Line 138: `rgba(0,0,0,0.08)`
+- Line 140: `#111`
+- Line 144: `#111`
+- Line 157: `rgba(0,0,0,0.08)`
+- Line 167: `rgba(0,0,0,0.08)`
+- Line 169: `#111`
+- Line 171: `#999`
+- Line 181: `#999`
+- Line 188: `#A32D2D`
+- Line 197: `#111`
+- Line 200: `#666`
+- Line 206: `#111`
+- Line 223: `rgba(0,0,0,0.08)`
+- Line 237: `#111`
+- Line 240: `#666`
+- Line 250: `#999`
+- Line 259: `rgba(0,0,0,0.12)`
+- Line 260: `rgba(0,0,0,0.08)`
+- Line 273: `#A32D2D`
+- Line 288: `#F7F7F5`
+- Line 289: `#555`
+- Line 301: `#FAEEDA`
+- Line 302: `#854F0B`
+- Line 305: `#854F0B`
+- Line 331: `rgba(0,0,0,0.4)`
+- Line 339: `#E0E0E0`
+- Line 341: `#111`
+- Line 347: `#F7F7F5`
+- Line 361: `rgba(0,0,0,0.12)`
+- Line 363: `#111, #999`
+- Line 379: `#666`
+- Line 386: `#111`
+- Line 404: `#666`
+- Line 411: `#111`
+- ... and 12 more occurrences
+
+### src/components
+
+#### src/components/AddMemberModal.jsx
+- Line 35: `text-white, border-white, #1c1c1f`
+- Line 193: `bg-black`
+- Line 199: `border-white, #141416`
+- Line 205: `border-white`
+- Line 207: `text-white`
+- Line 211: `bg-white, text-white`
+- Line 270: `border-white`
+- Line 274: `bg-white, text-white`
+- Line 281: `bg-white, text-white`
+- Line 301: `bg-white, text-white`
+- Line 375: `border-white, #1c1c1f`
+- Line 384: `text-white`
+- Line 487: `text-white`
+- Line 498: `text-white`
+- Line 505: `bg-white`
+- Line 512: `bg-white, text-white`
+- Line 541: `bg-white, border-white`
+- Line 542: `bg-white`
+- Line 566: `text-white`
+- Line 567: `bg-white, text-white, border-white`
+
+#### src/components/AuthRoute.jsx
+- Line 8: `#0c0c0e`
+
+#### src/components/BarcodeScanner.jsx
+- Line 108: `rgba(16, 185, 129, 0.3)`
+- Line 116: `rgba(16, 185, 129, 0.9)`
+- Line 123: `rgba(239, 68, 68, 0.8)`
+- Line 140: `bg-black`
+- Line 145: `text-white`
+- Line 152: `text-white`
+- Line 159: `bg-zinc-950">`
+- Line 168: `bg-zinc-950`
+- Line 171: `text-white`
+- Line 194: `bg-black`
+- Line 199: `rgba(0,0,0,0.5)`
+- Line 221: `text-white`
+- Line 229: `bg-zinc-950">`
+- Line 247: `bg-zinc-900, text-white`
+
+#### src/components/BottomNav.jsx
+- Line 20: `#111`
+- Line 21: `#111, #CCC`
+- Line 26: `#CCC`
+- Line 38: `#111, #CCC`
+- Line 56: `#111, #CCC`
+- Line 72: `#111, #CCC`
+- Line 84: `bg-white, border-black`
+- Line 97: `#111, #CCC`
+- Line 102: `#111`
+- Line 113: `#CCC`
+- Line 114: `#CCC`
+- Line 115: `#CCC`
+- Line 117: `#CCC`
+
+#### src/components/DietSettingsSheet.jsx
+- Line 42: `#111, #E5E5E3`
+- Line 43: `#111`
+- Line 44: `#555`
+- Line 63: `#111`
+- Line 72: `#F1EFE8`
+- Line 73: `#111`
+- Line 82: `#E5E5E3`
+- Line 87: `#111`
+- Line 88: `#FAFAF9`
+- Line 211: `rgba(0,0,0,0.4)`
+- Line 219: `#F7F7F5`
+- Line 228: `#F1EFE8`
+- Line 236: `#111`
+- Line 238: `#999`
+- Line 246: `#999`
+- Line 262: `#999`
+- Line 274: `#111`
+- Line 283: `#111, #E5E5E3`
+- Line 284: `#111`
+- Line 285: `#555`
+- Line 303: `#111`
+- Line 305: `#999`
+- Line 308: `#185FA5`
+- Line 309: `#854F0B`
+- Line 310: `#993C1D`
+- Line 314: `#555`
+- Line 315: `#111`
+- Line 317: `#F1EFE8`
+- Line 322: `#BBB`
+- Line 329: `#999`
+- Line 337: `#F1EFE8`
+- Line 348: `#111, #999`
+- Line 352: `rgba(0,0,0,0.08)`
+- Line 370: `#F1EFE8`
+- Line 371: `#111`
+- Line 380: `#E5E5E3`
+- Line 385: `#111`
+- Line 386: `#FAFAF9`
+- Line 390: `#999`
+- Line 395: `#999`
+- ... and 10 more occurrences
+
+#### src/components/ExerciseDetailContent.jsx
+- Line 9: `#FFF, rgba(0,0,0,0.08)`
+- Line 39: `rgba(255,255,255,0.88)`
+- Line 50: `#111827, #D1D5DB`
+- Line 62: `#F3F4F6, #E9EAEB`
+- Line 81: `#1C1C1E`
+- Line 88: `rgba(255,255,255,0.7)`
+- Line 103: `#FFF, rgba(0,0,0,0.28)`
+- Line 104: `#111827`
+- Line 107: `rgba(0,0,0,0.4)`
+- Line 109: `#EF4444`
+- Line 110: `#FFF`
+- Line 120: `#4B5563`
+- Line 125: `#6B7280`
+- Line 132: `#111827, #FFF`
+- Line 136: `#F3F4F6, #374151`
+- Line 140: `#F3F4F6, #374151`
+- Line 163: `#9CA3AF`
+- Line 166: `#111827`
+- Line 168: `#F3F4F6`
+- Line 200: `#111827`
+- Line 201: `#FFF, #9CA3AF`
+- Line 208: `#111827, #F3F4F6`
+- Line 209: `#FFF, #6B7280`
+- Line 216: `#9CA3AF`
+- Line 230: `#9CA3AF`
+- Line 232: `#FFF, #F3F4F6, rgba(0,0,0,0.08)`
+- Line 234: `#6B7280`
+- Line 237: `#111827`
+- Line 238: `#FFF, #111827`
+- Line 239: `#111827`
+- Line 265: `#111827`
+- Line 266: `#9CA3AF`
+- Line 271: `#111827`
+- Line 274: `#6B7280`
+- Line 279: `#9CA3AF`
+- Line 291: `#9CA3AF`
+- Line 292: `#111827`
+- Line 344: `#9CA3AF`
+- Line 361: `#111827`
+- Line 362: `#6B7280`
+- ... and 30 more occurrences
+
+#### src/components/ExerciseDetailSheet.jsx
+- Line 20: `rgba(0,0,0,0.45)`
+- Line 27: `#F9F9F9`
+- Line 32: `rgba(0,0,0,0.12)`
+- Line 39: `#FFF`
+- Line 40: `#F3F4F6`
+- Line 48: `#E5E7EB`
+- Line 52: `#111827`
+- Line 64: `#F3F4F6`
+- Line 69: `#374151`
+
+#### src/components/ExercisePicker.jsx
+- Line 6: `#f5f5f7`
+- Line 7: `#ffffff`
+- Line 8: `#e8e8ed`
+- Line 9: `#1a1a1a`
+- Line 10: `#6e6e73`
+- Line 11: `rgba(0,0,0,0.5)`
+- Line 15: `#EAF3DE, #3B6D11`
+- Line 16: `#E6F1FB, #0C447C`
+- Line 17: `#FAEEDA, #854F0B`
+- Line 18: `#FAECE7, #993C1D`
+- Line 19: `#FAECE7, #993C1D`
+- Line 20: `#FAECE7, #993C1D`
+- Line 21: `#FAECE7, #993C1D`
+- Line 22: `#F1EFE8, #5F5E5A`
+- Line 23: `#F1EFE8, #5F5E5A`
+- Line 24: `#F1EFE8, #5F5E5A`
+- Line 25: `#E1F5EE, #0F6E56`
+- Line 26: `#FCEBEB, #A32D2D`
+- Line 31: `#F1EFE8, #666`
+- Line 159: `#fff`
+- Line 263: `#007AFF`
+
+#### src/components/FoodLoggerSheet.jsx
+- Line 92: `#1f2937`
+- Line 95: `#2dd4bf`
+- Line 96: `#a78bfa`
+- Line 97: `#fbbf24`
+- Line 100: `#374151`
+- Line 104: `#fff`
+- Line 105: `#6b7280`
+- Line 110: `#2dd4bf`
+- Line 111: `#a78bfa`
+- Line 112: `#fbbf24`
+- Line 116: `#fff`
+- Line 117: `#6b7280`
+- Line 254: `#6B6B6B`
+- Line 259: `#0D0D0D`
+- Line 261: `#10b981, rgba(16,185,129,0.1)`
+- Line 264: `rgba(16,185,129,0.1)`
+- Line 265: `#10b981`
+- Line 268: `#E8E8E8`
+- Line 269: `#E8E8E8`
+- Line 270: `#0D0D0D`
+- Line 275: `#E8E8E8`
+- Line 278: `#E8E8E8, #fff, #0D0D0D`
+- Line 282: `#6B6B6B`
+- Line 286: `#E8E8E8`
+- Line 287: `#0D0D0D`
+- Line 290: `#E8E8E8, #F2F2F7`
+- Line 294: `#E8E8E8`
+- Line 296: `#E8E8E8, #F2F2F7`
+- Line 300: `#0D0D0D`
+- Line 302: `#E8E8E8`
+- Line 307: `#1a1a2e`
+- Line 321: `#F2F2F7`
+- Line 322: `#AAAAAA`
+- Line 325: `#0D0D0D`
+- Line 326: `#AAAAAA`
+- Line 329: `#0D0D0D, #FFFFFF`
+- Line 337: `#AAAAAA`
+- Line 342: `#F2F2F7`
+- Line 343: `#0D0D0D`
+- Line 344: `#AAAAAA`
+- ... and 106 more occurrences
+
+#### src/components/FormCoachModal.jsx
+- Line 15: `#00FF88`
+- Line 21: `bg-zinc-600'`
+- Line 22: `#00FF88`
+- Line 139: `#00FF88`
+- Line 142: `#FF4444`
+- Line 304: `bg-black`
+- Line 307: `border-white`
+- Line 323: `text-white`
+- Line 330: `bg-white, border-white`
+- Line 332: `text-white`
+- Line 338: `bg-white, border-white`
+- Line 340: `text-white`
+- Line 346: `bg-white, text-white`
+- Line 358: `bg-gray-900, border-white`
+- Line 361: `bg-white, text-white`
+- Line 369: `bg-gray-900, border-white`
+- Line 407: `bg-black`
+- Line 408: `#00FF88`
+- Line 415: `bg-black`
+- Line 437: `bg-black`
+- Line 442: `text-white`
+- Line 448: `bg-black`
+- Line 461: `bg-black`
+- Line 474: `bg-gray-900, border-white`
+- Line 482: `bg-gray-900, border-white`
+- Line 485: `text-white`
+- Line 492: `bg-white, border-white`
+- Line 499: `rgba(59,130,246,0.25)`
+- Line 512: `#00FF88`
+- Line 523: `bg-white, text-white, border-white`
+
+#### src/components/FormFeedbackOverlay.jsx
+- Line 73: `bg-black`
+- Line 75: `text-white`
+- Line 78: `bg-zinc-700'}`}`
+- Line 96: `bg-black`
+- Line 187: `bg-black`
+- Line 201: `bg-black`
+- Line 204: `bg-zinc-800`
+
+#### src/components/GymBottomNav.jsx
+- Line 44: `bg-white, border-black`
+- Line 54: `#CCC`
+- Line 55: `#CCC`
+- Line 66: `#111, #CCC`
+- Line 68: `#111, #CCC`
+- Line 73: `#111`
+
+#### src/components/GymCodeCard.jsx
+- Line 55: `#fff, rgba(0,0,0,0.08)`
+- Line 56: `#E5E5E5`
+- Line 57: `#F0F0F0`
+- Line 59: `#F7F7F5`
+- Line 60: `#F0F0F0`
+- Line 61: `#F0F0F0`
+- Line 69: `#fff, rgba(0,0,0,0.08)`
+- Line 71: `#111`
+- Line 72: `#999`
+- Line 76: `#F7F7F5`
+- Line 77: `#111111`
+- Line 85: `#EAF3DE, #FFFFFF`
+- Line 86: `#3B6D11, #E5E5E5`
+- Line 93: `#3B6D11`
+- Line 97: `#111`
+- Line 107: `#FFFFFF`
+- Line 108: `#E5E5E5`
+- Line 113: `#111`
+- Line 123: `#F1EFE8, #FFFFFF`
+- Line 124: `#D0CCBB, #E5E5E5`
+- Line 130: `#111`
+- Line 134: `#111`
+- Line 135: `#111`
+- Line 136: `#111`
+- Line 137: `#111`
+- Line 138: `#111`
+- Line 139: `#111`
+- Line 140: `#111`
+- Line 148: `#fff, #E5E5E5`
+- Line 149: `#ffffff, #000000`
+- Line 151: `#999`
+
+#### src/components/GymOwnerNav.jsx
+- Line 16: `border-white, #111113`
+- Line 36: `border-white`
+
+#### src/components/GymOwnerRoute.jsx
+- Line 6: `#0c0c0e`
+
+#### src/components/InviteClientSheet.jsx
+- Line 59: `rgba(0,0,0,0.62)`
+- Line 67: `#FFFFFF`
+- Line 70: `rgba(0,0,0,0.10)`
+- Line 75: `#E0E0E0`
+- Line 78: `#111`
+- Line 79: `#999`
+- Line 84: `#EAF3DE, #3B6D11`
+- Line 85: `#3B6D11`
+- Line 90: `#111`
+- Line 91: `#999`
+- Line 104: `#FFFFFF`
+- Line 105: `#ef4444, #E5E5E5`
+- Line 107: `#111`
+- Line 110: `#111`
+- Line 111: `#E5E5E5`
+- Line 113: `#ef4444`
+- Line 120: `#111111`
+- Line 127: `#fff, rgba(255,255,255,0.25)`
+- Line 128: `#fff`
+
+#### src/components/JoinGymSheet.jsx
+- Line 55: `rgba(0,0,0,0.62)`
+- Line 63: `#FFFFFF`
+- Line 66: `rgba(0,0,0,0.10)`
+- Line 72: `#E0E0E0`
+- Line 76: `#111`
+- Line 77: `#999`
+- Line 81: `#999`
+- Line 94: `#FFFFFF`
+- Line 95: `#ef4444, #111111, #E5E5E5`
+- Line 97: `#111111`
+- Line 104: `#ef4444`
+- Line 110: `#E5E5E5`
+- Line 111: `#999`
+- Line 112: `#E5E5E5`
+- Line 118: `#FFFFFF, #E5E5E5`
+- Line 121: `#111`
+- Line 124: `#111`
+- Line 125: `#111`
+- Line 126: `#111`
+- Line 130: `#111`
+- Line 132: `#999`
+- Line 143: `#059669, #111111`
+- Line 151: `#fff, rgba(255,255,255,0.25)`
+- Line 154: `#fff`
+- Line 157: `#fff`
+- Line 160: `#fff`
+
+#### src/components/JoinTrainerSheet.jsx
+- Line 102: `rgba(0,0,0,0.62)`
+- Line 110: `#FFFFFF`
+- Line 113: `rgba(0,0,0,0.10)`
+- Line 119: `#E0E0E0`
+- Line 123: `#111`
+- Line 124: `#999`
+- Line 127: `#F1EFE8`
+- Line 137: `#FFFFFF`
+- Line 140: `#111, #999`
+- Line 141: `rgba(0,0,0,0.10)`
+- Line 153: `#999`
+- Line 166: `#FFFFFF`
+- Line 167: `#ef4444, #111111, #E5E5E5`
+- Line 169: `#111111`
+- Line 176: `#ef4444`
+- Line 184: `#059669, #111111`
+- Line 192: `#fff, rgba(255,255,255,0.25)`
+- Line 195: `#fff`
+- Line 198: `#fff`
+- Line 201: `#fff`
+- Line 207: `#E5E5E5, #111`
+- Line 211: `#F1EFE8`
+- Line 212: `#999`
+- Line 217: `#999`
+- Line 225: `#E5E5E5`
+- Line 230: `#111`
+- Line 233: `#999`
+- Line 236: `#F1EFE8, #5F5E5A`
+- Line 239: `#EAF3DE, #3B6D11`
+
+#### src/components/LogStatsSheet.jsx
+- Line 48: `#F3F4F6`
+- Line 50: `#111827`
+- Line 51: `#F9F9F9`
+- Line 59: `#999`
+- Line 73: `rgba(0,0,0,0.4)`
+- Line 89: `#F1EFE8`
+- Line 97: `#111`
+- Line 99: `#999`
+- Line 172: `#A32D2D`
+- Line 193: `rgba(0,0,0,0.08)`
+
+#### src/components/MoreSheet.jsx
+- Line 12: `#111`
+- Line 22: `#111`
+- Line 31: `#111`
+- Line 42: `#111`
+- Line 50: `#111`
+- Line 60: `#111`
+- Line 70: `#111`
+- Line 80: `#111`
+- Line 89: `#111`
+- Line 98: `#111`
+- Line 108: `#111`
+- Line 118: `#111`
+- Line 213: `#111`
+- Line 227: `#111`
+- Line 275: `bg-black`
+- Line 281: `bg-white`
+- Line 287: `#E0E0E0`
+- Line 292: `#999`
+- Line 301: `#F7F7F5`
+- Line 303: `#F1EFE8`
+- Line 307: `#111`
+- Line 311: `#D32F2F, #fff`
+- Line 322: `#F57F17, #fff`
+- Line 332: `#999`
+- Line 335: `#CCC`
+- Line 341: `border-black`
+
+#### src/components/PrimaryButton.jsx
+- Line 24: `rgba(0,0,0,0.08)`
+
+#### src/components/ProtectedRoute.jsx
+- Line 6: `#0c0c0e`
+
+#### src/components/PublicRoute.jsx
+- Line 6: `#0c0c0e`
+
+#### src/components/StreakFreezeSheet.jsx
+- Line 61: `rgba(0,0,0,0.4)`
+- Line 119: `#A32D2D`
+
+#### src/components/TrainerBottomNav.jsx
+- Line 20: `#111, #CCC`
+- Line 36: `#111, #CCC`
+- Line 51: `#111, #CCC`
+- Line 66: `#111, #CCC`
+- Line 75: `bg-white, border-black`
+- Line 87: `#111, #CCC`
+- Line 92: `#111`
+- Line 103: `#CCC`
+- Line 104: `#CCC`
+- Line 105: `#CCC`
+- Line 107: `#CCC`
+
+#### src/components/TrainerCodeCard.jsx
+- Line 60: `#fff, rgba(0,0,0,0.08)`
+- Line 61: `#E5E5E5`
+- Line 62: `#F0F0F0`
+- Line 64: `#F7F7F5`
+- Line 65: `#F0F0F0`
+- Line 66: `#F0F0F0`
+- Line 75: `#fff, rgba(0,0,0,0.08)`
+- Line 78: `#999`
+- Line 82: `#999`
+- Line 90: `#F7F7F5`
+- Line 92: `#999, #111111`
+- Line 99: `#999`
+- Line 104: `#fff, #E5E5E5`
+- Line 107: `#ffffff, #000000`
+- Line 110: `#999`
+- Line 116: `#EAF3DE, #F5F5F5`
+- Line 117: `#3B6D11, #111111`
+- Line 123: `#3B6D11`
+- Line 126: `#3B6D11`
+- Line 130: `#111`
+- Line 134: `#111`
+- Line 142: `#FFFFFF, #E5E5E5`
+- Line 145: `#111`
+- Line 151: `#111`
+
+#### src/components/XPToast.jsx
+- Line 68: `rgba(0,0,0,0.15)`
+- Line 94: `rgba(255,255,255,0.15)`
+
+#### src/components/gym/AttendanceCalendar.jsx
+- Line 79: `#999`
+- Line 96: `#ccc`
+- Line 101: `#111111`
+- Line 102: `#fff`
+- Line 104: `#3B6D11`
+- Line 105: `#fff`
+- Line 107: `#F0F0EE`
+- Line 108: `#999`
+
+#### src/components/gym/ChurnRiskCard.jsx
+- Line 6: `#A32D2D`
+- Line 7: `#FCEBEB`
+- Line 8: `#A32D2D`
+- Line 9: `#E24B4A`
+- Line 13: `#854F0B`
+- Line 14: `#FAEEDA`
+- Line 15: `#854F0B`
+- Line 16: `#EF9F27`
+- Line 36: `rgba(0,0,0,0.06)`
+- Line 37: `rgba(0,0,0,0.06)`
+- Line 38: `rgba(0,0,0,0.06)`
+- Line 57: `#fff`
+- Line 68: `rgba(0,0,0,0.08)`
+- Line 98: `#999`
+
+#### src/components/gym/ClassTypeChip.jsx
+- Line 4: `#E1F5EE, #0F6E56`
+- Line 5: `#E6F1FB, #185FA5`
+- Line 6: `#FAEEDA, #854F0B`
+- Line 7: `#FCEBEB, #A32D2D`
+- Line 8: `#EAF3DE, #3B6D11`
+- Line 9: `#EEEDFE, #3C3489`
+- Line 10: `#F1EFE8, #5F5E5A`
+- Line 30: `rgba(0,0,0,0.1)`
+- Line 31: `#111111`
+- Line 32: `#ffffff`
+
+#### src/components/gym/DaySelector.jsx
+- Line 43: `#111111, #F1EFE8`
+- Line 45: `#ffffff, #5F5E5A`
+
+#### src/components/gym/MembershipProgressBar.jsx
+- Line 22: `#A32D2D`
+- Line 24: `#EF9F27`
+- Line 25: `#3B6D11`
+- Line 28: `#A32D2D`
+- Line 30: `#854F0B`
+- Line 31: `#5F5E5A`
+- Line 47: `#999`
+- Line 50: `#999`
+- Line 56: `#F0F0EE`
+
+#### src/components/gym/PaymentStatusPill.jsx
+- Line 6: `#EAF3DE`
+- Line 7: `#3B6D11`
+- Line 11: `#FCEBEB`
+- Line 12: `#A32D2D`
+- Line 16: `#F1EFE8`
+- Line 17: `#5F5E5A`
+- Line 21: `#FAEEDA`
+- Line 22: `#854F0B`
+
+#### src/components/gym/RevenueBarChart.jsx
+- Line 36: `#111111, #3B6D11`
+- Line 41: `#999999`
+
+#### src/components/gym/StatsSummaryRow.jsx
+- Line 7: `rgba(0,0,0,0.06)`
+- Line 16: `rgba(0,0,0,0.06)`
+- Line 23: `#111111`
+- Line 30: `#999999`
+
+#### src/components/gym/ToggleSwitch.jsx
+- Line 11: `#111111, #E0E0E0`
+- Line 25: `#ffffff`
+
+### other
+
+#### src/index.css
+- Line 4: `#F7F7F5`
+- Line 5: `#F7F7F5`
+- Line 6: `#FFFFFF`
+- Line 7: `#FFFFFF`
+- Line 8: `#F1EFE8`
+- Line 9: `#F1EFE8`
+- Line 10: `#F1EFE8`
+- Line 11: `rgba(0, 0, 0, 0.08)`
+- Line 12: `rgba(0, 0, 0, 0.16)`
+- Line 13: `rgba(0, 0, 0, 0.06)`
+- Line 14: `#0D0D0D`
+- Line 15: `#111111`
+- Line 16: `#6B6B6B`
+- Line 17: `#999999`
+- Line 18: `#999999`
+- Line 19: `#C7C5BF`
+- Line 20: `#185FA5`
+- Line 21: `#E6F1FB`
+- Line 22: `#0D0D0D`
+- Line 23: `#FFFFFF`
+- Line 24: `#4F7A52`
+- Line 25: `#B58A3B`
+- Line 26: `#B8635E`
+- Line 27: `#B68A3F`
+- Line 28: `#E8835A`
+- Line 29: `#0D0D0D`
+- Line 30: `rgba(0, 0, 0, 0.08)`
+- Line 31: `#999999`
+- Line 32: `#FFFFFF`
+- Line 34: `#0D0D0D`
+- Line 35: `#0D0D0D`
+- Line 39: `#1A1613`
+- Line 40: `#1A1613`
+- Line 41: `#221E1A`
+- Line 42: `#2A2521`
+- Line 43: `#312B26`
+- Line 44: `#2A2521`
+- Line 45: `#2A2521`
+- Line 46: `#2F2925`
+- Line 47: `#3D3631`
+- ... and 23 more occurrences
+
+### src/utils
+
+#### src/utils/avatarColor.js
+- Line 2: `#F1EFE8, #5F5E5A`
+- Line 5: `#E6F1FB, #185FA5`
+- Line 7: `#EAF3DE, #3B6D11`
+- Line 9: `#FAEEDA, #854F0B`
+- Line 11: `#E1F5EE, #0F6E56`
+- Line 13: `#FCEBEB, #A32D2D`
+- Line 15: `#EEEDFE, #3C3489`
+- Line 16: `#F1EFE8, #5F5E5A`
+
+#### src/utils/xpConstants.js
+- Line 19: `#EAF3DE, #3B6D11`
+- Line 20: `#FAEEDA, #854F0B`
+- Line 21: `#FCEBEB, #A32D2D`
+- Line 22: `#EEEDFE, #534AB7`
+- Line 27: `#EAF3DE, #3B6D11`
+- Line 28: `#FAEEDA, #854F0B`
+- Line 29: `#FCEBEB, #A32D2D`
+- Line 30: `#EEEDFE, #534AB7`

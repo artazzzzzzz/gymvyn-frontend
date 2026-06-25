@@ -5,22 +5,22 @@ import { apiFetch } from '../utils/api';
 
 /* ─── palette ─── */
 const C = {
-  bg: '#f5f5f7', card: '#fff', border: '#e8e8ed',
-  text: '#1a1a1a', sub: '#6e6e73',
-  green: '#1a9955', greenBg: '#e8f5ee',
-  blue: '#1a6fd4', blueBg: '#e8f0fb',
-  gray: '#9e9ea8', grayBg: '#f0f0f3',
+  bg: 'var(--bg-pill)', card: "var(--bg-card)", border: 'var(--border)',
+  text: 'var(--text-primary)', sub: 'var(--text-secondary)',
+  green: '#1a9955', greenBg: 'var(--success-bg)',
+  blue: '#1a6fd4', blueBg: 'var(--accent-bg)',
+  gray: 'var(--text-tertiary)', grayBg: 'var(--bg-pill)',
   red: '#d93025',
 };
 
 /* ─── avatar color pool (cycles by index) ─── */
 const AV_POOL = [
-  { bg: '#e8f0fb', fg: '#1a6fd4' },
-  { bg: '#e8f5ee', fg: '#1a9955' },
+  { bg: 'var(--accent-bg)', fg: '#1a6fd4' },
+  { bg: 'var(--success-bg)', fg: '#1a9955' },
   { bg: '#fce8f3', fg: '#c0397b' },
-  { bg: '#fff4d9', fg: '#c07800' },
-  { bg: '#f0f0f3', fg: '#6e6e73' },
-  { bg: '#e4f5f0', fg: '#0a8c6c' },
+  { bg: 'var(--warning-bg)', fg: '#c07800' },
+  { bg: 'var(--bg-pill)', fg: 'var(--text-secondary)' },
+  { bg: 'var(--success-bg)', fg: '#0a8c6c' },
 ];
 function getAv(name = '') {
   let h = 0;
@@ -50,7 +50,7 @@ const IcoClip = () => (
   </svg>
 );
 const IcoSend = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bg-card)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
@@ -74,7 +74,7 @@ function UnreadBadge({ count }) {
   if (!count) return null;
   return (
     <span style={{
-      minWidth: 20, height: 20, borderRadius: 10, background: C.blue, color: '#fff',
+      minWidth: 20, height: 20, borderRadius: 10, background: C.blue, color: "var(--bg-card)",
       fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '0 5px', flexShrink: 0,
     }}>{count}</span>
@@ -108,8 +108,8 @@ function BubbleMsg({ msg, showTime }) {
   }
 
   const isT = msg.sender_type === 'trainer' || msg.from === 'trainer';
-  const bg = isT ? '#111111' : '#F5F5F3';
-  const col = isT ? '#fff' : C.text;
+  const bg = isT ? "var(--text-primary)" : 'var(--bg-pill)';
+  const col = isT ? "var(--bg-card)" : C.text;
   const rad = isT ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
 
   return (
@@ -326,7 +326,7 @@ export default function TrainerChatPage() {
             </div>
             {totalUnread > 0 && (
               <span style={{
-                minWidth: 24, height: 24, borderRadius: 12, background: C.red, color: '#fff',
+                minWidth: 24, height: 24, borderRadius: 12, background: C.red, color: "var(--bg-card)",
                 fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0 6px',
               }}>{totalUnread}</span>
@@ -364,7 +364,7 @@ export default function TrainerChatPage() {
                   whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
                   border: filter === f ? 'none' : `1px solid ${C.border}`,
                   background: filter === f ? C.text : C.card,
-                  color: filter === f ? '#fff' : C.sub, fontFamily: 'inherit',
+                  color: filter === f ? "var(--bg-card)" : C.sub, fontFamily: 'inherit',
                   transition: 'all 0.12s',
                 }}
               >{f}</button>
@@ -393,7 +393,7 @@ export default function TrainerChatPage() {
                     style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: 12,
                       padding: '0 16px', height: 72, cursor: 'pointer', textAlign: 'left',
-                      background: isActive ? '#f0f0f3' : 'transparent',
+                      background: isActive ? 'var(--bg-pill)' : 'transparent',
                       border: 'none', fontFamily: 'inherit',
                       transition: 'background 0.1s',
                     }}
@@ -405,7 +405,7 @@ export default function TrainerChatPage() {
                           position: 'absolute', top: -2, right: -2,
                           width: 16, height: 16, borderRadius: '50%',
                           background: C.red, border: `1.5px solid ${C.card}`,
-                          fontSize: 9, fontWeight: 700, color: '#fff',
+                          fontSize: 9, fontWeight: 700, color: "var(--bg-card)",
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>{unread > 9 ? '9+' : unread}</span>
                       )}
@@ -460,7 +460,7 @@ export default function TrainerChatPage() {
 
       {/* ═══ CHAT WINDOW ═══ */}
       {activeConvo ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: "var(--bg-card)", overflow: 'hidden' }}>
 
           {/* Chat header */}
           <div style={{
@@ -482,7 +482,7 @@ export default function TrainerChatPage() {
                   <span style={{
                     position: 'absolute', bottom: -1, right: -1,
                     width: 10, height: 10, borderRadius: '50%',
-                    background: C.green, border: '1.5px solid #fff',
+                    background: C.green, border: '1.5px solid var(--bg-card)',
                   }} />
                 </div>
                 <div>
@@ -558,14 +558,14 @@ export default function TrainerChatPage() {
               disabled={!input.trim() || sending}
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: input.trim() ? '#111' : C.grayBg,
+                background: input.trim() ? "var(--text-primary)" : C.grayBg,
                 border: 'none', cursor: input.trim() ? 'pointer' : 'default',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.15s', flexShrink: 0,
               }}
             >
               {sending ? (
-                <div style={{ width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                <div style={{ width: 14, height: 14, border: '2px solid var(--bg-card)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
               ) : (
                 <IcoSend />
               )}

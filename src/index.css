@@ -1,5 +1,159 @@
 @import "tailwindcss";
 
+:root {
+  --bg: #F7F7F5;
+  --bg-primary: #F7F7F5;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: #F1EFE8;
+  --bg-input: #F1EFE8;
+  --bg-pill: #F1EFE8;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --divider: rgba(0, 0, 0, 0.06);
+  --text-cta: #0D0D0D;
+  --text-primary: #111111;
+  --text-secondary: #6B6B6B;
+  --text-tertiary: #6B7280;
+  --text-muted: #999999;
+  --text-disabled: #C7C5BF;
+  --success-bg: #E8F4EA;
+  --warning-bg: #FAF1DD;
+  --error-bg: #F8E3E1;
+  --xp-gold-bg: #F7EFD9;
+  --streak-bg: #FBE5DA;
+  --bg-camera: #1A1A1A;
+  --muscle-chest: #DC6B6B;
+  --muscle-back: #5B8DBF;
+  --muscle-shoulders: #C9A86A;
+  --muscle-arms: #A06BC5;
+  --muscle-legs: #6BAF7A;
+  --muscle-core: #D88C5A;
+  --muscle-cardio: #DC6B8C;
+  --heatmap-0: #EFF6FF;
+  --heatmap-1: #BFDBFE;
+  --heatmap-2: #60A5FA;
+  --heatmap-3: #2563EB;
+  --heatmap-4: #1E3A8A;
+  --accent: #185FA5;
+  --accent-bg: #E6F1FB;
+  --black-cta: #0D0D0D;
+  --black-cta-text: #FFFFFF;
+  --success: #4F7A52;
+  --warning: #B58A3B;
+  --error: #B8635E;
+  --xp-gold: #B68A3F;
+  --streak: #E8835A;
+  --chart-line: #0D0D0D;
+  --chart-grid: rgba(0, 0, 0, 0.08);
+  --chart-axis: #999999;
+  --chart-tooltip-bg: #FFFFFF;
+  --cta-bg: transparent;
+  --cta-border: #0D0D0D;
+  --cta-text: #0D0D0D;
+}
+
+[data-theme="dark"] {
+  --bg: #1A1613;
+  --bg-primary: #1A1613;
+  --bg-card: #221E1A;
+  --bg-elevated: #2A2521;
+  --bg-hover: #312B26;
+  --bg-input: #2A2521;
+  --bg-pill: #2A2521;
+  --border: #2F2925;
+  --border-strong: #3D3631;
+  --divider: #2F2925;
+  --text-cta: #F2EDE6;
+  --text-primary: #E0DAD0;
+  --text-secondary: #A8A097;
+  --text-tertiary: #6B645C;
+  --text-muted: #6B645C;
+  --text-disabled: #4A4540;
+  --accent: #F2EDE6;
+  --accent-bg: rgba(242, 237, 230, 0.10);
+  --black-cta: #F2EDE6;
+  --black-cta-text: #1A1613;
+  --success: #7A9B7E;
+  --warning: #C9A86A;
+  --error: #B8635E;
+  --xp-gold: #D4B575;
+  --streak: #E8835A;
+  --success-bg: rgba(122, 155, 126, 0.12);
+  --warning-bg: rgba(201, 168, 106, 0.12);
+  --error-bg: rgba(184, 99, 94, 0.12);
+  --xp-gold-bg: rgba(212, 181, 117, 0.12);
+  --streak-bg: rgba(232, 131, 90, 0.12);
+  --bg-camera: #1A1A1A;
+  --muscle-chest: #B8635E;
+  --muscle-back: #6B8FB0;
+  --muscle-shoulders: #C9A86A;
+  --muscle-arms: #9A7AB8;
+  --muscle-legs: #7A9B7E;
+  --muscle-core: #C9885E;
+  --muscle-cardio: #C97A92;
+  --heatmap-0: #2A2521;
+  --heatmap-1: #4A3F30;
+  --heatmap-2: #C9A86A;
+  --heatmap-3: #D4B575;
+  --heatmap-4: #7A9B7E;
+  --chart-line: #F2EDE6;
+  --chart-grid: #2F2925;
+  --chart-axis: #6B645C;
+  --chart-tooltip-bg: #2A2521;
+  --cta-bg: transparent;
+  --cta-border: #F2EDE6;
+  --cta-text: #F2EDE6;
+}
+
+body {
+  color: var(--text-primary);
+}
+
+.halo-decoration { display: none; }
+[data-theme="dark"] .halo-decoration { display: block; }
+
+/* Photo / product image frame — adds themed border so photos don't float on dark bg */
+.img-frame {
+  border: 1px solid var(--border);
+  border-radius: inherit;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--text-cta);
+  outline-offset: 2px;
+}
+
+/* Input defaults */
+input, textarea, select {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Webkit scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* Firefox scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+
+/* Text selection */
+::selection {
+  background: var(--text-cta);
+  color: var(--bg-primary);
+}
+
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -18,3 +172,13 @@
   animation: scan 2s ease-in-out infinite;
   position: absolute;
 }
+
+/* Live-session set inputs: shadow/previous value shows as muted placeholder */
+.ls-set-input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+/* Hide number spinners */
+.ls-set-input::-webkit-outer-spin-button,
+.ls-set-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ls-set-input[type=number] { -moz-appearance: textfield; }

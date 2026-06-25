@@ -9,15 +9,16 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
+import LogStatsSheet from '../components/LogStatsSheet'
+import MeasurementsTab from '../components/progress/MeasurementsTab'
 
 
 const API = import.meta.env.VITE_BACKEND_URL
 
-const TABS = [
-  { id: 'photos',       label: 'Photos',       icon: Camera  },
-  { id: 'weight',       label: 'Weight',       icon: Weight  },
-  { id: 'measurements', label: 'Measurements', icon: Ruler   },
-  { id: 'prs',          label: 'PRs',          icon: Trophy  },
+const PAGE_TABS = [
+  { id: 'weight',       label: 'Weight'       },
+  { id: 'photos',       label: 'Photos'       },
+  { id: 'measurements', label: 'Measurements' },
 ]
 
 // ── Custom Recharts tooltip ───────────────────────────────────────────────────
@@ -135,10 +136,10 @@ function PhotosTab({ userId }) {
               ...acc,
               // vertical divider (hidden on small, shown on sm+)
               <div key="divider" className="hidden sm:flex items-stretch">
-                <div className="w-px bg-white/10 self-stretch" />
+                <div className="w-px bg-[var(--bg-card)]/10 self-stretch" />
               </div>,
               // horizontal divider (shown on small only)
-              <div key="divider-h" className="sm:hidden w-full h-px bg-white/10" />,
+              <div key="divider-h" className="sm:hidden w-full h-px bg-[var(--bg-card)]/10" />,
               el,
             ]
           }, [])}
@@ -200,7 +201,7 @@ function PhotosTab({ userId }) {
         </div>
       ) : photos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-white/[0.04] flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--bg-card)]/[0.04] flex items-center justify-center">
             <Camera size={24} className="text-zinc-600" />
           </div>
           <p className="text-zinc-500 text-sm">No photos yet. Upload your first!</p>
@@ -251,7 +252,7 @@ function PhotosTab({ userId }) {
           onClick={() => setLightbox(null)}
         >
           <button
-            className="absolute top-12 right-5 text-white bg-white/10 rounded-full p-2"
+            className="absolute top-12 right-5 text-white bg-[var(--bg-card)]/10 rounded-full p-2"
             onClick={() => setLightbox(null)}
           >
             <X size={20} />
@@ -368,25 +369,25 @@ function WeightTab({ userId }) {
         <div className="flex justify-center py-10">
           <Loader2 size={24} className="text-emerald-500 animate-spin" />
         </div>
-      ) : chartData.length < 2 ? (
+      ) : chartData.length === 0 ? (
         <div className="bg-gray-900 rounded-2xl p-6 flex flex-col items-center gap-2">
           <Weight size={24} className="text-zinc-600" />
-          <p className="text-zinc-500 text-sm text-center">Log at least 2 entries to see the chart</p>
+          <p className="text-zinc-500 text-sm text-center">Log your first weight to see the chart</p>
         </div>
       ) : (
         <div className="bg-gray-900 rounded-2xl p-4">
           <p className="text-white font-semibold text-sm mb-4">Weight Over Time</p>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0d" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
               <XAxis
                 dataKey="date"
-                tick={{ fill: '#71717a', fontSize: 10 }}
+                tick={{ fill: 'var(--chart-axis)', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: '#71717a', fontSize: 10 }}
+                tick={{ fill: 'var(--chart-axis)', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 domain={['auto', 'auto']}
@@ -395,133 +396,13 @@ function WeightTab({ userId }) {
               <Line
                 type="monotone"
                 dataKey="weight"
-                stroke="#10b981"
+                stroke="var(--success)"
                 strokeWidth={2}
-                dot={{ fill: '#10b981', r: 3, strokeWidth: 0 }}
-                activeDot={{ r: 5, fill: '#10b981' }}
+                dot={{ fill: 'var(--success)', r: 3, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: 'var(--success)' }}
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Measurements Tab ──────────────────────────────────────────────────────────
-
-const MEASURE_FIELDS = [
-  { key: 'chest',  label: 'Chest',  col: 'chest_cm'  },
-  { key: 'waist',  label: 'Waist',  col: 'waist_cm'  },
-  { key: 'hips',   label: 'Hips',   col: 'hips_cm'   },
-  { key: 'bicep',  label: 'Bicep',  col: 'bicep_cm'  },
-  { key: 'thigh',  label: 'Thigh',  col: 'thigh_cm'  },
-]
-
-function MeasurementsTab({ userId }) {
-  const [values, setValues]   = useState({ chest: '', waist: '', hips: '', bicep: '', thigh: '' })
-  const [saving, setSaving]   = useState(false)
-  const [last, setLast]       = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => { fetchLast() }, [userId])
-
-  async function fetchLast() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('progress_entries')
-      .select('id, logged_at, chest_cm, waist_cm, hips_cm, bicep_cm, thigh_cm')
-      .eq('user_id', userId)
-      .or('chest_cm.not.is.null,waist_cm.not.is.null,hips_cm.not.is.null,bicep_cm.not.is.null,thigh_cm.not.is.null')
-      .order('logged_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    setLast(data ?? null)
-    setLoading(false)
-  }
-
-  async function handleSave() {
-    const cols = Object.fromEntries(
-      MEASURE_FIELDS
-        .filter(f => values[f.key] !== '')
-        .map(f => [f.col, parseFloat(values[f.key])])
-    )
-    if (Object.keys(cols).length === 0) return
-    setSaving(true)
-    const { error } = await supabase.from('progress_entries').insert({
-      user_id: userId,
-      logged_at: new Date().toISOString(),
-      ...cols,
-    })
-    if (!error) {
-      setValues({ chest: '', waist: '', hips: '', bicep: '', thigh: '' })
-      await fetchLast()
-    }
-    setSaving(false)
-  }
-
-  return (
-    <div className="px-5 pb-8 space-y-5">
-      {/* Input card */}
-      <div className="bg-gray-900 rounded-2xl p-4 space-y-3">
-        <p className="text-white font-semibold text-sm">Log Measurements</p>
-        <div className="grid grid-cols-2 gap-3">
-          {MEASURE_FIELDS.map(f => (
-            <div key={f.key} className="relative">
-              <label className="block text-zinc-500 text-[11px] mb-1.5 font-medium">{f.label}</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={values[f.key]}
-                  onChange={e => setValues(v => ({ ...v, [f.key]: e.target.value }))}
-                  placeholder="0"
-                  min="0"
-                  step="0.1"
-                  className="w-full bg-gray-800 text-white placeholder-zinc-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-xs">cm</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || Object.values(values).every(v => v === '')}
-          className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-semibold py-3 rounded-xl mt-1 transition-colors flex items-center justify-center gap-2"
-        >
-          {saving ? <Loader2 size={16} className="animate-spin" /> : null}
-          Save Measurements
-        </button>
-      </div>
-
-      {/* Last logged */}
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 size={24} className="text-emerald-500 animate-spin" />
-        </div>
-      ) : last ? (
-        <div className="bg-gray-900 rounded-2xl p-4">
-          <p className="text-white font-semibold text-sm mb-3">
-            Last Logged&nbsp;
-            <span className="text-zinc-500 font-normal text-xs">
-              {new Date(last.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </span>
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            {MEASURE_FIELDS.map(f => (
-              <div key={f.key} className="bg-gray-800 rounded-xl p-3 text-center">
-                <p className="text-zinc-500 text-[11px] mb-1">{f.label}</p>
-                <p className="text-white font-bold text-sm">
-                  {last[f.col] != null ? `${last[f.col]} cm` : '—'}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-gray-900 rounded-2xl p-6 flex flex-col items-center gap-2">
-          <Ruler size={24} className="text-zinc-600" />
-          <p className="text-zinc-500 text-sm text-center">No measurements logged yet</p>
         </div>
       )}
     </div>
@@ -552,16 +433,43 @@ function PRsTab({ userId }) {
   async function handleSave() {
     if (!form.exercise || !form.weight || !form.reps) return
     setSaving(true)
+    const weight = parseFloat(form.weight)
+    const reps   = parseInt(form.reps, 10)
     const { error } = await supabase.from('personal_records').insert({
-      user_id: userId,
+      user_id:  userId,
       exercise: form.exercise.trim(),
-      weight: parseFloat(form.weight),
-      reps: parseInt(form.reps, 10),
+      weight,
+      reps,
       date: new Date().toISOString().slice(0, 10),
     })
     if (!error) {
       setForm({ exercise: '', weight: '', reps: '' })
       await fetchPRs()
+
+      // Fire-and-forget: post achievement to gym feed
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const { data: mem } = await supabase
+          .from('gym_memberships')
+          .select('gym_id')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (mem?.gym_id && session?.access_token) {
+          fetch(`${import.meta.env.VITE_API_URL}/api/gym-feed/${mem.gym_id}/posts`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              post_type: 'achievement',
+              content:   `🏆 hit a new PR: ${form.exercise.trim()} — ${weight}kg x ${reps} reps`,
+            }),
+          }).catch(() => {})
+        }
+      } catch (_) {}
     }
     setSaving(false)
   }
@@ -678,11 +586,11 @@ function prAbbr(name = '') {
 }
 
 const PR_COLORS = [
-  { bg: '#E6F1FB', text: '#0C447C' },
+  { bg: 'var(--accent-bg)', text: '#0C447C' },
   { bg: '#FAECE7', text: '#993C1D' },
-  { bg: '#EAF3DE', text: '#3B6D11' },
-  { bg: '#F1EFE8', text: '#5F5E5A' },
-  { bg: '#E1F5EE', text: '#0F6E56' },
+  { bg: 'var(--success-bg)', text: 'var(--success)' },
+  { bg: 'var(--bg-pill)', text: "var(--text-secondary)" },
+  { bg: '#E1F5EE', text: 'var(--success)' },
 ]
 
 function computeWeeklyVolume(logs) {
@@ -724,15 +632,21 @@ export default function Progress() {
   const userId = user?.id
   const { current: streakCurrent, best: streakBest } = useStreak(userId)
 
-  const [timeRange, setTimeRange] = useState('3M')
-  const [loading, setLoading]     = useState(true)
+  const [activeTab, setActiveTab]   = useState('weight')
+  const [timeRange, setTimeRange]   = useState('3M')
+  const [loading, setLoading]       = useState(true)
+  const [showLogSheet, setShowLogSheet] = useState(false)
+  const [toast, setToast]           = useState('')
+  const loadRef = useRef(null) // call loadRef.current() to trigger a manual refetch
 
   // Real data
-  const [entries,     setEntries]     = useState([])  // progress_entries with weight_kg
-  const [userRow,     setUserRow]     = useState(null) // users row
-  const [prs,         setPrs]         = useState([])  // personal_records
-  const [volumeData,  setVolumeData]  = useState([])  // computed weekly volume
-  const [workedDates, setWorkedDates] = useState(new Set()) // YYYY-MM-DD strings
+  const [entries,          setEntries]          = useState([])  // progress_entries with weight_kg (time-range filtered)
+  const [firstEntry,       setFirstEntry]       = useState(null) // all-time oldest weight entry (never changes once set)
+  const [latestStatsEntry, setLatestStatsEntry] = useState(null) // most recent any-field entry
+  const [userRow,          setUserRow]          = useState(null) // users row
+  const [prs,             setPrs]             = useState([])  // personal_records
+  const [volumeData,      setVolumeData]      = useState([])  // computed weekly volume
+  const [workedDates,     setWorkedDates]     = useState(new Set()) // YYYY-MM-DD strings
 
   useEffect(() => {
     if (!userId) return
@@ -750,6 +664,8 @@ export default function Progress() {
 
       const [
         { data: entriesData },
+        { data: latestStatsData },
+        { data: firstEntryData },
         { data: userData },
         { data: prsData },
         { data: wlogs },
@@ -761,6 +677,22 @@ export default function Progress() {
           .not('weight_kg', 'is', null)
           .gte('logged_at', cutoff.toISOString())
           .order('logged_at', { ascending: true }),
+        supabase
+          .from('progress_entries')
+          .select('weight_kg, body_fat, muscle_mass, logged_at')
+          .eq('user_id', userId)
+          .order('logged_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        // all-time oldest weight entry — not affected by timeRange cutoff
+        supabase
+          .from('progress_entries')
+          .select('weight_kg, logged_at')
+          .eq('user_id', userId)
+          .not('weight_kg', 'is', null)
+          .order('logged_at', { ascending: true })
+          .limit(1)
+          .maybeSingle(),
         supabase
           .from('users')
           .select('current_weight, target_weight')
@@ -783,6 +715,8 @@ export default function Progress() {
       if (cancelled) return
 
       setEntries(entriesData ?? [])
+      setLatestStatsEntry(latestStatsData ?? null)
+      setFirstEntry(firstEntryData ?? null)
       setUserRow(userData)
       setPrs(prsData ?? [])
       setVolumeData(computeWeeklyVolume(wlogs ?? []))
@@ -803,16 +737,34 @@ export default function Progress() {
       setLoading(false)
     }
 
+    loadRef.current = load
     load()
     return () => { cancelled = true }
   }, [userId, timeRange])
 
-  // ── Derived values ────────────────────────────────────────────────────────
-  const earliest = entries[0]
-  const latest   = entries[entries.length - 1]
+  // ── Seed starting weight for users who have no progress_entries ─────────
+  const seedDoneRef = useRef(false)
+  useEffect(() => {
+    if (!userId || loading) return
+    if (seedDoneRef.current) return
+    if (firstEntry !== null) { seedDoneRef.current = true; return }
+    if (!userRow?.current_weight) return
+    seedDoneRef.current = true
+    supabase.from('progress_entries').insert({
+      user_id: userId,
+      weight_kg: parseFloat(userRow.current_weight),
+      logged_at: new Date().toISOString(),
+      notes: 'Starting weight',
+    }).then(({ error }) => {
+      if (!error) loadRef.current?.()
+    })
+  }, [userId, loading, firstEntry, userRow])
 
-  const currentWeight  = latest?.weight_kg  ?? userRow?.current_weight  ?? null
-  const startingWeight = earliest?.weight_kg ?? userRow?.current_weight  ?? null
+  // ── Derived values ────────────────────────────────────────────────────────
+  const latest = entries[entries.length - 1]
+
+  const currentWeight  = latest?.weight_kg      ?? userRow?.current_weight ?? null
+  const startingWeight = firstEntry?.weight_kg   ?? userRow?.current_weight ?? null
   const goalWeight     = userRow?.target_weight ?? null
   const weightDelta    = currentWeight != null && startingWeight != null
     ? +(currentWeight - startingWeight).toFixed(1) : null
@@ -828,6 +780,9 @@ export default function Progress() {
     month: new Date(e.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     weight: e.weight_kg,
   }))
+
+  const currentBodyFat    = latestStatsEntry?.body_fat    ?? null
+  const currentMuscleMass = latestStatsEntry?.muscle_mass ?? null
 
   const bestVol = Math.max(...volumeData.map(v => v.kg), 0)
 
@@ -847,36 +802,80 @@ export default function Progress() {
   const daysThisMonth = [...workedDates].filter(d => d.startsWith(moStr)).length
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] pb-24">
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-24">
 
       {/* Fixed Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
-        <span className="text-xl font-semibold text-[#111]">Progress</span>
-        <div className="flex gap-1.5">
-          {['3M', 'All'].map(r => (
-            <button key={r} onClick={() => setTimeRange(r)}
-              className={`h-7 px-3 rounded-[10px] text-[13px] font-medium transition-colors ${
-                timeRange === r ? 'bg-[#111] text-white' : 'border border-black/10 text-[#999]'
-              }`}>
-              {r}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)]">
+        <div className="h-14 flex items-center justify-between px-5">
+          <span className="text-xl font-semibold text-[var(--text-primary)]">Progress</span>
+          {activeTab === 'weight' && (
+            <div className="flex gap-1.5">
+              {['3M', 'All'].map(r => (
+                <button key={r} onClick={() => setTimeRange(r)}
+                  className={`h-7 px-3 rounded-[10px] text-[13px] font-medium transition-colors ${
+                    timeRange === r ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]' : 'border border-[var(--border)] text-[var(--text-tertiary)]'
+                  }`}>
+                  {r}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex border-t border-[var(--border)]">
+          {PAGE_TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-1 py-2.5 text-[13px] font-medium transition-colors relative"
+              style={{ color: activeTab === tab.id ? 'var(--text-cta)' : 'var(--text-secondary)' }}
+            >
+              {tab.label}
+              {activeTab === tab.id && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t-full" style={{ background: 'var(--text-cta)' }} />
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="pt-[72px] px-5 space-y-4 pb-6">
+      {/* Photos Tab */}
+      {activeTab === 'photos' && (
+        <div className="pt-[104px]">
+          <PhotosTab userId={userId} />
+        </div>
+      )}
+
+      {/* Measurements Tab */}
+      {activeTab === 'measurements' && (
+        <div className="pt-[104px]">
+          <MeasurementsTab />
+        </div>
+      )}
+
+      {/* Weight Tab */}
+      {activeTab === 'weight' && (
+      <div className="pt-[112px] px-5 space-y-4 pb-6">
 
         {/* BODY STATS CARD */}
-        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-5">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Body Stats</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Body Stats</span>
+            <button
+              onClick={() => setShowLogSheet(true)}
+              className="h-7 px-3 text-[12px] font-semibold"
+              style={{ borderRadius: 20, background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
+            >
+              + Log
+            </button>
           </div>
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
           ) : currentWeight == null ? (
             <div className="py-6 text-center">
-              <p className="text-[#999] text-sm">No data yet.</p>
-              <p className="text-[#CCC] text-xs mt-1">Log your first weigh-in in the Weight tab.</p>
+              <p className="text-[var(--text-tertiary)] text-sm">No data yet.</p>
+              <p className="text-[var(--text-tertiary)] text-xs mt-1">Log your first weigh-in in the Weight tab.</p>
             </div>
           ) : (
             <>
@@ -888,20 +887,30 @@ export default function Progress() {
                     delta: weightDelta != null
                       ? weightDelta < 0 ? `↓ ${Math.abs(weightDelta)} kg lost` : weightDelta > 0 ? `↑ ${weightDelta} kg gained` : 'No change'
                       : '—',
-                    deltaColor: weightDelta != null && weightDelta < 0 ? '#3B6D11' : weightDelta != null && weightDelta > 0 ? '#A32D2D' : '#999',
+                    deltaColor: weightDelta != null && weightDelta < 0 ? 'var(--success)' : weightDelta != null && weightDelta > 0 ? 'var(--error)' : "var(--text-tertiary)",
                   },
                   {
                     label: 'starting',
                     value: `${startingWeight} kg`,
-                    delta: earliest?.logged_at ? `since ${new Date(earliest.logged_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : 'onboarding',
-                    deltaColor: '#999',
+                    delta: firstEntry?.logged_at ? `since ${new Date(firstEntry.logged_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : 'onboarding',
+                    deltaColor: "var(--text-tertiary)",
                   },
-                  { label: 'body fat',    value: '—', delta: 'not tracked', deltaColor: '#CCC' },
-                  { label: 'muscle mass', value: '—', delta: 'not tracked', deltaColor: '#CCC' },
+                  {
+                    label: 'body fat',
+                    value: currentBodyFat != null ? `${currentBodyFat}%` : '—',
+                    delta: currentBodyFat != null ? 'tracked' : 'not tracked',
+                    deltaColor: currentBodyFat != null ? 'var(--success)' : "var(--text-tertiary)",
+                  },
+                  {
+                    label: 'muscle mass',
+                    value: currentMuscleMass != null ? `${currentMuscleMass} kg` : '—',
+                    delta: currentMuscleMass != null ? 'tracked' : 'not tracked',
+                    deltaColor: currentMuscleMass != null ? 'var(--success)' : "var(--text-tertiary)",
+                  },
                 ].map((s, i) => (
                   <div key={i} className="p-4 flex flex-col gap-0.5">
-                    <span className="text-[11px] uppercase tracking-wider text-[#999]">{s.label}</span>
-                    <span className="text-[22px] font-semibold text-[#111] tabular-nums leading-tight">{s.value}</span>
+                    <span className="text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">{s.label}</span>
+                    <span className="text-[22px] font-semibold text-[var(--text-primary)] tabular-nums leading-tight">{s.value}</span>
                     <span className="text-[12px] font-medium" style={{ color: s.deltaColor }}>{s.delta}</span>
                   </div>
                 ))}
@@ -909,13 +918,13 @@ export default function Progress() {
               {goalWeight != null && goalPct != null && (
                 <div className="mt-4">
                   <div className="flex justify-between mb-1.5">
-                    <span className="text-[12px] text-[#999]">{currentWeight} kg now</span>
-                    <span className="text-[12px] font-medium text-[#111]">Goal: {goalWeight} kg</span>
+                    <span className="text-[12px] text-[var(--text-tertiary)]">{currentWeight} kg now</span>
+                    <span className="text-[12px] font-medium text-[var(--text-primary)]">Goal: {goalWeight} kg</span>
                   </div>
-                  <div className="h-2 bg-[#F1EFE8] rounded-full">
-                    <div className="h-full bg-[#111] rounded-full transition-all duration-700" style={{ width: `${goalPct}%` }} />
+                  <div className="h-2 bg-[var(--bg-pill)] rounded-full">
+                    <div className="h-full bg-[var(--text-primary)] rounded-full transition-all duration-700" style={{ width: `${goalPct}%` }} />
                   </div>
-                  <span className="text-[10px] text-[#999] mt-1 block">{goalPct}% to goal</span>
+                  <span className="text-[10px] text-[var(--text-tertiary)] mt-1 block">{goalPct}% to goal</span>
                 </div>
               )}
             </>
@@ -923,42 +932,43 @@ export default function Progress() {
         </div>
 
         {/* WEIGHT CHART */}
-        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-5">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Weight</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Weight</span>
             {weightDelta != null && (
-              <span className={`text-[13px] font-medium ${weightDelta < 0 ? 'text-[#3B6D11]' : 'text-[#A32D2D]'}`}>
+              <span className={`text-[13px] font-medium ${weightDelta < 0 ? 'text-[var(--success)]' : 'text-[var(--error)]'}`}>
                 {weightDelta < 0 ? '↓' : '↑'} {Math.abs(weightDelta)} kg
               </span>
             )}
           </div>
           {startingWeight != null && currentWeight != null && (
-            <div className="text-[13px] text-[#999] mb-4">
+            <div className="text-[13px] text-[var(--text-tertiary)] mb-4">
               {startingWeight} → {currentWeight} kg
             </div>
           )}
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
-          ) : chartData.length < 2 ? (
+          ) : chartData.length === 0 ? (
             <div className="py-6 text-center">
-              <p className="text-[#999] text-sm">Log at least 2 weigh-ins to see your chart.</p>
+              <p className="text-[var(--text-tertiary)] text-sm">No weigh-ins yet. Log your first to see the chart.</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={130}>
               <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#999' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
                 <Tooltip content={({ active, payload }) =>
                   active && payload?.length ? (
-                    <div className="bg-white border border-black/10 rounded-lg px-2 py-1 text-xs font-medium text-[#111]">
+                    <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-2 py-1 text-xs font-medium text-[var(--text-primary)]">
                       {payload[0].value} kg
                     </div>
                   ) : null
                 } />
                 <Line
                   type="monotone" dataKey="weight"
-                  stroke="#111111" strokeWidth={2}
-                  dot={{ r: 4, fill: 'white', stroke: '#111', strokeWidth: 1.5 }}
-                  activeDot={{ r: 5, fill: '#111' }}
+                  stroke="var(--text-primary)" strokeWidth={2}
+                  dot={{ r: 4, fill: 'white', stroke: "var(--text-primary)", strokeWidth: 1.5 }}
+                  activeDot={{ r: 5, fill: "var(--text-primary)" }}
+                  isAnimationActive={chartData.length > 1}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -968,31 +978,31 @@ export default function Progress() {
         {/* PERSONAL RECORDS */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Personal Records</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Personal Records</span>
           </div>
           {loading ? (
             <div className="flex justify-center py-6"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
           ) : prs.length === 0 ? (
-            <div className="bg-white rounded-xl border border-black/[0.06] p-5 text-center">
-              <p className="text-[#999] text-sm">No personal records yet.</p>
-              <p className="text-[#CCC] text-xs mt-1">Finish a workout to set your first PR.</p>
+            <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-5 text-center">
+              <p className="text-[var(--text-tertiary)] text-sm">No personal records yet.</p>
+              <p className="text-[var(--text-tertiary)] text-xs mt-1">Finish a workout to set your first PR.</p>
             </div>
           ) : (
             prs.map((pr, i) => {
               const c = PR_COLORS[i % PR_COLORS.length]
               return (
-                <div key={pr.id} className="bg-white rounded-xl border border-black/[0.06] p-4 mb-2 flex items-center gap-3">
+                <div key={pr.id} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 mb-2 flex items-center gap-3">
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-semibold uppercase tracking-wider"
                     style={{ backgroundColor: c.bg, color: c.text }}>
                     {prAbbr(pr.exercise)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#111] truncate">{pr.exercise}</p>
-                    <p className="text-xs text-[#999] mt-0.5">Set {timeAgo(pr.date)}</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">{pr.exercise}</p>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-0.5">Set {timeAgo(pr.date)}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-lg font-semibold text-[#111] tabular-nums">{pr.weight} kg</p>
-                    <p className="text-xs text-[#999] mt-0.5">× {pr.reps} reps</p>
+                    <p className="text-lg font-semibold text-[var(--text-primary)] tabular-nums">{pr.weight} kg</p>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-0.5">× {pr.reps} reps</p>
                   </div>
                 </div>
               )
@@ -1001,30 +1011,30 @@ export default function Progress() {
         </div>
 
         {/* WEEKLY VOLUME */}
-        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-5">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Weekly Volume</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Weekly Volume</span>
           </div>
           {loading ? (
             <div className="flex justify-center py-6"><Loader2 size={22} className="text-zinc-300 animate-spin" /></div>
           ) : bestVol === 0 ? (
-            <p className="text-[#999] text-sm text-center py-4">No workouts logged in the last 4 weeks.</p>
+            <p className="text-[var(--text-tertiary)] text-sm text-center py-4">No workouts logged in the last 4 weeks.</p>
           ) : (
             <div className="space-y-3">
               {volumeData.map((w, i) => {
                 const pct = bestVol > 0 ? Math.round((w.kg / bestVol) * 100) : 0
                 return (
                   <div key={i} className="flex items-center gap-3">
-                    <span className="text-[12px] text-[#999] w-14 shrink-0">{w.week}</span>
-                    <div className="flex-1 h-7 bg-[#F1EFE8] rounded-xl overflow-hidden">
-                      <div className="h-full bg-[#111] rounded-xl transition-all duration-700" style={{ width: `${pct}%` }} />
+                    <span className="text-[12px] text-[var(--text-tertiary)] w-14 shrink-0">{w.week}</span>
+                    <div className="flex-1 h-7 bg-[var(--bg-pill)] rounded-xl overflow-hidden">
+                      <div className="h-full bg-[var(--text-primary)] rounded-xl transition-all duration-700" style={{ width: `${pct}%` }} />
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[12px] font-medium text-[#111] tabular-nums w-20 text-right">
+                      <span className="text-[12px] font-medium text-[var(--text-primary)] tabular-nums w-20 text-right">
                         {w.kg > 0 ? `${w.kg.toLocaleString()} kg` : '—'}
                       </span>
                       {w.kg === bestVol && w.kg > 0 && (
-                        <span className="text-[9px] font-semibold uppercase bg-[#EAF3DE] text-[#3B6D11] px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] font-semibold uppercase bg-[var(--success-bg)] text-[var(--success)] px-1.5 py-0.5 rounded-full">
                           best
                         </span>
                       )}
@@ -1037,14 +1047,14 @@ export default function Progress() {
         </div>
 
         {/* CONSISTENCY CALENDAR */}
-        <div className="bg-white rounded-2xl border border-black/[0.06] p-5">
+        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-5">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Consistency</span>
-            <span className="text-[12px] text-[#999]">{daysThisMonth}/{daysInMo} days</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Consistency</span>
+            <span className="text-[12px] text-[var(--text-tertiary)]">{daysThisMonth}/{daysInMo} days</span>
           </div>
           <div className="grid grid-cols-7 mb-2">
             {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-              <div key={i} className="text-[10px] text-[#999] text-center">{d}</div>
+              <div key={i} className="text-[10px] text-[var(--text-tertiary)] text-center">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -1056,21 +1066,48 @@ export default function Progress() {
               return (
                 <div key={i} className={`aspect-square rounded-lg ${
                   isToday
-                    ? 'border-[1.5px] border-[#111] bg-white'
+                    ? 'border-[1.5px] border-[var(--text-primary)] bg-[var(--bg-card)]'
                     : worked
-                    ? 'bg-[#111]'
-                    : 'bg-[#F1EFE8]'
+                    ? 'bg-[var(--text-primary)]'
+                    : 'bg-[var(--bg-pill)]'
                 }`} />
               )
             })}
           </div>
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-black/[0.04]">
-            <span className="text-[14px] font-semibold text-[#111]">🔥 {streakCurrent ?? 0} day streak</span>
-            <span className="text-[12px] text-[#999]">Best: {streakBest ?? 0} days</span>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border)]">
+            <span className="text-[14px] font-semibold text-[var(--text-primary)]">🔥 {streakCurrent ?? 0} day streak</span>
+            <span className="text-[12px] text-[var(--text-tertiary)]">Best: {streakBest ?? 0} days</span>
           </div>
         </div>
 
       </div>
+      )} {/* end weight tab */}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+          background: "var(--text-primary)", color: 'white', borderRadius: 12,
+          padding: '10px 18px', fontSize: 14, fontWeight: 500,
+          zIndex: 300, whiteSpace: 'nowrap', pointerEvents: 'none',
+        }}>
+          {toast}
+        </div>
+      )}
+
+      {/* Log Body Stats Sheet */}
+      {showLogSheet && (
+        <LogStatsSheet
+          user={user}
+          onClose={() => setShowLogSheet(false)}
+          onSave={() => {
+            setShowLogSheet(false)
+            loadRef.current?.()
+            setToast('Stats logged!')
+            setTimeout(() => setToast(''), 3000)
+          }}
+        />
+      )}
     </div>
   )
 }

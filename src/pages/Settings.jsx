@@ -1,13 +1,49 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { supabase } from '../utils/supabase'
 import { getAvatarColor, getInitials } from '../utils/avatarColor'
 import { formatMonthYear } from '../utils/dateHelpers'
+import { useTheme } from '../contexts/ThemeContext'
 
 const GOALS = ['Lose Weight', 'Build Muscle', 'Stay Fit', 'Athletic Performance', 'Improve Health']
 const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
 const EQUIPMENT_OPTIONS = ['Full Gym', 'Home Gym', 'Minimal', 'Bodyweight Only']
 const API = import.meta.env.VITE_API_URL || ''
+
+// ─── ThemeSwatch ─────────────────────────────────────────────────────────────
+function ThemeSwatch({ id }) {
+  const outer = {
+    width: 42, height: 30, borderRadius: 7, overflow: 'hidden', flexShrink: 0,
+    border: '1px solid rgba(0,0,0,0.12)', position: 'relative',
+    display: 'flex', flexDirection: 'column', gap: 3,
+    padding: '5px 6px', boxSizing: 'border-box',
+  }
+  if (id === 'system') {
+    return (
+      <div style={{ ...outer, padding: 0 }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, width: '50%', height: '100%', background: "var(--bg-card)", display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
+          <div style={{ height: 4, borderRadius: 2, background: "var(--text-primary)", width: '65%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'var(--text-cta)', width: '45%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'var(--border)', width: '80%' }} />
+        </div>
+        <div style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', background: '#0F0F0F', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
+          <div style={{ height: 4, borderRadius: 2, background: 'var(--border)', width: '65%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'var(--text-cta)', width: '45%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.15)', width: '80%' }} />
+        </div>
+      </div>
+    )
+  }
+  const light = id === 'light'
+  return (
+    <div style={{ ...outer, background: light ? "var(--bg-card)" : '#0F0F0F' }}>
+      <div style={{ height: 4, borderRadius: 2, background: light ? "var(--text-primary)" : 'var(--border)', width: '65%' }} />
+      <div style={{ height: 3, borderRadius: 2, background: light ? 'var(--text-cta)' : 'var(--text-cta)', width: '45%' }} />
+      <div style={{ height: 3, borderRadius: 2, background: light ? 'var(--border)' : 'rgba(255,255,255,0.15)', width: '80%' }} />
+    </div>
+  )
+}
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 const Toggle = ({ value, onChange }) => (
@@ -15,7 +51,7 @@ const Toggle = ({ value, onChange }) => (
     onClick={() => onChange(!value)}
     style={{
       width: 44, height: 26, borderRadius: 13,
-      backgroundColor: value ? '#111' : '#E0E0E0',
+      backgroundColor: value ? "var(--text-primary)" : 'var(--border)',
       position: 'relative', cursor: 'pointer',
       transition: 'background-color 0.2s', flexShrink: 0,
     }}
@@ -23,7 +59,7 @@ const Toggle = ({ value, onChange }) => (
     <div style={{
       position: 'absolute', top: 3, left: value ? 21 : 3,
       width: 20, height: 20, borderRadius: '50%',
-      backgroundColor: 'white', transition: 'left 0.2s',
+      backgroundColor: 'var(--bg-card)', transition: 'left 0.2s',
       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
     }} />
   </div>
@@ -39,9 +75,9 @@ const PillSelector = ({ options, value, onChange, multiSelect = false }) => (
           key={opt} onClick={() => onChange(opt)}
           style={{
             height: 34, padding: '0 14px', borderRadius: 10,
-            backgroundColor: isSelected ? '#111' : 'white',
-            color: isSelected ? 'white' : '#111',
-            border: isSelected ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
+            backgroundColor: isSelected ? "var(--text-primary)" : 'var(--bg-card)',
+            color: isSelected ? 'var(--bg-primary)' : "var(--text-primary)",
+            border: isSelected ? 'none' : '0.5px solid var(--border)',
             fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}
         >{opt}</button>
@@ -51,7 +87,7 @@ const PillSelector = ({ options, value, onChange, multiSelect = false }) => (
 )
 
 // ─── Section label ────────────────────────────────────────────────────────────
-const SectionLabel = ({ children, color = '#999' }) => (
+const SectionLabel = ({ children, color = "var(--text-tertiary)" }) => (
   <div style={{
     fontSize: 11, fontWeight: 600, color,
     textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
@@ -60,6 +96,7 @@ const SectionLabel = ({ children, color = '#999' }) => (
 
 export default function Settings() {
   const navigate = useNavigate()
+  const { theme, setThemeMode } = useTheme()
 
   const [user, setUser] = useState(null)
   const [userId, setUserId] = useState(null)
@@ -87,6 +124,8 @@ export default function Settings() {
   const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState(null)
 
+  const [shareAchievements, setShareAchievements] = useState(false)
+
   // ─── Load user ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const loadUser = async () => {
@@ -101,6 +140,7 @@ export default function Settings() {
         if (!res.ok) throw new Error('User not found')
         const data = await res.json()
         setUser(data)
+        setShareAchievements(data.share_achievements ?? false)
         setForm({
           full_name: data.full_name || '',
           age: data.age ? String(data.age) : '',
@@ -183,6 +223,20 @@ export default function Settings() {
     }
   }
 
+  // ─── Share achievements toggle ───────────────────────────────────────────────
+  const handleShareAchievementsToggle = async (val) => {
+    setShareAchievements(val)
+    try {
+      await fetch(`${API}/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ share_achievements: val }),
+      })
+    } catch {
+      setShareAchievements(!val)
+    }
+  }
+
   // ─── Password ───────────────────────────────────────────────────────────────
   const handlePasswordChange = async () => {
     setPasswordError('')
@@ -237,19 +291,19 @@ export default function Settings() {
   const rowStyle = (extra = {}) => ({
     display: 'flex', alignItems: 'center',
     padding: '0 20px', height: 52, cursor: 'pointer',
-    borderBottom: '0.5px solid rgba(0,0,0,0.06)',
+    borderBottom: '0.5px solid var(--border)',
     ...extra,
   })
 
-  const labelStyle = { fontSize: 14, fontWeight: 500, color: '#999', width: 110, flexShrink: 0 }
-  const valueStyle = { flex: 1, fontSize: 14, fontWeight: 500, color: '#111', textAlign: 'right' }
+  const labelStyle = { fontSize: 14, fontWeight: 500, color: "var(--text-tertiary)", width: 110, flexShrink: 0 }
+  const valueStyle = { flex: 1, fontSize: 14, fontWeight: 500, color: "var(--text-primary)", textAlign: 'right' }
   const inlineInputStyle = {
-    flex: 1, border: 'none', outline: 'none', fontSize: 14, color: '#111',
+    flex: 1, border: 'none', outline: 'none', fontSize: 14, color: "var(--text-primary)",
     backgroundColor: 'transparent', textAlign: 'right', fontFamily: 'inherit',
   }
 
   const sheetInputStyle = {
-    width: '100%', height: 52, border: '0.5px solid rgba(0,0,0,0.15)',
+    width: '100%', height: 52, border: '0.5px solid var(--border)',
     borderRadius: 12, padding: '0 16px', fontSize: 15,
     boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit',
   }
@@ -257,35 +311,35 @@ export default function Settings() {
   // ─── Loading ─────────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5',
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
-      <span style={{ fontSize: 14, color: '#999' }}>Loading...</span>
+      <span style={{ fontSize: 14, color: "var(--text-tertiary)" }}>Loading...</span>
     </div>
   )
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
 
       {/* STICKY HEADER */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white',
+        position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'var(--bg-card)',
         padding: '16px 20px 12px', display: 'flex', alignItems: 'center', gap: 12,
-        borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+        borderBottom: '0.5px solid var(--border)',
       }}>
         <button
           onClick={() => navigate(-1)}
-          style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 500, color: '#185FA5', cursor: 'pointer', padding: 0 }}
+          style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 500, color: 'var(--text-cta)', cursor: 'pointer', padding: 0 }}
         >← Back</button>
-        <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: '#111', textAlign: 'center' }}>Settings</span>
+        <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: "var(--text-primary)", textAlign: 'center' }}>Settings</span>
         <button
           onClick={handleSave} disabled={!isDirty || saving}
           style={{
-            backgroundColor: '#111', color: 'white', border: 'none', borderRadius: 10,
+            backgroundColor: "var(--text-primary)", color: 'var(--bg-primary)', border: 'none', borderRadius: 10,
             height: 32, padding: '0 14px', fontSize: 13, fontWeight: 600,
             cursor: isDirty ? 'pointer' : 'default', opacity: isDirty && !saving ? 1 : 0.4,
           }}
@@ -300,8 +354,8 @@ export default function Settings() {
           const initials = getInitials(form.full_name || 'User')
           return (
             <div style={{
-              backgroundColor: 'white', borderRadius: '0 0 16px 16px',
-              border: '0.5px solid rgba(0,0,0,0.08)', borderTop: 'none',
+              backgroundColor: 'var(--bg-card)', borderRadius: '0 0 16px 16px',
+              border: '0.5px solid var(--border)', borderTop: 'none',
               padding: 20, marginBottom: 16,
               display: 'flex', alignItems: 'center', gap: 16,
             }}>
@@ -312,17 +366,17 @@ export default function Settings() {
                 fontSize: 24, fontWeight: 600, flexShrink: 0,
               }}>{initials}</div>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.full_name || 'Your Name'}
                 </div>
                 <span style={{
                   display: 'inline-block',
-                  backgroundColor: '#E6F1FB', color: '#185FA5',
+                  backgroundColor: 'var(--accent-bg)', color: 'var(--text-cta)',
                   fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, marginTop: 4,
                 }}>
                   {user.role === 'trainer' ? 'Trainer' : user.gym_id ? 'Member' : 'Solo User'}
                 </span>
-                <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
                   Joined {formatMonthYear(user.created_at)}
                 </div>
               </div>
@@ -335,7 +389,7 @@ export default function Settings() {
           {/* ── SECTION 1: PROFILE ──────────────────────────────────────────────── */}
           <div>
             <SectionLabel>PROFILE</SectionLabel>
-            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden' }}>
 
               {/* Text input rows */}
               {[
@@ -386,7 +440,7 @@ export default function Settings() {
           {/* ── SECTION 2: FITNESS ──────────────────────────────────────────────── */}
           <div>
             <SectionLabel>FITNESS</SectionLabel>
-            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden' }}>
 
               {/* Goal */}
               <div>
@@ -397,7 +451,7 @@ export default function Settings() {
                   </span>
                 </div>
                 {activeEditRow === 'goal' && (
-                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid var(--border)' }}>
                     <PillSelector
                       options={GOALS} value={form.goal}
                       onChange={val => { updateField('goal', val); setActiveEditRow(null) }}
@@ -413,7 +467,7 @@ export default function Settings() {
                   <span style={valueStyle}>{form.experience || '—'}</span>
                 </div>
                 {activeEditRow === 'experience' && (
-                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid var(--border)' }}>
                     <PillSelector
                       options={EXPERIENCE_LEVELS} value={form.experience}
                       onChange={val => { updateField('experience', val); setActiveEditRow(null) }}
@@ -431,7 +485,7 @@ export default function Settings() {
                   </span>
                 </div>
                 {activeEditRow === 'equipment' && (
-                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+                  <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid var(--border)' }}>
                     <PillSelector
                       options={EQUIPMENT_OPTIONS} value={form.equipment}
                       onChange={toggleEquipment} multiSelect={true}
@@ -453,21 +507,21 @@ export default function Settings() {
                         onClick={() => { if (form.training_days > 1) updateField('training_days', form.training_days - 1) }}
                         style={{
                           width: 32, height: 32, borderRadius: '50%',
-                          border: '0.5px solid rgba(0,0,0,0.15)', backgroundColor: 'white',
+                          border: '0.5px solid var(--border)', backgroundColor: 'var(--bg-card)',
                           fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: form.training_days <= 1 ? '#CCC' : '#111',
+                          color: form.training_days <= 1 ? "var(--text-tertiary)" : "var(--text-primary)",
                         }}
                       >−</button>
-                      <span style={{ fontSize: 16, fontWeight: 600, color: '#111', minWidth: 20, textAlign: 'center' }}>
+                      <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", minWidth: 20, textAlign: 'center' }}>
                         {form.training_days}
                       </span>
                       <button
                         onClick={() => { if (form.training_days < 7) updateField('training_days', form.training_days + 1) }}
                         style={{
                           width: 32, height: 32, borderRadius: '50%',
-                          border: '0.5px solid rgba(0,0,0,0.15)', backgroundColor: 'white',
+                          border: '0.5px solid var(--border)', backgroundColor: 'var(--bg-card)',
                           fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: form.training_days >= 7 ? '#CCC' : '#111',
+                          color: form.training_days >= 7 ? "var(--text-tertiary)" : "var(--text-primary)",
                         }}
                       >+</button>
                     </div>
@@ -489,7 +543,7 @@ export default function Settings() {
                         onChange={e => updateField('injuries', e.target.value)}
                         style={inlineInputStyle}
                       />
-                      <div style={{ fontSize: 12, color: '#999', textAlign: 'right', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: "var(--text-tertiary)", textAlign: 'right', marginTop: 4 }}>
                         Helps AI avoid risky exercises
                       </div>
                     </div>
@@ -504,7 +558,7 @@ export default function Settings() {
           {/* ── SECTION 3: BODY STATS ───────────────────────────────────────────── */}
           <div>
             <SectionLabel>BODY STATS</SectionLabel>
-            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden' }}>
               {/* 3-tile row */}
               <div style={{ display: 'flex' }}>
                 {[
@@ -521,11 +575,11 @@ export default function Settings() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
-                      <span style={{ fontSize: 22, fontWeight: 700, color: '#111' }}>{form[stat.key] || '—'}</span>
-                      {form[stat.key] && <span style={{ fontSize: 13, color: '#999' }}>{stat.unit}</span>}
+                      <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)" }}>{form[stat.key] || '—'}</span>
+                      {form[stat.key] && <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>{stat.unit}</span>}
                     </div>
                     <div style={{
-                      fontSize: 10, fontWeight: 600, color: '#999',
+                      fontSize: 10, fontWeight: 600, color: "var(--text-tertiary)",
                       textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4,
                     }}>{stat.label}</div>
                   </div>
@@ -544,17 +598,17 @@ export default function Settings() {
                       display: 'flex', alignItems: 'center', padding: '0 20px', height: 52,
                       borderBottom: i < 2 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
                     }}>
-                      <span style={{ fontSize: 14, fontWeight: 500, color: '#999', flex: 1 }}>{field.label}</span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-tertiary)", flex: 1 }}>{field.label}</span>
                       <input
                         type="number" value={form[field.key]} placeholder="—"
                         onChange={e => updateField(field.key, e.target.value)}
                         style={{
                           width: 80, border: 'none', outline: 'none', fontSize: 14,
-                          fontWeight: 600, color: '#111', backgroundColor: 'transparent',
+                          fontWeight: 600, color: "var(--text-primary)", backgroundColor: 'transparent',
                           textAlign: 'right', fontFamily: 'inherit',
                         }}
                       />
-                      <span style={{ fontSize: 13, color: '#999', marginLeft: 4, width: 24 }}>{field.unit}</span>
+                      <span style={{ fontSize: 13, color: "var(--text-tertiary)", marginLeft: 4, width: 24 }}>{field.unit}</span>
                     </div>
                   ))}
                 </div>
@@ -562,35 +616,92 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* ── GYM FEED PREFERENCES ────────────────────────────────────────────── */}
+          {user?.gym_id && (
+            <div>
+              <SectionLabel>GYM FEED</SectionLabel>
+              <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                      Share achievements to gym feed
+                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '3px 0 0' }}>
+                      Auto-post your PRs and level-ups to your gym's feed
+                    </p>
+                  </div>
+                  <Toggle value={shareAchievements} onChange={handleShareAchievementsToggle} />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ── SECTION 4: ACCOUNT ──────────────────────────────────────────────── */}
           <div style={{ paddingBottom: 20 }}>
             <SectionLabel>ACCOUNT</SectionLabel>
-            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden' }}>
               {/* Change Password */}
               <div
                 onClick={() => setShowPasswordSheet(true)}
                 style={rowStyle()}
               >
-                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#111' }}>Change Password</span>
-                <span style={{ fontSize: 16, color: '#CCC' }}>›</span>
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Change Password</span>
+                <span style={{ fontSize: 16, color: "var(--text-tertiary)" }}>›</span>
               </div>
 
               {/* Delete Account */}
               <div onClick={() => setShowDeleteSheet(true)} style={{ ...rowStyle({ borderBottom: 'none' }) }}>
-                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#A32D2D' }}>Delete Account</span>
-                <span style={{ fontSize: 16, color: '#A32D2D' }}>›</span>
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--error)' }}>Delete Account</span>
+                <span style={{ fontSize: 16, color: 'var(--error)' }}>›</span>
               </div>
+            </div>
+          </div>
+
+          {/* ── APPEARANCE ──────────────────────────────────────────────────────── */}
+          <div>
+            <SectionLabel color="var(--text-tertiary)">APPEARANCE</SectionLabel>
+            <div style={{
+              backgroundColor: 'var(--bg-card)',
+              borderRadius: 12,
+              border: '0.5px solid var(--border)',
+              overflow: 'hidden',
+            }}>
+              {[
+                { id: 'light',  label: 'Light',  sub: null },
+                { id: 'dark',   label: 'Dark',   sub: null },
+                { id: 'system', label: 'System', sub: 'Follows your device setting' },
+              ].map((item, i) => (
+                <div
+                  key={item.id}
+                  onClick={() => setThemeMode(item.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 16px', cursor: 'pointer',
+                    background: theme === item.id ? 'var(--accent-bg)' : 'transparent',
+                    borderBottom: i < 2 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <ThemeSwatch id={item.id} />
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text-primary)" }}>{item.label}</div>
+                      {item.sub && <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>{item.sub}</div>}
+                    </div>
+                  </div>
+                  {theme === item.id && <Check size={18} color="var(--text-cta)" />}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* ── LOG OUT ─────────────────────────────────────────────────────────── */}
           <div style={{ padding: '8px 16px 40px' }}>
-            <div style={{ height: 1, background: '#F3F4F6', margin: '8px 0 20px' }} />
+            <div style={{ height: 1, background: 'var(--border)', margin: '8px 0 20px' }} />
             <button
               onClick={handleLogout}
               style={{
                 width: '100%', padding: '14px', borderRadius: 12,
-                background: '#FEF2F2', color: '#EF4444', fontWeight: 600,
+                background: 'var(--error-bg)', color: 'var(--error)', fontWeight: 600,
                 fontSize: 15, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
@@ -610,12 +721,12 @@ export default function Settings() {
           />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: 'var(--bg-card)', borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 0 32px',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 0' }} />
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 0' }} />
             <div style={{ padding: '16px 20px 0' }}>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#111', marginBottom: 16 }}>Change Password</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 16 }}>Change Password</div>
               {[
                 { key: 'current', placeholder: 'Current password' },
                 { key: 'newPass', placeholder: 'New password (min 8 chars)' },
@@ -630,13 +741,13 @@ export default function Settings() {
                 </div>
               ))}
               {passwordError && (
-                <div style={{ fontSize: 12, color: '#A32D2D', marginBottom: 12 }}>{passwordError}</div>
+                <div style={{ fontSize: 12, color: 'var(--error)', marginBottom: 12 }}>{passwordError}</div>
               )}
               <button
                 onClick={handlePasswordChange}
                 disabled={passwordSaving || passwordForm.newPass.length < 8 || passwordForm.newPass !== passwordForm.confirm}
                 style={{
-                  width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                  width: '100%', height: 52, backgroundColor: "var(--text-primary)", color: 'var(--bg-primary)',
                   border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                   cursor: 'pointer', marginTop: 4,
                   opacity: (passwordSaving || passwordForm.newPass.length < 8 || passwordForm.newPass !== passwordForm.confirm) ? 0.4 : 1,
@@ -656,23 +767,23 @@ export default function Settings() {
           />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: 'var(--bg-card)', borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 20px 32px',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 16px' }} />
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>Delete Account?</div>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>Delete Account?</div>
 
             <div style={{
-              backgroundColor: '#FAEEDA', borderLeft: '3px solid #854F0B',
+              backgroundColor: 'var(--warning-bg)', borderLeft: '3px solid var(--warning)',
               borderRadius: '0 10px 10px 0', padding: 12, marginTop: 14,
             }}>
-              <div style={{ fontSize: 13, color: '#854F0B' }}>
+              <div style={{ fontSize: 13, color: 'var(--warning)' }}>
                 ⚠ This will deactivate your account. Your workout history, progress, and data will be preserved but you won't be able to log in.
               </div>
             </div>
 
             <div style={{ marginTop: 16 }}>
-              <div style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Type DELETE to confirm</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 }}>Type DELETE to confirm</div>
               <input
                 type="text" placeholder="Type DELETE" value={deleteConfirm}
                 onChange={e => setDeleteConfirm(e.target.value)}
@@ -685,7 +796,7 @@ export default function Settings() {
                 onClick={handleDelete}
                 disabled={deleteConfirm !== 'DELETE' || deleting}
                 style={{
-                  width: '100%', height: 52, backgroundColor: '#A32D2D', color: 'white',
+                  width: '100%', height: 52, backgroundColor: 'var(--error)', color: 'white',
                   border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                   cursor: 'pointer', opacity: (deleteConfirm !== 'DELETE' || deleting) ? 0.4 : 1,
                 }}
@@ -693,8 +804,8 @@ export default function Settings() {
               <button
                 onClick={() => { setShowDeleteSheet(false); setDeleteConfirm('') }}
                 style={{
-                  width: '100%', height: 52, backgroundColor: 'white', color: '#111',
-                  border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                  width: '100%', height: 52, backgroundColor: 'var(--bg-card)', color: "var(--text-primary)",
+                  border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
                 }}
               >Cancel</button>
             </div>
@@ -706,11 +817,11 @@ export default function Settings() {
       {toast && (
         <div style={{
           position: 'fixed', top: 16, left: 16, right: 16, zIndex: 100,
-          backgroundColor: toast.type === 'success' ? '#EAF3DE' : '#FCEBEB',
+          backgroundColor: toast.type === 'success' ? 'var(--success-bg)' : 'var(--error-bg)',
           borderRadius: 16, padding: '14px 16px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? '#3B6D11' : '#A32D2D' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? 'var(--success)' : 'var(--error)' }}>
             {toast.message}
           </div>
         </div>

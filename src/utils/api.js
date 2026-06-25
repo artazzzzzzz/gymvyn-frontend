@@ -172,6 +172,14 @@ export async function deleteGymClass(classId) {
   return data;
 }
 
+// Member-facing: classes for a single day. Returns { date, classes: [...] }.
+export async function getClassesByDate(gymId, date) {
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${gymId}?date=${encodeURIComponent(date)}`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch classes (${res.status})`);
+  return data || { date, classes: [] };
+}
+
 // ── Announcements ────────────────────────────────────────────────────────────
 
 export async function getGymAnnouncements(gymId) {
@@ -388,3 +396,37 @@ export const deleteCustomMeal = (mealId) =>
 // PostgREST schema-cache error on workout_logs.exercises (JSONB column).
 export const finishWorkout = (data) =>
   apiFetch('/api/workout/finish', { method: 'POST', body: JSON.stringify(data) });
+
+// ── XP / Gamification ────────────────────────────────────────────────────────
+
+import { supabase } from './supabase';
+
+async function xpFetch(path, options = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const res = await fetch(`${BASE_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+    ...options,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`);
+  return data;
+}
+
+export const getXPProfile        = ()                  => xpFetch('/api/xp/profile');
+export const getXPEvents         = (page = 1, limit = 20) => xpFetch(`/api/xp/events?page=${page}&limit=${limit}`);
+export const getXPLeaderboard    = (type)              => xpFetch(`/api/xp/leaderboard/${type}`);
+export const useStreakFreeze     = ()                  => xpFetch('/api/xp/freeze', { method: 'POST' });
+export const getXPChallenges     = ()                  => xpFetch('/api/xp/challenges');
+export const getMuscleBalance    = ()                  => xpFetch('/api/xp/muscle-balance');
+export const getActiveSeason     = ()                  => xpFetch('/api/xp/season');
+
+// ── Class bookings (consumer) ──────────────────────────────────────────────────
+
+export const getMyClassBookings  = ()        => xpFetch('/api/class-bookings/my');
+export const bookClass           = (classId) => xpFetch(`/api/class-bookings/${classId}`, { method: 'POST' });
+export const cancelClassBooking  = (classId) => xpFetch(`/api/class-bookings/${classId}`, { method: 'DELETE' });

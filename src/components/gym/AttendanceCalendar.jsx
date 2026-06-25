@@ -76,7 +76,7 @@ export default function AttendanceCalendar({
           <div key={i} style={{
             textAlign: 'center',
             fontSize: 10,
-            color: '#999',
+            color: 'var(--text-tertiary)',
             fontWeight: 500
           }}>
             {d}
@@ -93,19 +93,19 @@ export default function AttendanceCalendar({
             return <div key={i} style={{ height: 20 }} />
           }
           let bg = 'transparent'
-          let color = '#ccc'
+          let color = 'var(--text-tertiary)'
           if (cell.isFuture) {
             bg = 'transparent'
             color = 'transparent'
           } else if (cell.isToday) {
-            bg = '#111111'
-            color = '#fff'
+            bg = 'var(--text-primary)'
+            color = 'var(--bg-card)'
           } else if (cell.attended) {
-            bg = '#3B6D11'
-            color = '#fff'
+            bg = 'var(--success)'
+            color = 'var(--bg-card)'
           } else {
-            bg = '#F0F0EE'
-            color = '#999'
+            bg = 'var(--bg-pill)'
+            color = 'var(--text-tertiary)'
           }
           return (
             <div key={i} style={{

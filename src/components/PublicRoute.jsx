@@ -18,13 +18,15 @@ export default function PublicRoute({ children }) {
 
   if (user) {
     if (!onboardingComplete) {
-      if (role === 'gym_owner') return <Navigate to="/gym-onboarding" replace />
-      if (role === 'trainer')   return <Navigate to="/become-trainer"  replace />
-      if (!role)                return <Navigate to="/role-select"     replace />
+      if (role === 'gym_owner') return <Navigate to="/gym-onboarding"   replace />
+      if (role === 'trainer')   return <Navigate to="/become-trainer"   replace />
+      if (role === 'staff')     return <Navigate to="/stagv-onboarding" replace />
+      if (!role)                return <Navigate to="/role-select"      replace />
       return <Navigate to="/onboarding" replace />
     }
     if (role === 'gym_owner') return <Navigate to="/gym/dashboard"      replace />
     if (role === 'trainer')   return <Navigate to="/trainer/dashboard"  replace />
+    if (role === 'staff')     return <Navigate to="/staff/dashboard"    replace />
     return <Navigate to="/home" replace />
   }
 

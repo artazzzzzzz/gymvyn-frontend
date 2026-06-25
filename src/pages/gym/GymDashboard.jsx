@@ -44,7 +44,7 @@ function daysUntil(dateStr) {
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
 const card = {
-  background: '#fff',
+  background: 'var(--bg-card)',
   border: '0.5px solid rgba(0,0,0,0.08)',
   borderRadius: 12,
   padding: 16,
@@ -53,7 +53,7 @@ const card = {
 const sectionLabel = {
   fontSize: 11,
   letterSpacing: '0.08em',
-  color: '#999',
+  color: 'var(--text-tertiary)',
   fontWeight: 600,
   textTransform: 'uppercase',
   margin: 0,
@@ -66,9 +66,9 @@ function KpiCard({ label, value, sub, subColor, subBg, loading: cardLoading }) {
     <div style={card}>
       <p style={sectionLabel}>{label}</p>
       {cardLoading ? (
-        <div style={{ height: 32, width: '65%', background: '#F0F0EE', borderRadius: 6, margin: '8px 0 8px', animation: 'skel 1.2s ease infinite alternate' }} />
+        <div style={{ height: 32, width: '65%', background: 'var(--bg-pill)', borderRadius: 6, margin: '8px 0 8px', animation: 'skel 1.2s ease infinite alternate' }} />
       ) : (
-        <p style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '8px 0 8px' }}>
+        <p style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '8px 0 8px' }}>
           {value}
         </p>
       )}
@@ -100,7 +100,7 @@ function QuickActionCard({ icon, label, onTap }) {
       }}
     >
       {icon}
-      <span style={{ fontSize: 11, fontWeight: 600, color: '#111', letterSpacing: '0.02em' }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
         {label}
       </span>
     </button>
@@ -130,21 +130,21 @@ function MemberRow({ member, isLast }) {
         {initials}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {name}
         </p>
-        <p style={{ fontSize: 12, color: '#888', margin: 0 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>
           {member.membership_type || 'Member'}
         </p>
       </div>
-      <span style={{ fontSize: 12, color: '#aaa', flexShrink: 0 }}>{joinDate}</span>
+      <span style={{ fontSize: 12, color: 'var(--text-tertiary)', flexShrink: 0 }}>{joinDate}</span>
     </div>
   )
 }
 
 // ── SVG Icon helpers ──────────────────────────────────────────────────────────
 
-const iconProps = { width: 22, height: 22, fill: 'none', stroke: '#3B6D11', strokeWidth: '1.8', strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24' }
+const iconProps = { width: 22, height: 22, fill: 'none', stroke: 'var(--success)', strokeWidth: '1.8', strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24' }
 
 function IconUserPlus() {
   return (
@@ -187,7 +187,7 @@ function IconReports() {
 
 function IconBell() {
   return (
-    <svg width="22" height="22" fill="none" stroke="#555" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <svg width="22" height="22" fill="none" stroke="var(--text-secondary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
@@ -196,7 +196,7 @@ function IconBell() {
 
 function IconWarning() {
   return (
-    <svg width="16" height="16" fill="none" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <svg width="16" height="16" fill="none" stroke="var(--error)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
       <line x1="12" y1="9" x2="12" y2="13" />
       <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -293,10 +293,10 @@ export default function GymDashboard() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <div className="w-7 h-7 border-2 border-[#3B6D11] border-t-transparent rounded-full animate-spin" />
-          <p style={{ fontSize: 13, color: '#999' }}>Loading dashboard…</p>
+          <div className="w-7 h-7 border-2 border-[var(--success)] border-t-transparent rounded-full animate-spin" />
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Loading dashboard…</p>
         </div>
       </div>
     )
@@ -305,19 +305,19 @@ export default function GymDashboard() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F7F7F5', paddingBottom: 80 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: 80 }}>
 
       {/* 1 — Top bar */}
       <div style={{
-        background: '#fff',
+        background: 'var(--bg-card)',
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
         padding: '14px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontWeight: 700, fontSize: 17, color: '#111' }}>{gymName}</span>
+          <span style={{ fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>{gymName}</span>
           <span style={{
-            background: '#EAF3DE', color: '#3B6D11',
+            background: 'var(--success-bg)', color: 'var(--success)',
             fontSize: 11, fontWeight: 600,
             padding: '2px 8px', borderRadius: 20,
           }}>
@@ -330,7 +330,7 @@ export default function GymDashboard() {
           </button>
           <button
             onClick={() => navigate('/gym/settings')}
-            className="rounded-full p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            className="rounded-full p-2 bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:bg-[var(--bg-pill)] transition-colors"
             style={{ border: 'none', cursor: 'pointer', display: 'flex' }}
             aria-label="Settings"
           >
@@ -343,10 +343,10 @@ export default function GymDashboard() {
 
         {/* 2 — Greeting */}
         <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111', margin: 0 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             {getGreeting()}, {firstName} 👋
           </h1>
-          <p style={{ fontSize: 13, color: '#888', margin: '4px 0 0' }}>{formatDate()}</p>
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>{formatDate()}</p>
         </div>
 
         {/* 3 — KPI 2×2 grid */}
@@ -357,8 +357,8 @@ export default function GymDashboard() {
             label="Total Members"
             value={members.length}
             sub="All enrolled"
-            subColor="#3B6D11"
-            subBg="#EAF3DE"
+            subColor="var(--success)"
+            subBg="var(--success-bg)"
           />
           <KpiCard
             label="Monthly Revenue"
@@ -369,24 +369,24 @@ export default function GymDashboard() {
                 : `₹${Number(revenue).toLocaleString('en-IN')}`
             }
             sub="Paid this month"
-            subColor="#3B6D11"
-            subBg="#EAF3DE"
+            subColor="var(--success)"
+            subBg="var(--success-bg)"
           />
           {/* TODO: occupancy.current is real (check_ins table) but capacity comes from gyms.capacity which may be unset */}
           <KpiCard
             label="Active Today"
             value={occupancy.current}
             sub={`of ${occupancy.capacity || '—'} capacity`}
-            subColor="#555"
-            subBg="#F0F0EE"
+            subColor="var(--text-secondary)"
+            subBg="var(--bg-pill)"
           />
           {/* churnCount is real — from ML scoring endpoint */}
           <KpiCard
             label="Churn Risk"
             value={churnCount}
             sub={churnCount > 0 ? 'High risk members' : 'No churn risk'}
-            subColor={churnCount > 0 ? '#A32D2D' : '#3B6D11'}
-            subBg={churnCount > 0 ? '#FCEBEB' : '#EAF3DE'}
+            subColor={churnCount > 0 ? 'var(--error)' : 'var(--success)'}
+            subBg={churnCount > 0 ? 'var(--error-bg)' : 'var(--success-bg)'}
           />
         </div>
 
@@ -399,19 +399,19 @@ export default function GymDashboard() {
         <div style={{ ...card, marginBottom: 16 }}>
           <p style={sectionLabel}>LIVE OCCUPANCY</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '10px 0 10px' }}>
-            <span style={{ fontSize: 24, fontWeight: 700, color: '#111' }}>{occupancy.current}</span>
-            <span style={{ fontSize: 13, color: '#888' }}>/ {occupancy.capacity || '—'} capacity</span>
+            <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{occupancy.current}</span>
+            <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>/ {occupancy.capacity || '—'} capacity</span>
           </div>
-          <div style={{ height: 6, background: '#F0F0EE', borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ height: 6, background: 'var(--bg-pill)', borderRadius: 3, overflow: 'hidden' }}>
             <div style={{
               height: '100%',
               width: `${occupancyPct}%`,
-              background: '#3B6D11',
+              background: 'var(--success)',
               borderRadius: 3,
               transition: 'width 0.5s ease',
             }} />
           </div>
-          <p style={{ fontSize: 12, color: '#888', margin: '6px 0 0' }}>{occupancyPct}% full</p>
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '6px 0 0' }}>{occupancyPct}% full</p>
         </div>
 
         {/* 5 — Quick Actions 2×2 */}
@@ -429,13 +429,13 @@ export default function GymDashboard() {
             <p style={sectionLabel}>RECENT MEMBERS</p>
             <button
               onClick={() => navigate('/gym/members')}
-              style={{ background: 'none', border: 'none', fontSize: 13, color: '#3B6D11', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+              style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--success)', fontWeight: 600, cursor: 'pointer', padding: 0 }}
             >
               See all →
             </button>
           </div>
           {recentMembers.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#bbb', textAlign: 'center', padding: '16px 0', margin: 0 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 0', margin: 0 }}>
               No members yet
             </p>
           ) : (
@@ -450,21 +450,21 @@ export default function GymDashboard() {
           <div style={{ marginBottom: 16 }}>
             <p style={{ ...sectionLabel, marginBottom: 10 }}>ALERTS</p>
             <div style={{
-              background: '#FCEBEB',
+              background: 'var(--error-bg)',
               border: '0.5px solid rgba(163,45,45,0.2)',
               borderRadius: 12,
               padding: 16,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <IconWarning />
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#A32D2D' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--error)' }}>
                   {expiringMembers.length} membership{expiringMembers.length > 1 ? 's' : ''} expiring soon
                 </span>
               </div>
               {expiringMembers.slice(0, 3).map((m, i) => {
                 const days = daysUntil(m.end_date || m.membership_end_date)
                 return (
-                  <p key={i} style={{ fontSize: 12, color: '#A32D2D', margin: '4px 0 0' }}>
+                  <p key={i} style={{ fontSize: 12, color: 'var(--error)', margin: '4px 0 0' }}>
                     {m.full_name || m.name} — {days === 0 ? 'expires today' : `${days} day${days !== 1 ? 's' : ''} left`}
                   </p>
                 )

@@ -1,0 +1,507 @@
+{
+  "/Users/artazayaz/Desktop/fitforge-frontend/.claude/launch.json": {
+    "mtime": 1776916913.2548008,
+    "ast_hash": "79828337f4f81ef78704f6cb78009ba2",
+    "semantic_hash": "79828337f4f81ef78704f6cb78009ba2"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/.claude/settings.local.json": {
+    "mtime": 1781117563.4398258,
+    "ast_hash": "894e14769411dfe71cde64b233cc6fa6",
+    "semantic_hash": "894e14769411dfe71cde64b233cc6fa6"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/eslint.config.js": {
+    "mtime": 1776914656.3872333,
+    "ast_hash": "49c8473bcfcec3aef596a5fb04a6df06",
+    "semantic_hash": "49c8473bcfcec3aef596a5fb04a6df06"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/package.json": {
+    "mtime": 1781351289.4670334,
+    "ast_hash": "2e3ad03ed792cbf14315cdfb734d56e9",
+    "semantic_hash": "2e3ad03ed792cbf14315cdfb734d56e9"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/postcss.config.js": {
+    "mtime": 1776915662.3144705,
+    "ast_hash": "3c28f25fec4d7eceba24345e12e9e429",
+    "semantic_hash": "3c28f25fec4d7eceba24345e12e9e429"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/App.jsx": {
+    "mtime": 1781075956.0243638,
+    "ast_hash": "d4132494872c7076ebdea1d6d8b4374b",
+    "semantic_hash": "d4132494872c7076ebdea1d6d8b4374b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/AddMemberModal.jsx": {
+    "mtime": 1778855376.2608883,
+    "ast_hash": "2444494ccb4679c01deb8209fa237d20",
+    "semantic_hash": "2444494ccb4679c01deb8209fa237d20"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/AuthRoute.jsx": {
+    "mtime": 1778855376.2614205,
+    "ast_hash": "eabc8af13fe54a47b140142f1167d5cc",
+    "semantic_hash": "eabc8af13fe54a47b140142f1167d5cc"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/BarcodeScanner.jsx": {
+    "mtime": 1780438078.854871,
+    "ast_hash": "11f177d5fa9eca4bd04d2cfdc4b85f8a",
+    "semantic_hash": "11f177d5fa9eca4bd04d2cfdc4b85f8a"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/BottomNav.jsx": {
+    "mtime": 1780990923.4781559,
+    "ast_hash": "274fdd56114dcdc145c3e1d19a046053",
+    "semantic_hash": "274fdd56114dcdc145c3e1d19a046053"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/ConsumerLayout.jsx": {
+    "mtime": 1780990948.5597298,
+    "ast_hash": "34f06ab02d4b72046f44827cbdb41fc4",
+    "semantic_hash": "34f06ab02d4b72046f44827cbdb41fc4"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/ExercisePicker.jsx": {
+    "mtime": 1780561906.4550953,
+    "ast_hash": "54a58f178b76703cb1d4c50462f14afd",
+    "semantic_hash": "54a58f178b76703cb1d4c50462f14afd"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/FormCoachModal.jsx": {
+    "mtime": 1780436824.7248526,
+    "ast_hash": "699af02fc340332c23a1caff14196422",
+    "semantic_hash": "699af02fc340332c23a1caff14196422"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/FormFeedbackOverlay.jsx": {
+    "mtime": 1780436031.2857533,
+    "ast_hash": "cbf391af641ce3ab8ab87ec940bfb829",
+    "semantic_hash": "cbf391af641ce3ab8ab87ec940bfb829"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/GymBottomNav.jsx": {
+    "mtime": 1781076885.6835506,
+    "ast_hash": "72488d6c1d61dfc6e5a6ff4639803b77",
+    "semantic_hash": "72488d6c1d61dfc6e5a6ff4639803b77"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/GymOwnerNav.jsx": {
+    "mtime": 1778855376.2626376,
+    "ast_hash": "146e395494e2c9d7f8e7e1a906e2fea9",
+    "semantic_hash": "146e395494e2c9d7f8e7e1a906e2fea9"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/GymOwnerRoute.jsx": {
+    "mtime": 1778855376.2630513,
+    "ast_hash": "68a631401647b9cccba8a65ad93335d9",
+    "semantic_hash": "68a631401647b9cccba8a65ad93335d9"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/MoreSheet.jsx": {
+    "mtime": 1780990946.4761362,
+    "ast_hash": "1185c9e1990c1e522564afb839f82edf",
+    "semantic_hash": "1185c9e1990c1e522564afb839f82edf"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/ProtectedRoute.jsx": {
+    "mtime": 1778855376.26329,
+    "ast_hash": "24ad2d432dd9e99dfd263397a783c692",
+    "semantic_hash": "24ad2d432dd9e99dfd263397a783c692"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/PublicRoute.jsx": {
+    "mtime": 1780343926.050906,
+    "ast_hash": "258a411fecdbbec7ac34f90b45d9db02",
+    "semantic_hash": "258a411fecdbbec7ac34f90b45d9db02"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/AttendanceCalendar.jsx": {
+    "mtime": 1781077706.7828622,
+    "ast_hash": "389edae1d0144e744576aea372c5a316",
+    "semantic_hash": "389edae1d0144e744576aea372c5a316"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/ChurnRiskCard.jsx": {
+    "mtime": 1781077704.767892,
+    "ast_hash": "f6c70744d4e6539c72b12a1df6e5a605",
+    "semantic_hash": "f6c70744d4e6539c72b12a1df6e5a605"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/ClassTypeChip.jsx": {
+    "mtime": 1781087993.5509486,
+    "ast_hash": "16d09d276a38346b26966617da39de5b",
+    "semantic_hash": "16d09d276a38346b26966617da39de5b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/DaySelector.jsx": {
+    "mtime": 1781088004.8912878,
+    "ast_hash": "8bb6d6f16042916ec328f4d1310b257a",
+    "semantic_hash": "8bb6d6f16042916ec328f4d1310b257a"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/MembershipProgressBar.jsx": {
+    "mtime": 1781077702.7515028,
+    "ast_hash": "6b9bd9f940785e05b14e15635ff7dfa1",
+    "semantic_hash": "6b9bd9f940785e05b14e15635ff7dfa1"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/PaymentStatusPill.jsx": {
+    "mtime": 1781086460.7713792,
+    "ast_hash": "6d7fff82d8d1f2f50d6e0b10a0d10639",
+    "semantic_hash": "6d7fff82d8d1f2f50d6e0b10a0d10639"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/RevenueBarChart.jsx": {
+    "mtime": 1781086458.7483666,
+    "ast_hash": "ce37962ca4441025c37396c8cea6d06f",
+    "semantic_hash": "ce37962ca4441025c37396c8cea6d06f"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/StatsSummaryRow.jsx": {
+    "mtime": 1781086462.7885473,
+    "ast_hash": "5237a1d60da660e12abd14ca1a9accc8",
+    "semantic_hash": "5237a1d60da660e12abd14ca1a9accc8"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/ToggleSwitch.jsx": {
+    "mtime": 1781088006.9194412,
+    "ast_hash": "9001d310a0bf0ebedd49c5ff485696ce",
+    "semantic_hash": "9001d310a0bf0ebedd49c5ff485696ce"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/components/gym/index.js": {
+    "mtime": 1781088010.9630644,
+    "ast_hash": "2273ec5da3a95f1e9244b055c8d25ff3",
+    "semantic_hash": "2273ec5da3a95f1e9244b055c8d25ff3"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/data/exerciseDatabase.js": {
+    "mtime": 1780416488.7638402,
+    "ast_hash": "bc39101cd09b53518dd92abe6682b9fb",
+    "semantic_hash": "bc39101cd09b53518dd92abe6682b9fb"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/data/exerciseInstructions.js": {
+    "mtime": 1778974475.844727,
+    "ast_hash": "baba478079cd777f6e72d639b5d815c5",
+    "semantic_hash": "baba478079cd777f6e72d639b5d815c5"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/data/gymDummyData.js": {
+    "mtime": 1781088008.944421,
+    "ast_hash": "2c1a57da960e8404e6157401a4860351",
+    "semantic_hash": "2c1a57da960e8404e6157401a4860351"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/hooks/useAuth.jsx": {
+    "mtime": 1779230336.9428327,
+    "ast_hash": "eea3332942b4168809e6c38ed0b0074f",
+    "semantic_hash": "eea3332942b4168809e6c38ed0b0074f"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/hooks/useExerciseHistory.js": {
+    "mtime": 1778974501.2874634,
+    "ast_hash": "bc0d12590e1ba6107367fea0955e869c",
+    "semantic_hash": "bc0d12590e1ba6107367fea0955e869c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/hooks/useExercises.js": {
+    "mtime": 1779747046.7459226,
+    "ast_hash": "c62fa1fe0b7210b352934407f004bc32",
+    "semantic_hash": "c62fa1fe0b7210b352934407f004bc32"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/hooks/useStreak.js": {
+    "mtime": 1777115846.1116085,
+    "ast_hash": "5e2c19a1c47b64b3ae323746ffdef123",
+    "semantic_hash": "5e2c19a1c47b64b3ae323746ffdef123"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/hooks/useWorkoutHistory.js": {
+    "mtime": 1778855537.144057,
+    "ast_hash": "ac7aa5043a94ed1d3776d73f3e8e0dd2",
+    "semantic_hash": "ac7aa5043a94ed1d3776d73f3e8e0dd2"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/hooks/useWorkoutSession.js": {
+    "mtime": 1779746127.548239,
+    "ast_hash": "05d2adb0b6ffd4f5d7027fc2b64ef98d",
+    "semantic_hash": "05d2adb0b6ffd4f5d7027fc2b64ef98d"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/main.jsx": {
+    "mtime": 1776914656.3891637,
+    "ast_hash": "e13723e2574429d9a6d849727e3ff695",
+    "semantic_hash": "e13723e2574429d9a6d849727e3ff695"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/BecomeTrainer.jsx": {
+    "mtime": 1780588553.433931,
+    "ast_hash": "6debae2f3b7488cd2cdfc0aecce07d4c",
+    "semantic_hash": "6debae2f3b7488cd2cdfc0aecce07d4c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Chat.jsx": {
+    "mtime": 1781021201.1660378,
+    "ast_hash": "5569512770596243a69ba15b7726c5ae",
+    "semantic_hash": "5569512770596243a69ba15b7726c5ae"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/ChatWindow.jsx": {
+    "mtime": 1780394624.6382775,
+    "ast_hash": "702ac697fea6be6e9561f46fd37801a3",
+    "semantic_hash": "702ac697fea6be6e9561f46fd37801a3"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/ClientChatPage.jsx": {
+    "mtime": 1780393477.9224184,
+    "ast_hash": "ab414ec1a6b4d56bde05410bb2d89e30",
+    "semantic_hash": "ab414ec1a6b4d56bde05410bb2d89e30"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Community.jsx": {
+    "mtime": 1780695775.072638,
+    "ast_hash": "5b3f5f06784472decc122cbc43527099",
+    "semantic_hash": "5b3f5f06784472decc122cbc43527099"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Diet.jsx": {
+    "mtime": 1780674207.12455,
+    "ast_hash": "ffec054fa9e49b310a756b8547b0324b",
+    "semantic_hash": "ffec054fa9e49b310a756b8547b0324b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/ExerciseDetail.jsx": {
+    "mtime": 1779050834.4410918,
+    "ast_hash": "23b87d75b6b50e13d3afaae6b895f2ea",
+    "semantic_hash": "23b87d75b6b50e13d3afaae6b895f2ea"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/ExerciseLibrary.jsx": {
+    "mtime": 1780655421.9242465,
+    "ast_hash": "a652a7a9a5191a824866f32feaa9ba14",
+    "semantic_hash": "a652a7a9a5191a824866f32feaa9ba14"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/FormCoach.jsx": {
+    "mtime": 1780997347.5813365,
+    "ast_hash": "4c9c21507b6e6502ba515fbbd7286631",
+    "semantic_hash": "4c9c21507b6e6502ba515fbbd7286631"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/GymAnnouncements.jsx": {
+    "mtime": 1778855376.2471814,
+    "ast_hash": "971911ff47b47d3bbe5542b5f56f77ba",
+    "semantic_hash": "971911ff47b47d3bbe5542b5f56f77ba"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/GymComingSoon.jsx": {
+    "mtime": 1778855376.2480543,
+    "ast_hash": "30f586318c4cb4a498539c9641714076",
+    "semantic_hash": "30f586318c4cb4a498539c9641714076"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/GymImport.jsx": {
+    "mtime": 1778855376.2488978,
+    "ast_hash": "c3e59137ab328ff94315d016a702e4ca",
+    "semantic_hash": "c3e59137ab328ff94315d016a702e4ca"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Home.jsx": {
+    "mtime": 1780674199.3297653,
+    "ast_hash": "b39959348cdb523fcae47b0bb30e631c",
+    "semantic_hash": "b39959348cdb523fcae47b0bb30e631c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/LiveSession.jsx": {
+    "mtime": 1780644968.1327662,
+    "ast_hash": "d5aadea42bc31ff5369dab2aca740f5e",
+    "semantic_hash": "d5aadea42bc31ff5369dab2aca740f5e"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Login.jsx": {
+    "mtime": 1781032013.7193015,
+    "ast_hash": "6df4359f643adb20a8564a63cf8b2030",
+    "semantic_hash": "6df4359f643adb20a8564a63cf8b2030"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/MyGym.jsx": {
+    "mtime": 1781021289.5603895,
+    "ast_hash": "da563926097def8c54ceaa691ec0906c",
+    "semantic_hash": "da563926097def8c54ceaa691ec0906c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/MyTrainer.jsx": {
+    "mtime": 1781021531.5893471,
+    "ast_hash": "8575154cf738480617a2440d4321b71a",
+    "semantic_hash": "8575154cf738480617a2440d4321b71a"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Onboarding.jsx": {
+    "mtime": 1781031956.2912378,
+    "ast_hash": "406e8d64397793df17db7ec3ef853e89",
+    "semantic_hash": "406e8d64397793df17db7ec3ef853e89"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Progress.jsx": {
+    "mtime": 1780674213.5755224,
+    "ast_hash": "12b38c6cb156e41d6f7ff7f348be8fe1",
+    "semantic_hash": "12b38c6cb156e41d6f7ff7f348be8fe1"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Settings.jsx": {
+    "mtime": 1781157641.5495427,
+    "ast_hash": "e32d6ac6e4fd13a1bfdd5dccbe970e8b",
+    "semantic_hash": "e32d6ac6e4fd13a1bfdd5dccbe970e8b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Signup.jsx": {
+    "mtime": 1781032072.6861455,
+    "ast_hash": "b5b9324c4bffc5c0b5adf973e94a67d8",
+    "semantic_hash": "b5b9324c4bffc5c0b5adf973e94a67d8"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerAssignPlan.jsx": {
+    "mtime": 1780564775.3718603,
+    "ast_hash": "72b73c81a264e304b9f236588445f49b",
+    "semantic_hash": "72b73c81a264e304b9f236588445f49b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerChatPage.jsx": {
+    "mtime": 1780527612.6414826,
+    "ast_hash": "1113e08d9074b42c00b3fabc50d4358c",
+    "semantic_hash": "1113e08d9074b42c00b3fabc50d4358c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerClientDetail.jsx": {
+    "mtime": 1780526926.1229095,
+    "ast_hash": "317ee1d64babb6dfb5c6fe7718268338",
+    "semantic_hash": "317ee1d64babb6dfb5c6fe7718268338"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerDashboard.jsx": {
+    "mtime": 1780503926.877183,
+    "ast_hash": "8d7acad8f75da37a8884b35d72ba7cb7",
+    "semantic_hash": "8d7acad8f75da37a8884b35d72ba7cb7"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerDietBuilder.jsx": {
+    "mtime": 1780395119.893543,
+    "ast_hash": "01d6fd51677f54790513ea91131a03f6",
+    "semantic_hash": "01d6fd51677f54790513ea91131a03f6"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerSettings.jsx": {
+    "mtime": 1780587530.0736835,
+    "ast_hash": "17e93d9de4cb4e64bcfb8de207fddaef",
+    "semantic_hash": "17e93d9de4cb4e64bcfb8de207fddaef"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerTemplateBuilder.jsx": {
+    "mtime": 1780561865.9195027,
+    "ast_hash": "73095e9a7ce07d51dbbe847ac5d125b4",
+    "semantic_hash": "73095e9a7ce07d51dbbe847ac5d125b4"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/TrainerTemplates.jsx": {
+    "mtime": 1780560678.0667746,
+    "ast_hash": "7255d3228f3e7f13894617bd03adcb13",
+    "semantic_hash": "7255d3228f3e7f13894617bd03adcb13"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/UserPlanBuilder.jsx": {
+    "mtime": 1780433436.1367626,
+    "ast_hash": "421be83754f9b8f6569413e70937b7b1",
+    "semantic_hash": "421be83754f9b8f6569413e70937b7b1"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/Workout.jsx": {
+    "mtime": 1780644820.3556776,
+    "ast_hash": "047f5518fc4e41fb7a0c7a992b9f72f2",
+    "semantic_hash": "047f5518fc4e41fb7a0c7a992b9f72f2"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/WorkoutSummary.jsx": {
+    "mtime": 1780645080.196472,
+    "ast_hash": "2670c81209dc716831d04e7a4b01031c",
+    "semantic_hash": "2670c81209dc716831d04e7a4b01031c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/BecomeGymOwner.jsx": {
+    "mtime": 1781076701.8845952,
+    "ast_hash": "7a595dc1a794da4aabc6416819bcef4e",
+    "semantic_hash": "7a595dc1a794da4aabc6416819bcef4e"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymCheckin.jsx": {
+    "mtime": 1781118995.8223326,
+    "ast_hash": "4c2aa879182c56fa75b6b47417025693",
+    "semantic_hash": "4c2aa879182c56fa75b6b47417025693"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymDashboard.jsx": {
+    "mtime": 1781076654.9773738,
+    "ast_hash": "bcffd69f5c6211d87ffb48d96a5c8147",
+    "semantic_hash": "bcffd69f5c6211d87ffb48d96a5c8147"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymInsights.jsx": {
+    "mtime": 1781119074.6802816,
+    "ast_hash": "b07ada989418f02a76e1339402e1ffca",
+    "semantic_hash": "b07ada989418f02a76e1339402e1ffca"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymMemberDetail.jsx": {
+    "mtime": 1781079446.1982207,
+    "ast_hash": "5b782fde541754c5be1b0cf072e29ff2",
+    "semantic_hash": "5b782fde541754c5be1b0cf072e29ff2"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymMembers.jsx": {
+    "mtime": 1781077383.9847984,
+    "ast_hash": "c4e3b213f8e2e9eaa31d676a750ede25",
+    "semantic_hash": "c4e3b213f8e2e9eaa31d676a750ede25"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymOnboarding.jsx": {
+    "mtime": 1781121328.1819463,
+    "ast_hash": "062369cb18198e9fcd06dd5a7125ec9b",
+    "semantic_hash": "062369cb18198e9fcd06dd5a7125ec9b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymPayments.jsx": {
+    "mtime": 1781087911.6041024,
+    "ast_hash": "8fe66bfcd7af1d5e48bd9e7dca482702",
+    "semantic_hash": "8fe66bfcd7af1d5e48bd9e7dca482702"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymSchedule.jsx": {
+    "mtime": 1781088990.2423997,
+    "ast_hash": "dfe584fbfacf34c67df571126701790d",
+    "semantic_hash": "dfe584fbfacf34c67df571126701790d"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymSettings.jsx": {
+    "mtime": 1781121228.197416,
+    "ast_hash": "07f93e0eaaed79a19d7e0024748e364f",
+    "semantic_hash": "07f93e0eaaed79a19d7e0024748e364f"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/pages/gym/GymTrainers.jsx": {
+    "mtime": 1781118908.8535383,
+    "ast_hash": "a4aafadc785845f98c39c0f5f5308373",
+    "semantic_hash": "a4aafadc785845f98c39c0f5f5308373"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/api.js": {
+    "mtime": 1781076590.4210603,
+    "ast_hash": "777591438a9eb53a4def64fe25762b52",
+    "semantic_hash": "777591438a9eb53a4def64fe25762b52"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/avatarColor.js": {
+    "mtime": 1781076838.4790583,
+    "ast_hash": "5088de481db45698a80a69adb44a04ea",
+    "semantic_hash": "5088de481db45698a80a69adb44a04ea"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/dateHelpers.js": {
+    "mtime": 1781077695.6445482,
+    "ast_hash": "80b99310c59087163c95e90e4ba4a818",
+    "semantic_hash": "80b99310c59087163c95e90e4ba4a818"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/formFeedback.js": {
+    "mtime": 1780435988.990729,
+    "ast_hash": "bceba6ab908ec21ab009f6c42114c871",
+    "semantic_hash": "bceba6ab908ec21ab009f6c42114c871"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/formRuleMapping.js": {
+    "mtime": 1780416563.4764423,
+    "ast_hash": "351449b2dccac8399f2eebf5fb3ebde6",
+    "semantic_hash": "351449b2dccac8399f2eebf5fb3ebde6"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/formRules.js": {
+    "mtime": 1778855376.2671905,
+    "ast_hash": "0d3dcf64cb267763ad32f9f3d3f240c2",
+    "semantic_hash": "0d3dcf64cb267763ad32f9f3d3f240c2"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/poseUtils.js": {
+    "mtime": 1778855376.2675502,
+    "ast_hash": "88e3bc6dcb76653421cd572c9c1b146b",
+    "semantic_hash": "88e3bc6dcb76653421cd572c9c1b146b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/supabase.js": {
+    "mtime": 1778855376.2681198,
+    "ast_hash": "4759d8c06d6dc7bf46edb59481225fce",
+    "semantic_hash": "4759d8c06d6dc7bf46edb59481225fce"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/utils/supabaseClient.js": {
+    "mtime": 1778855376.2687242,
+    "ast_hash": "185b535faf4154a1832eeb0bf3d46b9c",
+    "semantic_hash": "185b535faf4154a1832eeb0bf3d46b9c"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/tailwind.config.js": {
+    "mtime": 1776915179.3559008,
+    "ast_hash": "f4602f20b48980ca0caeaf055febe442",
+    "semantic_hash": "f4602f20b48980ca0caeaf055febe442"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/vite.config.js": {
+    "mtime": 1776914656.3894224,
+    "ast_hash": "88439104b3c207f17d33ef3160e3b080",
+    "semantic_hash": "88439104b3c207f17d33ef3160e3b080"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/README.md": {
+    "mtime": 1776967980.3961263,
+    "ast_hash": "389f65cdfd048fcbb170733cff85d5a3",
+    "semantic_hash": "389f65cdfd048fcbb170733cff85d5a3"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/index.html": {
+    "mtime": 1780587449.8646564,
+    "ast_hash": "e3af4eee558d00ee278460fe34a6f9cf",
+    "semantic_hash": "e3af4eee558d00ee278460fe34a6f9cf"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/public/favicon.svg": {
+    "mtime": 1776914656.3879142,
+    "ast_hash": "7e840862161341271697daa99a40d76b",
+    "semantic_hash": "7e840862161341271697daa99a40d76b"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/public/icons.svg": {
+    "mtime": 1776914656.388041,
+    "ast_hash": "3b4fcfcf393eca4d264dca4a4663bc37",
+    "semantic_hash": "3b4fcfcf393eca4d264dca4a4663bc37"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/assets/hero.png": {
+    "mtime": 1776914656.3885264,
+    "ast_hash": "aead493361b27e7510691c5d7072dfc1",
+    "semantic_hash": "aead493361b27e7510691c5d7072dfc1"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/assets/react.svg": {
+    "mtime": 1776914656.388772,
+    "ast_hash": "f0402b67b6ce880f65666bb49e841696",
+    "semantic_hash": "f0402b67b6ce880f65666bb49e841696"
+  },
+  "/Users/artazayaz/Desktop/fitforge-frontend/src/assets/vite.svg": {
+    "mtime": 1776914656.3888915,
+    "ast_hash": "9960a24288958394ac50e57ff638b036",
+    "semantic_hash": "9960a24288958394ac50e57ff638b036"
+  }
+}

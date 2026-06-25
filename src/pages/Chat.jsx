@@ -53,10 +53,10 @@ const quickChips = [
 function UserBubble({ msg }) {
   return (
     <div className="flex flex-col items-end mx-5 mb-3">
-      <div className="max-w-[75%] bg-[#111] text-white rounded-[18px] rounded-br-[4px] px-4 py-3">
+      <div className="max-w-[75%] bg-[var(--bg-elevated)] text-[var(--text-primary)] rounded-[18px] rounded-br-[4px] px-4 py-3">
         <p className="text-[14px] leading-relaxed">{msg.text}</p>
       </div>
-      <span className="text-[10px] text-[#CCC] mt-1">{msg.time}</span>
+      <span className="text-[10px] text-[var(--text-tertiary)] mt-1">{msg.time}</span>
     </div>
   )
 }
@@ -65,36 +65,36 @@ function AiBubble({ msg }) {
   return (
     <div className="flex items-start gap-2 mx-5 mb-3">
       {/* Avatar */}
-      <div className="w-7 h-7 bg-[#111] rounded-full flex items-center justify-center shrink-0 mt-0.5">
-        <span className="text-[11px] font-bold text-white">F</span>
+      <div className="w-7 h-7 bg-[var(--text-primary)] rounded-full flex items-center justify-center shrink-0 mt-0.5">
+        <span className="text-[11px] font-bold text-[var(--bg-card)]">F</span>
       </div>
       <div className="flex-1 max-w-[85%]">
-        <div className="bg-white border border-black/[0.06] rounded-[4px] rounded-tr-[18px] rounded-br-[18px] rounded-bl-[18px] px-4 py-3">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-[4px] rounded-tr-[18px] rounded-br-[18px] rounded-bl-[18px] px-4 py-3">
           {msg.structured ? (
             <>
-              <p className="text-[14px] font-medium text-[#111] leading-snug">{msg.intro}</p>
+              <p className="text-[14px] font-medium text-[var(--text-primary)] leading-snug">{msg.intro}</p>
               <div className="mt-2 space-y-2">
                 {msg.bullets.map((b, i) => (
                   <div key={i} className="flex gap-2 items-start">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#111] mt-2 shrink-0" />
-                    <p className="text-[13px] text-[#444] leading-relaxed">{b}</p>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-primary)] mt-2 shrink-0" />
+                    <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">{b}</p>
                   </div>
                 ))}
               </div>
               {msg.rec && (
-                <div className="mt-3 bg-[#F7F7F5] border border-black/[0.06] rounded-[10px] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#999] mb-1">
+                <div className="mt-3 bg-[var(--bg-primary)] border border-[var(--border)] rounded-[10px] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)] mb-1">
                     🎯 {msg.rec.label}
                   </p>
-                  <p className="text-[13px] text-[#111] leading-relaxed">{msg.rec.text}</p>
+                  <p className="text-[13px] text-[var(--text-primary)] leading-relaxed">{msg.rec.text}</p>
                 </div>
               )}
             </>
           ) : (
-            <p className="text-[14px] text-[#111] leading-relaxed">{msg.text}</p>
+            <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">{msg.text}</p>
           )}
         </div>
-        <span className="text-[10px] text-[#CCC] mt-1 ml-1 block">{msg.time}</span>
+        <span className="text-[10px] text-[var(--text-tertiary)] mt-1 ml-1 block">{msg.time}</span>
       </div>
     </div>
   )
@@ -103,15 +103,15 @@ function AiBubble({ msg }) {
 function TypingIndicator() {
   return (
     <div className="flex items-start gap-2 mx-5 mb-3">
-      <div className="w-7 h-7 bg-[#111] rounded-full flex items-center justify-center shrink-0">
-        <span className="text-[11px] font-bold text-white">F</span>
+      <div className="w-7 h-7 bg-[var(--text-primary)] rounded-full flex items-center justify-center shrink-0">
+        <span className="text-[11px] font-bold text-[var(--bg-card)]">F</span>
       </div>
-      <div className="bg-white border border-black/[0.06] rounded-[4px] rounded-tr-[18px] rounded-br-[18px] rounded-bl-[18px] px-4 py-3">
+      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-[4px] rounded-tr-[18px] rounded-br-[18px] rounded-bl-[18px] px-4 py-3">
         <div className="flex gap-1.5 items-center h-5">
           {[0, 1, 2].map(i => (
             <div
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-[#BBB]"
+              className="w-1.5 h-1.5 rounded-full bg-[var(--text-tertiary)]"
               style={{
                 animation: 'ffChatBounce 900ms ease-in-out infinite',
                 animationDelay: `${i * 150}ms`,
@@ -212,7 +212,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex flex-col">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
 
       {/* Bounce keyframes */}
       <style>{`
@@ -223,20 +223,20 @@ export default function Chat() {
       `}</style>
 
       {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
-        <button onClick={() => navigate(-1)} className="text-sm font-medium text-[#999]">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+        <button onClick={() => navigate(-1)} className="text-sm font-medium text-[var(--text-tertiary)]">
           ← Back
         </button>
         <div className="flex flex-col items-center absolute left-1/2 -translate-x-1/2">
-          <span className="text-base font-semibold text-[#111]">AI Coach</span>
+          <span className="text-base font-semibold text-[var(--text-primary)]">AI Coach</span>
           <div className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3B6D11]" />
-            <span className="text-[11px] text-[#3B6D11]">Online</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
+            <span className="text-[11px] text-[var(--success)]">Online</span>
           </div>
         </div>
-        <button className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center">
+        <button className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
@@ -250,13 +250,13 @@ export default function Chat() {
         {!hasStarted && messages.length === 0 && (
           <div className="px-5 pt-8 pb-4">
             {/* AI mark */}
-            <div className="w-16 h-16 bg-[#111] rounded-2xl flex items-center justify-center mx-auto">
-              <span className="text-[28px] font-bold text-white">F</span>
+            <div className="w-16 h-16 bg-[var(--text-primary)] rounded-2xl flex items-center justify-center mx-auto">
+              <span className="text-[28px] font-bold text-[var(--bg-card)]">F</span>
             </div>
-            <h2 className="text-xl font-bold text-[#111] text-center mt-4">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] text-center mt-4">
               Your AI Fitness Coach
             </h2>
-            <p className="text-sm text-[#999] text-center mt-2 px-6 leading-relaxed">
+            <p className="text-sm text-[var(--text-tertiary)] text-center mt-2 px-6 leading-relaxed">
               Ask me anything about workouts, nutrition, recovery, or your progress.
             </p>
 
@@ -271,10 +271,10 @@ export default function Chat() {
                     setHasStarted(true)
                     sendMessage(text)
                   }}
-                  className="bg-white border border-black/[0.08] rounded-2xl p-4 text-left flex flex-col gap-1.5 active:bg-[#F7F7F5] transition-colors"
+                  className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 text-left flex flex-col gap-1.5 active:bg-[var(--bg-primary)] transition-colors"
                 >
                   <span className="text-xl">{s.icon}</span>
-                  <span className="text-[14px] font-medium text-[#111] leading-snug whitespace-pre-line">
+                  <span className="text-[14px] font-medium text-[var(--text-primary)] leading-snug whitespace-pre-line">
                     {s.text}
                   </span>
                 </button>
@@ -284,7 +284,7 @@ export default function Chat() {
             {/* Divider */}
             <div className="flex items-center gap-3 mt-6">
               <div className="flex-1 h-px bg-black/[0.05]" />
-              <span className="text-[11px] text-[#CCC]">or ask anything below</span>
+              <span className="text-[11px] text-[var(--text-tertiary)]">or ask anything below</span>
               <div className="flex-1 h-px bg-black/[0.05]" />
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function Chat() {
       </div>
 
       {/* INPUT BAR — fixed above bottom nav */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-black/[0.06]">
+      <div className="fixed bottom-16 left-0 right-0 z-40 bg-[var(--bg-card)] border-t border-[var(--border)]">
 
         {/* Quick chips — only when input is empty */}
         {inputText === '' && (
@@ -330,7 +330,7 @@ export default function Chat() {
                   setHasStarted(true)
                   sendMessage(text)
                 }}
-                className="shrink-0 h-7 px-3 rounded-full border border-black/10 text-[13px] text-[#666] whitespace-nowrap"
+                className="shrink-0 h-7 px-3 rounded-full border border-black/10 text-[13px] text-[var(--text-secondary)] whitespace-nowrap"
               >
                 {c}
               </button>
@@ -341,9 +341,9 @@ export default function Chat() {
         {/* Input row */}
         <div className="flex items-end gap-2 px-4 pt-2 pb-3">
           {/* Attachment */}
-          <button className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center shrink-0">
+          <button className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="#999" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              stroke="var(--text-tertiary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
             </svg>
           </button>
@@ -359,7 +359,7 @@ export default function Chat() {
             onKeyDown={handleKeyDown}
             placeholder="Ask your coach..."
             rows={1}
-            className="flex-1 bg-[#F1EFE8] rounded-2xl px-4 py-2.5 text-sm text-[#111] placeholder-[#999] focus:outline-none resize-none leading-relaxed min-h-[40px] max-h-[100px]"
+            className="flex-1 bg-[var(--bg-pill)] rounded-2xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none resize-none leading-relaxed min-h-[40px] max-h-[100px]"
             style={{ overflowY: inputText.split('\n').length > 3 ? 'auto' : 'hidden' }}
           />
 
@@ -368,11 +368,11 @@ export default function Chat() {
             onClick={() => sendMessage()}
             disabled={!inputText.trim()}
             className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-              inputText.trim() ? 'bg-[#111]' : 'bg-[#F1EFE8]'
+              inputText.trim() ? 'bg-[var(--text-primary)]' : 'bg-[var(--bg-pill)]'
             }`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke={inputText.trim() ? 'white' : '#CCC'}
+              stroke={inputText.trim() ? 'white' : "var(--text-tertiary)"}
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="19" x2="12" y2="5"/>
               <polyline points="5 12 12 5 19 12"/>

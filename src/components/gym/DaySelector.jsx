@@ -40,9 +40,9 @@ export default function DaySelector({
               borderRadius: '50%',
               border: 'none',
               background: isSelected
-                ? '#111111' : '#F1EFE8',
+                ? 'var(--text-primary)' : 'var(--bg-pill)',
               color: isSelected
-                ? '#ffffff' : '#5F5E5A',
+                ? 'var(--bg-card)' : 'var(--text-secondary)',
               fontSize: 13,
               fontWeight: 600,
               cursor: 'pointer',

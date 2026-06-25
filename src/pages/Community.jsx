@@ -42,7 +42,7 @@ function Avatar({ name, photoUrl, size = 36 }) {
 function Spinner() {
   return (
     <div className="flex justify-center py-12">
-      <div className="w-6 h-6 border-2 border-[#111] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[var(--text-primary)] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }
@@ -50,7 +50,7 @@ function Spinner() {
 function EmptyState({ message }) {
   return (
     <div className="text-center py-12">
-      <p className="text-sm text-[#999]">{message}</p>
+      <p className="text-sm text-[var(--text-tertiary)]">{message}</p>
     </div>
   )
 }
@@ -129,7 +129,7 @@ export default function Community() {
       data.forEach(log => {
         const uid = log.user_id
         if (!counts[uid]) {
-          counts[uid] = { user_id: uid, name: log.users?.full_name || 'FitForge User', count: 0 }
+          counts[uid] = { user_id: uid, name: log.users?.full_name || 'Gymvyn User', count: 0 }
         }
         counts[uid].count++
       })
@@ -173,7 +173,7 @@ export default function Community() {
     const buddyList = (accepted ?? []).map(b => {
       const isSender = b.sender_id === userId
       const other = isSender ? b.receiver : b.sender
-      return { id: b.id, user_id: other?.id, name: other?.full_name || 'FitForge User' }
+      return { id: b.id, user_id: other?.id, name: other?.full_name || 'Gymvyn User' }
     })
 
     const suggested = (allUsers ?? [])
@@ -260,19 +260,19 @@ export default function Community() {
     const isLiked = post.post_likes?.some(l => l.user_id === userId)
     const likeCount = post.post_likes?.length ?? 0
     const commentCount = post.post_comments?.length ?? 0
-    const authorName = post.users?.full_name || 'FitForge User'
+    const authorName = post.users?.full_name || 'Gymvyn User'
 
     return (
-      <div className="bg-white rounded-2xl border border-black/[0.06] p-4">
+      <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4">
         <div className="flex items-center gap-2">
           <Avatar name={authorName} size={36} />
           <div className="flex-1">
-            <p className="text-sm font-medium text-[#111]">{authorName}</p>
+            <p className="text-sm font-medium text-[var(--text-primary)]">{authorName}</p>
           </div>
-          <span className="text-xs text-[#999]">{timeAgo(post.created_at)}</span>
+          <span className="text-xs text-[var(--text-tertiary)]">{timeAgo(post.created_at)}</span>
         </div>
 
-        <p className="mt-3 text-sm text-[#111] leading-snug whitespace-pre-wrap">{post.content}</p>
+        <p className="mt-3 text-sm text-[var(--text-primary)] leading-snug whitespace-pre-wrap">{post.content}</p>
 
         {post.image_url && (
           <img
@@ -282,14 +282,14 @@ export default function Community() {
           />
         )}
 
-        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-black/[0.04]">
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--border)]">
           <button
             onClick={() => toggleLike(post)}
-            className="text-[13px] text-[#999] flex items-center gap-1"
+            className="text-[13px] text-[var(--text-tertiary)] flex items-center gap-1"
           >
             {isLiked ? '❤️' : '🤍'} <span>{likeCount}</span>
           </button>
-          <span className="text-[13px] text-[#999]">💬 {commentCount}</span>
+          <span className="text-[13px] text-[var(--text-tertiary)]">💬 {commentCount}</span>
         </div>
       </div>
     )
@@ -298,23 +298,23 @@ export default function Community() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] pb-24">
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-24">
 
       {/* Toast */}
       {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-[#111] text-white text-sm px-4 py-2 rounded-xl z-[200] whitespace-nowrap">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-[var(--text-primary)] text-white text-sm px-4 py-2 rounded-xl z-[200] whitespace-nowrap">
           {toast}
         </div>
       )}
 
       {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
-        <span className="text-xl font-semibold text-[#111]">Community</span>
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+        <span className="text-xl font-semibold text-[var(--text-primary)]">Community</span>
         <button
           onClick={() => setShowCompose(true)}
-          className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center"
+          className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
@@ -322,7 +322,7 @@ export default function Community() {
       </div>
 
       {/* Tab row */}
-      <div className="fixed top-14 left-0 right-0 z-40 bg-white border-b border-black/[0.06]">
+      <div className="fixed top-14 left-0 right-0 z-40 bg-[var(--bg-card)] border-b border-[var(--border)]">
         <div className="grid grid-cols-3">
           {[
             { id: 'feed', label: 'Feed' },
@@ -334,8 +334,8 @@ export default function Community() {
               onClick={() => setActiveTab(t.id)}
               className={`py-3 text-[14px] transition-colors border-b-2 ${
                 activeTab === t.id
-                  ? 'font-semibold text-[#111] border-[#111]'
-                  : 'font-normal text-[#999] border-transparent'
+                  ? 'font-semibold text-[var(--text-primary)] border-[var(--text-primary)]'
+                  : 'font-normal text-[var(--text-tertiary)] border-transparent'
               }`}
             >
               {t.label}
@@ -362,7 +362,7 @@ export default function Community() {
         {/* ── Leaderboard ── */}
         {activeTab === 'leaderboard' && (
           <div className="px-5 mt-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999] mb-3">Workouts This Week</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] mb-3">Workouts This Week</p>
             {leaderboardLoading
               ? <Spinner />
               : leaderboard.length === 0
@@ -375,19 +375,19 @@ export default function Community() {
                         <div
                           key={u.user_id}
                           className={`rounded-xl border p-4 flex items-center gap-3 ${
-                            u.isMe ? 'bg-[#111] border-[#111]' : 'bg-white border-black/[0.06]'
+                            u.isMe ? 'bg-[var(--text-primary)] border-[var(--text-primary)]' : 'bg-[var(--bg-card)] border-[var(--border)]'
                           }`}
                         >
-                          <span className={`text-base font-bold w-6 text-center ${u.isMe ? 'text-white' : 'text-[#999]'}`}>
+                          <span className={`text-base font-bold w-6 text-center ${u.isMe ? 'text-white' : 'text-[var(--text-tertiary)]'}`}>
                             {medal}
                           </span>
                           <Avatar name={u.name} size={36} />
                           <div className="flex-1">
-                            <p className={`text-sm font-medium ${u.isMe ? 'text-white' : 'text-[#111]'}`}>
+                            <p className={`text-sm font-medium ${u.isMe ? 'text-white' : 'text-[var(--text-primary)]'}`}>
                               {u.isMe ? 'You' : u.name}
                             </p>
                           </div>
-                          <span className={`text-sm font-semibold tabular-nums ${u.isMe ? 'text-white' : 'text-[#111]'}`}>
+                          <span className={`text-sm font-semibold tabular-nums ${u.isMe ? 'text-white' : 'text-[var(--text-primary)]'}`}>
                             {u.count} {u.count === 1 ? 'workout' : 'workouts'}
                           </span>
                         </div>
@@ -409,18 +409,18 @@ export default function Community() {
                   {/* Pending incoming requests */}
                   {pendingRequests.length > 0 && (
                     <>
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999] mb-3">Pending Requests</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] mb-3">Pending Requests</p>
                       <div className="space-y-2 mb-5">
                         {pendingRequests.map(r => (
-                          <div key={r.id} className="bg-white rounded-xl border border-black/[0.06] p-4 flex items-center gap-3">
+                          <div key={r.id} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3">
                             <Avatar name={r.sender?.full_name} size={40} />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-[#111]">{r.sender?.full_name || 'FitForge User'}</p>
-                              <p className="text-xs text-[#999] mt-0.5">Wants to train with you</p>
+                              <p className="text-sm font-medium text-[var(--text-primary)]">{r.sender?.full_name || 'Gymvyn User'}</p>
+                              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">Wants to train with you</p>
                             </div>
                             <button
                               onClick={() => acceptBuddy(r.id)}
-                              className="text-[13px] font-medium text-white bg-[#111] px-3 py-1.5 rounded-xl"
+                              className="text-[13px] font-medium text-white bg-[var(--text-primary)] px-3 py-1.5 rounded-xl"
                             >
                               Accept
                             </button>
@@ -431,20 +431,20 @@ export default function Community() {
                   )}
 
                   {/* My buddies */}
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999] mb-3">Your Buddies</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] mb-3">Your Buddies</p>
                   {myBuddies.length === 0
                     ? (
                       <div className="text-center py-6 mb-5">
-                        <p className="text-sm text-[#999]">No buddies yet. Find people to train with!</p>
+                        <p className="text-sm text-[var(--text-tertiary)]">No buddies yet. Find people to train with!</p>
                       </div>
                     )
                     : (
                       <div className="space-y-2 mb-5">
                         {myBuddies.map(b => (
-                          <div key={b.id} className="bg-white rounded-xl border border-black/[0.06] p-4 flex items-center gap-3">
+                          <div key={b.id} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3">
                             <Avatar name={b.name} size={40} />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-[#111]">{b.name}</p>
+                              <p className="text-sm font-medium text-[var(--text-primary)]">{b.name}</p>
                             </div>
                           </div>
                         ))}
@@ -455,17 +455,17 @@ export default function Community() {
                   {/* Suggested users */}
                   {suggestedUsers.length > 0 && (
                     <>
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999] mb-3">Suggested</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] mb-3">Suggested</p>
                       <div className="space-y-2">
                         {suggestedUsers.map(u => (
-                          <div key={u.id} className="bg-white rounded-xl border border-black/[0.06] p-4 flex items-center gap-3">
+                          <div key={u.id} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3">
                             <Avatar name={u.full_name} size={40} />
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-[#111]">{u.full_name || 'FitForge User'}</p>
+                              <p className="text-sm font-medium text-[var(--text-primary)]">{u.full_name || 'Gymvyn User'}</p>
                             </div>
                             <button
                               onClick={() => addBuddy(u.id)}
-                              className="text-[13px] font-medium text-white bg-[#111] px-3 py-1.5 rounded-xl"
+                              className="text-[13px] font-medium text-white bg-[var(--text-primary)] px-3 py-1.5 rounded-xl"
                             >
                               Add
                             </button>
@@ -489,14 +489,14 @@ export default function Community() {
             onClick={() => { setShowCompose(false); setPostText('') }}
           />
           <div
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-[101] p-5 flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-[var(--bg-card)] rounded-t-2xl z-[101] p-5 flex flex-col"
             style={{ height: '85vh' }}
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-base font-semibold text-[#111]">New Post</span>
+              <span className="text-base font-semibold text-[var(--text-primary)]">New Post</span>
               <button
                 onClick={() => { setShowCompose(false); setPostText('') }}
-                className="w-7 h-7 flex items-center justify-center text-[#999] text-lg"
+                className="w-7 h-7 flex items-center justify-center text-[var(--text-tertiary)] text-lg"
               >
                 ✕
               </button>
@@ -508,17 +508,17 @@ export default function Community() {
               onChange={e => setPostText(e.target.value.slice(0, 500))}
               placeholder="What's on your mind?"
               rows={6}
-              className="w-full resize-none border border-black/[0.1] rounded-xl p-3 text-sm text-[#111] placeholder:text-[#CCC] focus:outline-none focus:border-[#111] flex-1"
+              className="w-full resize-none border border-[var(--border)] rounded-xl p-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--text-primary)] flex-1"
             />
 
             <div className="flex justify-between items-center mt-2">
-              <span className="text-xs text-[#999]">{postText.length} / 500</span>
+              <span className="text-xs text-[var(--text-tertiary)]">{postText.length} / 500</span>
             </div>
 
             <button
               onClick={handleSubmitPost}
               disabled={!postText.trim() || postSubmitting}
-              className="w-full mt-4 py-3 rounded-xl font-semibold text-sm bg-[#111] text-white disabled:opacity-40 transition-opacity"
+              className="w-full mt-4 py-3 rounded-2xl font-semibold text-sm bg-[var(--bg-card)] border border-[var(--text-primary)] text-[var(--text-primary)] disabled:bg-[var(--bg-pill)] disabled:border-[var(--border)] disabled:text-[var(--text-tertiary)] transition-opacity"
             >
               {postSubmitting ? 'Posting…' : 'Post'}
             </button>

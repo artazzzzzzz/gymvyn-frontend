@@ -6,7 +6,7 @@ import { supabase } from '../../utils/supabase'
 
 function Spinner() {
   return (
-    <div className="min-h-screen bg-[#0c0c0e] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -23,16 +23,16 @@ const features = [
   },
   {
     icon: BarChart3,
-    iconColor: 'text-emerald-400',
-    iconBg: 'bg-emerald-500/10',
+    iconColor: 'text-[var(--success)]',
+    iconBg: 'bg-[var(--success-bg)]',
     emoji: '📊',
     title: 'Live Dashboard',
     body: 'Real-time occupancy, revenue, and member health',
   },
   {
     icon: Users,
-    iconColor: 'text-amber-400',
-    iconBg: 'bg-amber-500/10',
+    iconColor: 'text-[var(--warning)]',
+    iconBg: 'bg-[var(--warning-bg)]',
     emoji: '👥',
     title: 'Member Management',
     body: 'Bulk import, payments, classes, announcements',
@@ -70,32 +70,32 @@ export default function BecomeGymOwner() {
   if (isOwner) return <Navigate to="/gym/dashboard" replace />
 
   return (
-    <div className="min-h-screen bg-[#0c0c0e] overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--bg-primary)] overflow-x-hidden">
       {/* Ambient glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-500/[0.08] blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] halo-decoration bg-[rgba(212,181,117,0.08)] blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-5 py-16 sm:py-24">
         {/* Back link */}
         <Link
           to="/home"
-          className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors text-sm mb-12"
+          className="inline-flex items-center gap-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors text-sm mb-12"
         >
           <ArrowLeft size={14} />
-          Back to FitForge
+          Back to Gymvyn
         </Link>
 
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-full px-3.5 py-1.5 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span className="text-emerald-400 text-xs font-semibold tracking-wide">FOR GYM OWNERS</span>
+          <div className="inline-flex items-center gap-2 bg-[var(--bg-hover)] border border-[var(--border)] rounded-full px-3.5 py-1.5 mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
+            <span className="text-[var(--success)] text-xs font-semibold tracking-wide">FOR GYM OWNERS</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight mb-4">
-            Run your gym <span className="text-emerald-400">intelligently.</span>
+          <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-primary)] tracking-tight leading-tight mb-4">
+            Run your gym <span className="text-[var(--success)]">intelligently.</span>
           </h1>
-          <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             Get AI churn prediction, live occupancy, member management, and trainer metrics — all in one dashboard.
-            Your members get the full FitForge app for free.
+            Your members get the full Gymvyn app for free.
           </p>
         </div>
 
@@ -104,30 +104,30 @@ export default function BecomeGymOwner() {
           {features.map(({ icon: Icon, iconColor, iconBg, title, body }) => (
             <div
               key={title}
-              className="bg-[#141416] border border-white/[0.06] rounded-2xl p-5 hover:border-white/[0.14] transition-colors duration-150"
+              className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 hover:border-[var(--border-strong)] transition-colors duration-150"
             >
               <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center mb-4`}>
                 <Icon size={18} className={iconColor} />
               </div>
-              <p className="text-sm font-semibold text-white mb-1.5">{title}</p>
-              <p className="text-xs text-zinc-500 leading-relaxed">{body}</p>
+              <p className="text-sm font-semibold text-[var(--text-primary)] mb-1.5">{title}</p>
+              <p className="text-xs text-[var(--text-tertiary)] leading-relaxed">{body}</p>
             </div>
           ))}
         </div>
 
         {/* Pricing glass card */}
-        <div className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 mb-10 text-center">
-          <p className="text-sm font-semibold text-white mb-1.5">
-            Starter <span className="text-emerald-400">₹2,000</span>/mo · Growth <span className="text-emerald-400">₹4,000</span>/mo · Pro <span className="text-emerald-400">₹8,000</span>/mo
+        <div className="bg-[var(--bg-hover)] backdrop-blur-sm border border-[var(--border)] rounded-2xl p-6 mb-10 text-center">
+          <p className="text-sm font-semibold text-[var(--text-primary)] mb-1.5">
+            Starter <span className="text-[var(--success)]">₹2,000</span>/mo · Growth <span className="text-[var(--success)]">₹4,000</span>/mo · Pro <span className="text-[var(--success)]">₹8,000</span>/mo
           </p>
-          <p className="text-xs text-zinc-500">Free 30-day trial · No credit card · Cancel anytime</p>
+          <p className="text-xs text-[var(--text-tertiary)]">Free 30-day trial · No credit card · Cancel anytime</p>
         </div>
 
         {/* CTA */}
         <div className="text-center">
           <button
             onClick={() => navigate('/gym-onboarding')}
-            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm sm:text-base px-7 py-3.5 rounded-xl transition-all duration-150 active:scale-[0.98] shadow-lg shadow-emerald-500/20"
+            className="inline-flex items-center gap-2 bg-[var(--success)] hover:bg-[var(--success)] text-[var(--text-primary)] font-semibold text-sm sm:text-base px-7 py-3.5 rounded-xl transition-all duration-150 active:scale-[0.98] shadow-lg shadow-emerald-500/20"
           >
             Register My Gym
             <ArrowRight size={16} />

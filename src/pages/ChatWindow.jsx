@@ -128,20 +128,20 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
     new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--bg-primary)]">
       {/* Chat header */}
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-zinc-800 bg-zinc-950">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--border)] bg-[var(--bg-primary)]">
         {onBack && (
-          <button onClick={onBack} className="text-zinc-400 text-lg leading-none">←</button>
+          <button onClick={onBack} className="text-[var(--text-secondary)] text-lg leading-none">←</button>
         )}
-        <div className="w-9 h-9 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-          <span className="text-emerald-400 font-bold text-sm">
+        <div className="w-9 h-9 rounded-full bg-[var(--success-bg)] flex items-center justify-center flex-shrink-0">
+          <span className="text-[var(--success)] font-bold text-sm">
             {(otherPersonName || '?')[0].toUpperCase()}
           </span>
         </div>
         <div>
           <p className="font-semibold text-sm">{otherPersonName || 'Chat'}</p>
-          <p className="text-[10px] text-emerald-400">Online</p>
+          <p className="text-[10px] text-[var(--success)]">Online</p>
         </div>
       </div>
 
@@ -154,19 +154,19 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-8">
             <span className="text-4xl mb-3">👋</span>
-            <p className="text-zinc-400 text-sm">No messages yet</p>
-            <p className="text-zinc-600 text-xs mt-1">Say hello to get started!</p>
+            <p className="text-[var(--text-secondary)] text-sm">No messages yet</p>
+            <p className="text-[var(--text-tertiary)] text-xs mt-1">Say hello to get started!</p>
           </div>
         ) : (
           Object.entries(grouped).map(([date, msgs]) => (
             <div key={date}>
               {/* Date separator */}
               <div className="flex items-center gap-3 my-4">
-                <div className="flex-1 h-px bg-zinc-800" />
-                <span className="text-[10px] text-zinc-600 px-2">
+                <div className="flex-1 h-px bg-[var(--bg-hover)]" />
+                <span className="text-[10px] text-[var(--text-tertiary)] px-2">
                   {isToday(date) ? 'Today' : isYesterday(date) ? 'Yesterday' : date}
                 </span>
-                <div className="flex-1 h-px bg-zinc-800" />
+                <div className="flex-1 h-px bg-[var(--bg-hover)]" />
               </div>
 
               {msgs.map((msg, idx) => {
@@ -181,9 +181,9 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
                   >
                     {/* Avatar for other person */}
                     {!isMe && (
-                      <div className={`w-6 h-6 rounded-full flex-shrink-0 ${showAvatar ? 'bg-emerald-500/15 flex items-center justify-center' : 'invisible'}`}>
+                      <div className={`w-6 h-6 rounded-full flex-shrink-0 ${showAvatar ? 'bg-[var(--success-bg)] flex items-center justify-center' : 'invisible'}`}>
                         {showAvatar && (
-                          <span className="text-emerald-400 text-[9px] font-bold">
+                          <span className="text-[var(--success)] text-[9px] font-bold">
                             {(otherPersonName || '?')[0].toUpperCase()}
                           </span>
                         )}
@@ -195,27 +195,27 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
                       {isPlanShare ? (
                         <div className={`px-4 py-3 rounded-2xl border ${
                           isMe
-                            ? 'bg-emerald-500/20 border-emerald-500/30 rounded-br-sm'
-                            : 'bg-zinc-800 border-zinc-700 rounded-bl-sm'
+                            ? 'bg-[var(--bg-elevated)] border-[var(--border)] rounded-br-sm'
+                            : 'bg-[var(--bg-hover)] border-[var(--border-strong)] rounded-bl-sm'
                         }`}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm">📋</span>
-                            <span className="text-xs font-medium text-emerald-400">Plan assigned</span>
+                            <span className="text-xs font-medium text-[var(--success)]">Plan assigned</span>
                           </div>
-                          <p className="text-sm text-white">{msg.content}</p>
+                          <p className="text-sm text-[var(--text-primary)]">{msg.content}</p>
                         </div>
                       ) : (
                         <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                           isMe
-                            ? 'bg-emerald-500 text-white rounded-br-sm'
-                            : 'bg-zinc-800 text-zinc-100 rounded-bl-sm'
+                            ? 'bg-[var(--success)] text-[var(--text-primary)] rounded-br-sm'
+                            : 'bg-[var(--bg-hover)] text-[var(--text-primary)] rounded-bl-sm'
                         } ${msg.id.toString().startsWith('optimistic') ? 'opacity-70' : ''}`}>
                           {msg.content}
                         </div>
                       )}
-                      <span className="text-[10px] text-zinc-600 mt-1 px-1">
+                      <span className="text-[10px] text-[var(--text-tertiary)] mt-1 px-1">
                         {formatTime(msg.created_at)}
-                        {isMe && msg.read_at && <span className="ml-1 text-emerald-500">✓✓</span>}
+                        {isMe && msg.read_at && <span className="ml-1 text-[var(--success)]">✓✓</span>}
                         {isMe && !msg.read_at && !msg.id.toString().startsWith('optimistic') && <span className="ml-1">✓</span>}
                       </span>
                     </div>
@@ -229,9 +229,9 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
       </div>
 
       {/* Input bar */}
-      <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-950">
+      <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--bg-primary)]">
         <div className="flex items-end gap-2">
-          <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2.5 focus-within:border-emerald-500/50 transition-colors">
+          <div className="flex-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl px-4 py-2.5 focus-within:border-[var(--cta-border)] transition-colors">
             <textarea
               ref={inputRef}
               rows={1}
@@ -244,16 +244,16 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
                 e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
               }}
               onKeyDown={handleKeyDown}
-              className="w-full bg-transparent text-sm text-white placeholder:text-zinc-600 focus:outline-none resize-none leading-relaxed"
+              className="w-full bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none resize-none leading-relaxed"
               style={{ maxHeight: '120px' }}
             />
           </div>
           <button
             onClick={sendMessage}
             disabled={!text.trim() || sending}
-            className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
+            className="w-10 h-10 bg-[var(--success)] rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
           >
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>

@@ -17,13 +17,13 @@ export default function BottomNav({ onMorePress }) {
       path: '/home',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24"
-          fill={active ? '#111' : 'none'}
-          stroke={active ? '#111' : '#CCC'}
+          fill={active ? 'var(--text-primary)' : 'none'}
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'}
           strokeWidth="1.8" strokeLinecap="round"
           strokeLinejoin="round">
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
           <polyline points="9,21 9,12 15,12 15,21"
-            stroke={active ? 'white' : '#CCC'}
+            stroke={active ? 'var(--bg-card)' : 'var(--text-tertiary)'}
             fill="none"/>
         </svg>
       ),
@@ -35,7 +35,7 @@ export default function BottomNav({ onMorePress }) {
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24"
           fill="none"
-          stroke={active ? '#111' : '#CCC'}
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'}
           strokeWidth="1.8" strokeLinecap="round"
           strokeLinejoin="round">
           <path d="M6.5 6.5h11M6.5 17.5h11"/>
@@ -53,7 +53,7 @@ export default function BottomNav({ onMorePress }) {
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24"
           fill="none"
-          stroke={active ? '#111' : '#CCC'}
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'}
           strokeWidth="1.8" strokeLinecap="round"
           strokeLinejoin="round">
           <line x1="12" y1="2" x2="12" y2="6"/>
@@ -69,7 +69,7 @@ export default function BottomNav({ onMorePress }) {
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24"
           fill="none"
-          stroke={active ? '#111' : '#CCC'}
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'}
           strokeWidth="1.8" strokeLinecap="round"
           strokeLinejoin="round">
           <line x1="18" y1="20" x2="18" y2="10"/>
@@ -81,7 +81,7 @@ export default function BottomNav({ onMorePress }) {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-black/[0.06] h-16 pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-t border-[var(--border)] h-16 pb-safe">
       <div className="grid grid-cols-5 h-full">
 
         {/* Regular nav items */}
@@ -94,12 +94,12 @@ export default function BottomNav({ onMorePress }) {
               className="flex flex-col items-center justify-center gap-0.5 relative">
               {item.icon(active)}
               <span className={`text-[10px] transition-colors ${
-                active ? 'font-semibold text-[#111]' : 'font-normal text-[#CCC]'
+                active ? 'font-semibold text-[var(--text-primary)]' : 'font-normal text-[var(--text-tertiary)]'
               }`}>
                 {item.label}
               </span>
               {active && (
-                <span className="absolute bottom-1 w-1 h-1 bg-[#111] rounded-full"/>
+                <span className="absolute bottom-1 w-1 h-1 bg-[var(--text-primary)] rounded-full"/>
               )}
             </button>
           )
@@ -110,11 +110,11 @@ export default function BottomNav({ onMorePress }) {
           onClick={onMorePress}
           className="flex flex-col items-center justify-center gap-0.5">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round">
-            <circle cx="5"  cy="12" r="1.5" fill="#CCC"/>
-            <circle cx="12" cy="12" r="1.5" fill="#CCC"/>
-            <circle cx="19" cy="12" r="1.5" fill="#CCC"/>
+            <circle cx="5"  cy="12" r="1.5" fill="var(--text-tertiary)"/>
+            <circle cx="12" cy="12" r="1.5" fill="var(--text-tertiary)"/>
+            <circle cx="19" cy="12" r="1.5" fill="var(--text-tertiary)"/>
           </svg>
-          <span className="text-[10px] font-normal text-[#CCC]">More</span>
+          <span className="text-[10px] font-normal text-[var(--text-tertiary)]">More</span>
         </button>
 
       </div>

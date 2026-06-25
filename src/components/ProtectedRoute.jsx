@@ -22,10 +22,13 @@ export default function ProtectedRoute({ children }) {
   // Logged in but no role chosen yet
   if (!role) return <Navigate to="/role-select" replace />
 
+  // Staff should never land on consumer routes
+  if (role === 'staff') return <Navigate to="/staff/dashboard" replace />
+
   // Role chosen but role-specific onboarding not done
   if (!onboardingComplete) {
-    if (role === 'trainer')   return <Navigate to="/become-trainer"  replace />
-    if (role === 'gym_owner') return <Navigate to="/gym-onboarding"  replace />
+    if (role === 'trainer')   return <Navigate to="/become-trainer"   replace />
+    if (role === 'gym_owner') return <Navigate to="/gym-onboarding"   replace />
     return <Navigate to="/onboarding" replace />
   }
 

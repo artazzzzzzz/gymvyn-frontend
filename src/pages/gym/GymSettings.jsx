@@ -46,14 +46,14 @@ function ThemeSwatch({ id }) {
   if (id === 'system') {
     return (
       <div style={{ ...outer, padding: 0 }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, width: '50%', height: '100%', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
-          <div style={{ height: 4, borderRadius: 2, background: '#111', width: '65%' }} />
-          <div style={{ height: 3, borderRadius: 2, background: '#185FA5', width: '45%' }} />
+        <div style={{ position: 'absolute', left: 0, top: 0, width: '50%', height: '100%', background: 'var(--bg-card)', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
+          <div style={{ height: 4, borderRadius: 2, background: 'var(--text-primary)', width: '65%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'var(--text-cta)', width: '45%' }} />
           <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,0.1)', width: '80%' }} />
         </div>
-        <div style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', background: '#0F0F0F', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
-          <div style={{ height: 4, borderRadius: 2, background: '#F5F5F5', width: '65%' }} />
-          <div style={{ height: 3, borderRadius: 2, background: '#4A9EE0', width: '45%' }} />
+        <div style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', boxSizing: 'border-box' }}>
+          <div style={{ height: 4, borderRadius: 2, background: 'var(--border)', width: '65%' }} />
+          <div style={{ height: 3, borderRadius: 2, background: 'var(--text-cta)', width: '45%' }} />
           <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.15)', width: '80%' }} />
         </div>
       </div>
@@ -61,9 +61,9 @@ function ThemeSwatch({ id }) {
   }
   const light = id === 'light'
   return (
-    <div style={{ ...outer, background: light ? '#FFFFFF' : '#0F0F0F' }}>
-      <div style={{ height: 4, borderRadius: 2, background: light ? '#111' : '#F5F5F5', width: '65%' }} />
-      <div style={{ height: 3, borderRadius: 2, background: light ? '#185FA5' : '#4A9EE0', width: '45%' }} />
+    <div style={{ ...outer, background: light ? 'var(--bg-card)' : 'var(--bg-primary)' }}>
+      <div style={{ height: 4, borderRadius: 2, background: light ? 'var(--text-primary)' : 'var(--border)', width: '65%' }} />
+      <div style={{ height: 3, borderRadius: 2, background: light ? 'var(--text-cta)' : 'var(--text-cta)', width: '45%' }} />
       <div style={{ height: 3, borderRadius: 2, background: light ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)', width: '80%' }} />
     </div>
   )
@@ -75,7 +75,7 @@ const Toggle = ({ value, onChange }) => (
     onClick={() => onChange(!value)}
     style={{
       width: 44, height: 26, borderRadius: 13,
-      backgroundColor: value ? '#111' : '#E0E0E0',
+      backgroundColor: value ? 'var(--text-primary)' : 'var(--border)',
       position: 'relative', cursor: 'pointer',
       transition: 'background-color 0.2s', flexShrink: 0,
     }}
@@ -84,7 +84,7 @@ const Toggle = ({ value, onChange }) => (
       position: 'absolute', top: 3,
       left: value ? 21 : 3,
       width: 20, height: 20, borderRadius: '50%',
-      backgroundColor: 'white',
+      backgroundColor: "var(--bg-card)",
       transition: 'left 0.2s',
       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
     }} />
@@ -344,15 +344,15 @@ export default function GymSettings() {
 
   if (loading) return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5',
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
-      <span style={{ fontSize: 14, color: '#999' }}>Loading settings...</span>
+      <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>Loading settings...</span>
     </div>
   )
 
-  const sectionLabel = (text, color = '#999') => (
+  const sectionLabel = (text, color = 'var(--text-tertiary)') => (
     <div style={{
       fontSize: 11, fontWeight: 600, color,
       textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
@@ -366,31 +366,31 @@ export default function GymSettings() {
 
   const timeInputStyle = {
     width: 88, height: 36, border: '0.5px solid rgba(0,0,0,0.12)',
-    borderRadius: 8, fontSize: 13, fontWeight: 500, color: '#111',
+    borderRadius: 8, fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
     textAlign: 'center', outline: 'none', padding: '0 4px', fontFamily: 'inherit',
   }
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* STICKY HEADER */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white',
+        position: 'sticky', top: 0, zIndex: 10, backgroundColor: "var(--bg-card)",
         padding: '16px 20px 12px', display: 'flex', alignItems: 'center', gap: 12,
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
         <button
           onClick={() => navigate(-1)}
-          style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#111', padding: 0, lineHeight: 1 }}
+          style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--text-primary)', padding: 0, lineHeight: 1 }}
         >←</button>
-        <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: '#111', textAlign: 'center' }}>Settings</span>
+        <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>Settings</span>
         <button
           onClick={handleSave}
           disabled={!isDirty || saving}
           style={{
-            backgroundColor: '#111', color: 'white', border: 'none', borderRadius: 10,
+            backgroundColor: 'var(--text-primary)', color: "var(--bg-card)", border: 'none', borderRadius: 10,
             height: 32, padding: '0 14px', fontSize: 13, fontWeight: 600,
             cursor: isDirty ? 'pointer' : 'default', opacity: isDirty && !saving ? 1 : 0.4,
           }}
@@ -405,28 +405,28 @@ export default function GymSettings() {
 
           {/* Logo card */}
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)',
             padding: 16, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 16,
           }}>
             <div style={{
-              width: 64, height: 64, borderRadius: '50%', backgroundColor: '#F1EFE8',
+              width: 64, height: 64, borderRadius: '50%', backgroundColor: 'var(--bg-pill)',
               overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               {logoUrl
                 ? <img src={logoUrl} alt="Gym logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <span style={{ fontSize: 20, fontWeight: 600, color: '#5F5E5A' }}>{getInitials(profile.name || 'Gym')}</span>
+                : <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-secondary)' }}>{getInitials(profile.name || 'Gym')}</span>
               }
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#111', marginBottom: 2 }}>Gym Logo</div>
-              <div style={{ fontSize: 12, color: '#999', marginBottom: 10 }}>JPG or PNG, max 5MB</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>Gym Logo</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 10 }}>JPG or PNG, max 5MB</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={() => logoInputRef.current?.click()}
                   disabled={logoUploading}
                   style={{
-                    backgroundColor: '#111', color: 'white', border: 'none', borderRadius: 10,
+                    backgroundColor: 'var(--text-primary)', color: "var(--bg-card)", border: 'none', borderRadius: 10,
                     height: 32, padding: '0 16px', fontSize: 12, fontWeight: 500,
                     cursor: 'pointer', opacity: logoUploading ? 0.6 : 1,
                   }}
@@ -434,7 +434,7 @@ export default function GymSettings() {
                 {logoUrl && (
                   <button
                     onClick={() => setLogoUrl(null)}
-                    style={{ background: 'none', border: 'none', fontSize: 12, color: '#A32D2D', cursor: 'pointer' }}
+                    style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--error)', cursor: 'pointer' }}
                   >Remove</button>
                 )}
               </div>
@@ -446,7 +446,7 @@ export default function GymSettings() {
           </div>
 
           {/* Profile form */}
-          <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
             {[
               { key: 'name', label: 'Gym Name', placeholder: 'e.g. FitZone Fitness', type: 'text' },
               { key: 'city', label: 'City', placeholder: 'e.g. Bhopal', type: 'text' },
@@ -454,26 +454,26 @@ export default function GymSettings() {
               { key: 'phone', label: 'Phone', placeholder: '+91 98765 43210', type: 'tel' },
             ].map(field => (
               <div key={field.key} style={inputRowStyle}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: '#111', width: 100, flexShrink: 0 }}>{field.label}</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', width: 100, flexShrink: 0 }}>{field.label}</span>
                 <input
                   type={field.type} placeholder={field.placeholder} value={profile[field.key]}
                   onChange={e => markDirty(setProfile)(prev => ({ ...prev, [field.key]: e.target.value }))}
-                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: '#111', backgroundColor: 'transparent', textAlign: 'right' }}
+                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: 'var(--text-primary)', backgroundColor: 'transparent', textAlign: 'right' }}
                 />
               </div>
             ))}
 
             {/* Type select */}
             <div style={inputRowStyle}>
-              <span style={{ fontSize: 14, fontWeight: 500, color: '#111', width: 100, flexShrink: 0 }}>Type</span>
+              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', width: 100, flexShrink: 0 }}>Type</span>
               <select
                 value={profile.gym_type}
                 onChange={e => markDirty(setProfile)(prev => ({ ...prev, gym_type: e.target.value }))}
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: '#111', backgroundColor: 'transparent', textAlign: 'right', cursor: 'pointer', appearance: 'none' }}
+                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: 'var(--text-primary)', backgroundColor: 'transparent', textAlign: 'right', cursor: 'pointer', appearance: 'none' }}
               >
                 {GYM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
-              <span style={{ fontSize: 12, color: '#999', marginLeft: 4 }}>▾</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginLeft: 4 }}>▾</span>
             </div>
 
             {/* Description */}
@@ -484,11 +484,11 @@ export default function GymSettings() {
                 onChange={e => markDirty(setProfile)(prev => ({ ...prev, description: e.target.value }))}
                 style={{
                   width: '100%', height: 80, border: 'none', outline: 'none',
-                  fontSize: 15, color: '#111', backgroundColor: 'transparent',
+                  fontSize: 15, color: 'var(--text-primary)', backgroundColor: 'transparent',
                   resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
                 }}
               />
-              <div style={{ fontSize: 11, color: '#999', textAlign: 'right' }}>{profile.description.length}/200</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right' }}>{profile.description.length}/200</div>
             </div>
           </div>
         </div>
@@ -496,7 +496,7 @@ export default function GymSettings() {
         {/* ── SECTION 2: OPERATING HOURS ──────────────────────────────────────── */}
         <div>
           {sectionLabel('OPERATING HOURS')}
-          <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
             {DAYS.map((day, i) => {
               const dh = hours[day.key] || DEFAULT_HOURS[day.key]
               return (
@@ -504,18 +504,18 @@ export default function GymSettings() {
                   display: 'flex', alignItems: 'center', padding: '0 16px', height: 52, gap: 12,
                   borderBottom: i < 6 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
                 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#111', width: 36, flexShrink: 0 }}>{day.label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', width: 36, flexShrink: 0 }}>{day.label}</span>
                   <Toggle
                     value={!dh.closed}
                     onChange={val => markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], closed: !val } }))}
                   />
                   {dh.closed
-                    ? <span style={{ fontSize: 13, color: '#999', flex: 1 }}>Closed</span>
+                    ? <span style={{ fontSize: 13, color: 'var(--text-tertiary)', flex: 1 }}>Closed</span>
                     : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
                         <input type="time" value={dh.open} style={timeInputStyle}
                           onChange={e => markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], open: e.target.value } }))} />
-                        <span style={{ fontSize: 13, color: '#999' }}>–</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>–</span>
                         <input type="time" value={dh.close} style={timeInputStyle}
                           onChange={e => markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], close: e.target.value } }))} />
                       </div>
@@ -532,33 +532,33 @@ export default function GymSettings() {
           {sectionLabel('MEMBERSHIP PLANS')}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {plans.map(plan => (
-              <div key={plan.id} style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', padding: 16 }}>
+              <div key={plan.id} style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', padding: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>{plan.name}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{plan.name}</span>
                   <Toggle value={plan.is_active} onChange={val => handleTogglePlan(plan.id, val)} />
                 </div>
-                <div style={{ fontSize: 14, color: '#555', marginBottom: 8 }}>
+                <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>
                   ₹{plan.price?.toLocaleString('en-IN')} · {plan.duration_days} days
                 </div>
                 {plan.features?.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                     {plan.features.map((f, i) => (
-                      <span key={i} style={{ backgroundColor: '#F7F7F5', borderRadius: 6, padding: '5px 9px', fontSize: 12, color: '#555' }}>{f}</span>
+                      <span key={i} style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 6, padding: '5px 9px', fontSize: 12, color: 'var(--text-secondary)' }}>{f}</span>
                     ))}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 16 }}>
-                  <button onClick={() => openEditPlan(plan)} style={{ background: 'none', border: 'none', fontSize: 13, color: '#185FA5', cursor: 'pointer', padding: 0 }}>Edit</button>
-                  <button onClick={() => handleDeletePlan(plan.id)} style={{ background: 'none', border: 'none', fontSize: 13, color: '#A32D2D', cursor: 'pointer', padding: 0 }}>Delete</button>
+                  <button onClick={() => openEditPlan(plan)} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-cta)', cursor: 'pointer', padding: 0 }}>Edit</button>
+                  <button onClick={() => handleDeletePlan(plan.id)} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--error)', cursor: 'pointer', padding: 0 }}>Delete</button>
                 </div>
               </div>
             ))}
             <button
               onClick={openAddPlan}
               style={{
-                width: '100%', height: 52, backgroundColor: 'white',
+                width: '100%', height: 52, backgroundColor: "var(--bg-card)",
                 border: '0.5px dashed rgba(0,0,0,0.2)', borderRadius: 12,
-                fontSize: 14, fontWeight: 500, color: '#111', cursor: 'pointer',
+                fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             ><span style={{ fontSize: 18 }}>+</span> Add Plan</button>
@@ -568,7 +568,7 @@ export default function GymSettings() {
         {/* ── SECTION 4: NOTIFICATIONS ────────────────────────────────────────── */}
         <div>
           {sectionLabel('NOTIFICATIONS')}
-          <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
             {[
               { key: 'membership_expiry_reminder', label: 'Membership Expiry Reminders', sub: "Alert when member's plan expires in 7 days" },
               { key: 'new_member_alert', label: 'New Member Alerts', sub: 'Notify when a new member joins' },
@@ -580,8 +580,8 @@ export default function GymSettings() {
                 borderBottom: i < 3 ? '0.5px solid rgba(0,0,0,0.06)' : 'none', minHeight: 52,
               }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>{item.label}</div>
-                  <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{item.sub}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{item.label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{item.sub}</div>
                 </div>
                 <Toggle
                   value={notifications[item.key]}
@@ -595,18 +595,18 @@ export default function GymSettings() {
         {/* ── SECTION 4b: FEATURE MODULES ────────────────────────────────────── */}
         <div>
           {sectionLabel('FEATURE MODULES')}
-          <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+          <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
             <div style={{
               display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 12, minHeight: 64,
             }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Locker Management</div>
-                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Locker Management</div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
                   Enable if your gym offers locker rentals to members
                 </div>
               </div>
               {lockersLoading
-                ? <div style={{ width: 44, height: 26, borderRadius: 13, backgroundColor: '#E0E0E0', flexShrink: 0 }} />
+                ? <div style={{ width: 44, height: 26, borderRadius: 13, backgroundColor: 'var(--border)', flexShrink: 0 }} />
                 : <Toggle value={lockersEnabled} onChange={handleLockerToggle} />
               }
             </div>
@@ -617,7 +617,7 @@ export default function GymSettings() {
         <div>
           {sectionLabel('APPEARANCE')}
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: "var(--bg-card)",
             borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)',
             overflow: 'hidden',
@@ -633,18 +633,18 @@ export default function GymSettings() {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '14px 16px', cursor: 'pointer',
-                  background: theme === item.id ? 'rgba(0,122,255,0.06)' : 'white',
+                  background: theme === item.id ? 'var(--accent-bg)' : "var(--bg-card)",
                   borderBottom: i < 2 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <ThemeSwatch id={item.id} />
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: '#111' }}>{item.label}</div>
-                    {item.sub && <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>{item.sub}</div>}
+                    <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>{item.label}</div>
+                    {item.sub && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>{item.sub}</div>}
                   </div>
                 </div>
-                {theme === item.id && <Check size={18} color="#007AFF" />}
+                {theme === item.id && <Check size={18} color="var(--text-cta)" />}
               </div>
             ))}
           </div>
@@ -652,22 +652,22 @@ export default function GymSettings() {
 
         {/* ── SECTION 5: DANGER ZONE ──────────────────────────────────────────── */}
         <div style={{ paddingBottom: 20 }}>
-          {sectionLabel('DANGER ZONE', '#A32D2D')}
+          {sectionLabel('DANGER ZONE', 'var(--error)')}
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
-            border: '0.5px solid #FCEBEB', padding: 16,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
+            border: '0.5px solid var(--error-bg)', padding: 16,
             display: 'flex', alignItems: 'center', gap: 12,
           }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#A32D2D' }}>Deactivate Gym</div>
-              <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--error)' }}>Deactivate Gym</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
                 Hides your gym and pauses all memberships. Your data is preserved.
               </div>
             </div>
             <button
               onClick={() => setShowDeactivateSheet(true)}
               style={{
-                backgroundColor: '#A32D2D', color: 'white', border: 'none',
+                backgroundColor: 'var(--error)', color: "var(--bg-card)", border: 'none',
                 borderRadius: 8, height: 32, padding: '0 14px',
                 fontSize: 12, fontWeight: 500, cursor: 'pointer', flexShrink: 0,
               }}
@@ -685,13 +685,13 @@ export default function GymSettings() {
           <div onClick={() => setShowPlanSheet(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }} />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 0 32px',
             maxHeight: '85vh', overflowY: 'auto',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 0' }} />
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 0' }} />
             <div style={{ padding: '16px 20px 0' }}>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#111', marginBottom: 16 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
                 {editingPlan ? 'Edit Plan' : 'Add Plan'}
               </div>
               {[
@@ -716,7 +716,7 @@ export default function GymSettings() {
                 onClick={handleSavePlan}
                 disabled={!planForm.name || !planForm.price || !planForm.duration_days}
                 style={{
-                  width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                  width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                   border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                   cursor: 'pointer', marginTop: 4,
                   opacity: (!planForm.name || !planForm.price || !planForm.duration_days) ? 0.4 : 1,
@@ -733,27 +733,27 @@ export default function GymSettings() {
           <div onClick={() => setShowLockersOffConfirm(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }} />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 20px 32px',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 16px' }} />
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>Turn off Locker Management?</div>
-            <div style={{ fontSize: 13, color: '#666', marginTop: 10 }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>Turn off Locker Management?</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 10 }}>
               Your locker data will be saved but hidden until you re-enable this.
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24 }}>
               <button
                 onClick={confirmLockersOff}
                 style={{
-                  width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                  width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                   border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
                 }}
               >Turn Off</button>
               <button
                 onClick={() => setShowLockersOffConfirm(false)}
                 style={{
-                  width: '100%', height: 52, backgroundColor: 'white', color: '#111',
-                  border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                  width: '100%', height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)',
+                  border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
                 }}
               >Cancel</button>
             </div>
@@ -767,12 +767,12 @@ export default function GymSettings() {
           <div onClick={() => setShowDeactivateSheet(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }} />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 20px 32px',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 16px' }} />
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>Deactivate Gym?</div>
-            <div style={{ fontSize: 13, color: '#666', marginTop: 10 }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>Deactivate Gym?</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 10 }}>
               This will hide your gym from members and pause all active memberships.
               Your data stays safe and you can reactivate anytime by contacting support.
             </div>
@@ -780,7 +780,7 @@ export default function GymSettings() {
               <button
                 onClick={handleDeactivate} disabled={deactivating}
                 style={{
-                  width: '100%', height: 52, backgroundColor: '#A32D2D', color: 'white',
+                  width: '100%', height: 52, backgroundColor: 'var(--error)', color: "var(--bg-card)",
                   border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                   cursor: 'pointer', opacity: deactivating ? 0.6 : 1,
                 }}
@@ -788,8 +788,8 @@ export default function GymSettings() {
               <button
                 onClick={() => setShowDeactivateSheet(false)}
                 style={{
-                  width: '100%', height: 52, backgroundColor: 'white', color: '#111',
-                  border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                  width: '100%', height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)',
+                  border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
                 }}
               >Cancel</button>
             </div>
@@ -799,12 +799,12 @@ export default function GymSettings() {
 
       {/* ── Log Out ── */}
       <div style={{ padding: '8px 16px 40px' }}>
-        <div style={{ height: 1, background: '#F3F4F6', margin: '8px 0 20px' }} />
+        <div style={{ height: 1, background: 'var(--border)', margin: '8px 0 20px' }} />
         <button
           onClick={handleLogout}
           style={{
             width: '100%', padding: '14px', borderRadius: 12,
-            background: '#FEF2F2', color: '#EF4444', fontWeight: 600,
+            background: 'var(--error-bg)', color: 'var(--error)', fontWeight: 600,
             fontSize: 15, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
@@ -817,10 +817,10 @@ export default function GymSettings() {
       {toast && (
         <div style={{
           position: 'fixed', top: 16, left: 16, right: 16, zIndex: 100,
-          backgroundColor: toast.type === 'success' ? '#EAF3DE' : '#FCEBEB',
+          backgroundColor: toast.type === 'success' ? 'var(--success-bg)' : 'var(--error-bg)',
           borderRadius: 16, padding: '14px 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? '#3B6D11' : '#A32D2D' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? 'var(--success)' : 'var(--error)' }}>
             {toast.message}
           </div>
         </div>

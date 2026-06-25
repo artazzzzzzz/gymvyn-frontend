@@ -40,7 +40,7 @@ function DifficultyDots({ level }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <span
           key={i}
-          className={`text-xs ${i < filled ? 'text-gray-900' : 'text-gray-300'}`}
+          className={`text-xs ${i < filled ? 'text-[var(--text-primary)]' : 'text-[var(--text-disabled)]'}`}
         >
           {i < filled ? '●' : '○'}
         </span>
@@ -50,7 +50,7 @@ function DifficultyDots({ level }) {
 }
 
 function Skeleton({ className }) {
-  return <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+  return <div className={`animate-pulse bg-[var(--bg-pill)] rounded-lg ${className}`} />
 }
 
 const TABS = ['Summary', 'History', 'How To']
@@ -178,7 +178,7 @@ export default function TrainerExerciseDetail() {
   const instructions = EXERCISE_INSTRUCTIONS[name] || null
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F9F9F9]">
+    <div className="flex flex-col min-h-screen bg-[var(--bg-pill)]">
 
       {/* Toast */}
       {toast && (
@@ -188,17 +188,17 @@ export default function TrainerExerciseDetail() {
       )}
 
       {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-[#F9F9F9] flex items-center justify-between px-4 py-3 border-b border-gray-100">
+      <div className="sticky top-0 z-10 bg-[var(--bg-pill)] flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
         <button onClick={() => navigate(-1)} className="p-1 -ml-1">
-          <ChevronLeft size={24} strokeWidth={2} className="text-gray-900" />
+          <ChevronLeft size={24} strokeWidth={2} className="text-[var(--text-primary)]" />
         </button>
-        <span className="text-[18px] font-bold text-gray-900 truncate mx-3 flex-1 text-center">
+        <span className="text-[18px] font-bold text-[var(--text-primary)] truncate mx-3 flex-1 text-center">
           {name}
         </span>
         <button onClick={toggleBookmark} disabled={bookmarkLoading} className="p-1 -mr-1 bg-transparent border-0">
           {bookmarked
-            ? <BookmarkCheck size={22} className="text-gray-900" />
-            : <Bookmark size={22} className="text-gray-400" />}
+            ? <BookmarkCheck size={22} className="text-[var(--text-primary)]" />
+            : <Bookmark size={22} className="text-[var(--text-tertiary)]" />}
         </button>
       </div>
 
@@ -229,10 +229,10 @@ export default function TrainerExerciseDetail() {
                   className="absolute inset-0 flex items-center justify-center"
                 >
                   <div
-                    className="bg-white rounded-full flex items-center justify-center shadow-lg"
+                    className="bg-[var(--bg-card)] rounded-full flex items-center justify-center shadow-lg"
                     style={{ width: 60, height: 60 }}
                   >
-                    <span className="text-black text-xl ml-1">▶</span>
+                    <span className="text-[var(--text-primary)] text-xl ml-1">▶</span>
                   </div>
                 </button>
                 <div className="absolute bottom-2 left-3 flex items-center gap-1.5 pointer-events-none">
@@ -248,7 +248,7 @@ export default function TrainerExerciseDetail() {
               </>
             )
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-500">
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[var(--text-tertiary)]">
               <Camera size={32} />
               <span className="text-sm">Video coming soon</span>
             </div>
@@ -261,10 +261,10 @@ export default function TrainerExerciseDetail() {
             <span className="bg-gray-900 text-white text-sm font-medium px-3 py-1 rounded-full">
               {exercise.equipment}
             </span>
-            <span className="border border-gray-300 text-gray-900 text-sm font-medium px-3 py-1 rounded-full">
+            <span className="border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium px-3 py-1 rounded-full">
               {exercise.mechanics}
             </span>
-            <span className="border border-gray-300 text-gray-900 text-sm font-medium px-3 py-1 rounded-full">
+            <span className="border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium px-3 py-1 rounded-full">
               {exercise.difficulty}
             </span>
           </div>
@@ -272,30 +272,30 @@ export default function TrainerExerciseDetail() {
 
         {/* Stats row */}
         {exercise && (
-          <div className="mx-4 mt-3 bg-white rounded-2xl shadow-sm flex divide-x divide-gray-100">
+          <div className="mx-4 mt-3 bg-[var(--bg-card)] rounded-2xl shadow-sm flex divide-x divide-[var(--border)]">
             {[
               { label: 'PRIMARY MUSCLE', value: exercise.muscle },
               { label: 'EQUIPMENT', value: exercise.equipment },
               { label: 'DIFFICULTY', value: <DifficultyDots level={exercise.difficulty} /> },
             ].map(({ label, value }) => (
               <div key={label} className="flex-1 flex flex-col items-center py-3 px-2">
-                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1 text-center">{label}</span>
-                <span className="text-[14px] font-semibold text-gray-900 text-center">{value}</span>
+                <span className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium mb-1 text-center">{label}</span>
+                <span className="text-[14px] font-semibold text-[var(--text-primary)] text-center">{value}</span>
               </div>
             ))}
           </div>
         )}
 
         {/* Tabs */}
-        <div className="flex mt-4 border-b border-gray-100 px-4">
+        <div className="flex mt-4 border-b border-[var(--border)] px-4">
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}
               className={`mr-6 pb-2 text-sm font-medium transition-colors ${
                 activeTab === tab
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-400'
+                  ? 'text-[var(--text-primary)] border-b-2 border-[var(--border-strong)]'
+                  : 'text-[var(--text-tertiary)]'
               }`}
             >
               {tab}
@@ -308,21 +308,21 @@ export default function TrainerExerciseDetail() {
 
           {activeTab === 'Summary' && (
             <div className="space-y-4">
-              <div className="bg-white rounded-xl shadow-sm border-l-4 border-gray-900 p-4">
-                <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Personal Best</p>
+              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border-l-4 border-[var(--border-strong)] p-4">
+                <p className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Personal Best</p>
                 {statsLoading ? (
                   <Skeleton className="h-8 w-40" />
                 ) : stats?.personal_best ? (
                   <>
-                    <p className="text-[28px] font-bold text-gray-900 leading-tight">
+                    <p className="text-[28px] font-bold text-[var(--text-primary)] leading-tight">
                       {stats.personal_best.weight} kg × {stats.personal_best.reps} reps
                     </p>
-                    <p className="text-[13px] text-gray-500 mt-0.5">
+                    <p className="text-[13px] text-[var(--text-tertiary)] mt-0.5">
                       Set {daysAgo(stats.personal_best.date)} · Est. 1RM: {stats.personal_best.est_1rm} kg
                     </p>
                   </>
                 ) : (
-                  <p className="text-gray-400 text-sm">No workouts logged yet</p>
+                  <p className="text-[var(--text-tertiary)] text-sm">No workouts logged yet</p>
                 )}
               </div>
 
@@ -333,25 +333,25 @@ export default function TrainerExerciseDetail() {
                   { label: 'Total Sets', value: stats?.total_sets ?? '—' },
                   { label: 'Best Volume', value: stats?.best_session_volume ? `${stats.best_session_volume} kg` : '—' },
                 ].map(({ label, value }) => (
-                  <div key={label} className="bg-white rounded-xl shadow-sm p-4">
-                    <p className="text-[12px] text-gray-400 mb-1">{label}</p>
+                  <div key={label} className="bg-[var(--bg-card)] rounded-xl shadow-sm p-4">
+                    <p className="text-[12px] text-[var(--text-tertiary)] mb-1">{label}</p>
                     {statsLoading
                       ? <Skeleton className="h-7 w-16" />
-                      : <p className="text-[22px] font-bold text-gray-900">{value}</p>}
+                      : <p className="text-[22px] font-bold text-[var(--text-primary)]">{value}</p>}
                   </div>
                 ))}
               </div>
 
               {!statsLoading && stats?.chart_data?.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm p-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-3">Progress</p>
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-sm p-4">
+                  <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">Progress</p>
                   <div className="flex gap-2 mb-3 flex-wrap">
                     {['Heaviest', '1RM', 'Volume'].map(m => (
                       <button
                         key={m}
                         onClick={() => setChartMetric(m)}
                         className={`text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
-                          chartMetric === m ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-500'
+                          chartMetric === m ? 'bg-gray-900 text-white border-[var(--border-strong)]' : 'border-[var(--border)] text-[var(--text-tertiary)]'
                         }`}
                       >
                         {m}
@@ -360,17 +360,17 @@ export default function TrainerExerciseDetail() {
                   </div>
                   <ResponsiveContainer width="100%" height={140}>
                     <LineChart data={filteredChartData()} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12 }}
+                        contentStyle={{ background: "var(--bg-card)", border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
                         formatter={v => [v, chartMetric]}
                       />
                       <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="#111827"
+                        stroke="var(--text-primary)"
                         strokeWidth={2}
-                        dot={{ r: 3, fill: '#111827' }}
+                        dot={{ r: 3, fill: 'var(--text-primary)' }}
                         activeDot={{ r: 5 }}
                       />
                     </LineChart>
@@ -381,7 +381,7 @@ export default function TrainerExerciseDetail() {
                         key={r}
                         onClick={() => setChartRange(r)}
                         className={`text-xs font-medium px-3 py-1 rounded-full border transition-colors ${
-                          chartRange === r ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-500'
+                          chartRange === r ? 'bg-[var(--text-primary)] text-[var(--bg-card)] border-[var(--border-strong)]' : 'border-[var(--border)] text-[var(--text-tertiary)]'
                         }`}
                       >
                         {r}
@@ -398,34 +398,34 @@ export default function TrainerExerciseDetail() {
               {historyLoading && history.length === 0 ? (
                 Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : history.length === 0 ? (
-                <p className="text-center text-gray-400 py-8">No sessions recorded yet</p>
+                <p className="text-center text-[var(--text-tertiary)] py-8">No sessions recorded yet</p>
               ) : (
                 <>
                   {history.map(session => (
-                    <div key={session.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div key={session.id} className="bg-[var(--bg-card)] rounded-xl shadow-sm overflow-hidden">
                       <button
                         onClick={() => setExpandedSession(expandedSession === session.id ? null : session.id)}
                         className="w-full flex items-center justify-between px-4 py-3 text-left"
                       >
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{fmtDate(session.date)}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">{fmtDate(session.date)}</p>
+                          <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
                             {session.sets_count} sets · {session.volume} kg total
                           </p>
                         </div>
-                        <span className="text-gray-400 text-sm">{expandedSession === session.id ? '▲' : '▼'}</span>
+                        <span className="text-[var(--text-tertiary)] text-sm">{expandedSession === session.id ? '▲' : '▼'}</span>
                       </button>
                       {expandedSession === session.id && (
-                        <div className="border-t border-gray-100 divide-y divide-gray-50">
+                        <div className="border-t border-[var(--border)] divide-y divide-gray-50">
                           {session.sets.map(set => (
                             <div
                               key={set.index}
-                              className={`flex items-center justify-between px-4 py-2.5 ${set.is_pr ? 'bg-green-50' : ''}`}
+                              className={`flex items-center justify-between px-4 py-2.5 ${set.is_pr ? 'bg-[var(--success-bg)]' : ''}`}
                             >
-                              <span className={`text-sm ${set.is_pr ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                              <span className={`text-sm ${set.is_pr ? 'text-[var(--success)] font-medium' : 'text-[var(--text-secondary)]'}`}>
                                 Set {set.index}
                               </span>
-                              <span className={`text-sm ${set.is_pr ? 'text-green-700 font-semibold' : 'text-gray-800 font-medium'}`}>
+                              <span className={`text-sm ${set.is_pr ? 'text-[var(--success)] font-semibold' : 'text-[var(--text-primary)] font-medium'}`}>
                                 {set.weight} kg · {set.reps} reps {set.is_pr ? '🏆' : '✓'}
                               </span>
                             </div>
@@ -438,7 +438,7 @@ export default function TrainerExerciseDetail() {
                     <button
                       onClick={() => fetchHistory(historyPage + 1)}
                       disabled={historyLoading}
-                      className="w-full py-3 text-sm font-medium text-gray-500 border border-gray-200 rounded-xl"
+                      className="w-full py-3 text-sm font-medium text-[var(--text-tertiary)] border border-[var(--border)] rounded-xl"
                     >
                       {historyLoading ? 'Loading…' : 'Load more'}
                     </button>
@@ -452,23 +452,23 @@ export default function TrainerExerciseDetail() {
             <div className="space-y-4 pb-4">
               {exercise?.instructions?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Instructions</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)] mb-2">Instructions</p>
                   {exercise.instructions.map((step, i) => (
-                    <div key={i} className="bg-white rounded-xl shadow-sm p-4 flex gap-3">
+                    <div key={i} className="bg-[var(--bg-card)] rounded-xl shadow-sm p-4 flex gap-3">
                       <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                         {i + 1}
                       </span>
-                      <p className="text-sm text-gray-700 leading-relaxed">{step}</p>
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{step}</p>
                     </div>
                   ))}
                 </div>
               )}
 
               {exercise?.tips?.length > 0 && (
-                <div className="bg-[#FFFBEB] rounded-xl border-l-4 border-amber-400 p-4">
-                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Pro Tips</p>
+                <div className="bg-[var(--warning-bg)] rounded-xl border-l-4 border-amber-400 p-4">
+                  <p className="text-xs font-bold text-[var(--warning)] uppercase tracking-wider mb-2">Pro Tips</p>
                   {exercise.tips.map((tip, i) => (
-                    <p key={i} className="text-sm text-amber-800 leading-relaxed mb-1 last:mb-0">
+                    <p key={i} className="text-sm text-[var(--warning)] leading-relaxed mb-1 last:mb-0">
                       · {tip}
                     </p>
                   ))}
@@ -476,13 +476,13 @@ export default function TrainerExerciseDetail() {
               )}
 
               {instructions?.commonMistakes && (
-                <div className="bg-white rounded-xl border-l-4 border-red-400 p-4 shadow-sm">
-                  <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Common Mistakes</p>
+                <div className="bg-[var(--bg-card)] rounded-xl border-l-4 border-red-400 p-4 shadow-sm">
+                  <p className="text-xs font-bold text-[var(--error)] uppercase tracking-wider mb-2">Common Mistakes</p>
                   {(Array.isArray(instructions.commonMistakes)
                     ? instructions.commonMistakes
                     : [instructions.commonMistakes]
                   ).map((m, i) => (
-                    <p key={i} className="text-sm text-gray-700 leading-relaxed mb-1 last:mb-0">
+                    <p key={i} className="text-sm text-[var(--text-secondary)] leading-relaxed mb-1 last:mb-0">
                       · {m}
                     </p>
                   ))}
@@ -491,10 +491,10 @@ export default function TrainerExerciseDetail() {
 
               {exercise?.secondary?.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Secondary Muscles</p>
+                  <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Secondary Muscles</p>
                   <div className="flex flex-wrap gap-2">
                     {exercise.secondary.map(m => (
-                      <span key={m} className="border border-gray-200 text-gray-700 text-sm px-3 py-1 rounded-full">
+                      <span key={m} className="border border-[var(--border)] text-[var(--text-secondary)] text-sm px-3 py-1 rounded-full">
                         {m}
                       </span>
                     ))}
@@ -507,7 +507,7 @@ export default function TrainerExerciseDetail() {
       </div>
 
       {/* Fixed bottom CTA — Assign to Client */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#F9F9F9]/95 backdrop-blur-sm border-t border-gray-100 px-4 pt-3 pb-6">
+      <div className="fixed bottom-0 left-0 right-0 bg-[var(--bg-pill)]/95 backdrop-blur-sm border-t border-[var(--border)] px-4 pt-3 pb-6">
         <button
           onClick={() => showToast('Coming soon')}
           className="w-full bg-gray-900 text-white font-semibold rounded-xl"

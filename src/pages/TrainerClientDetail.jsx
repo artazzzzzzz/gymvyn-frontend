@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
+import AssignedDietPlanView from '../components/diet/AssignedDietPlanView';
+import { supabase } from '../utils/supabase';
 import {
   BarChart, Bar, XAxis, YAxis, ReferenceLine, Tooltip, ResponsiveContainer,
   LineChart, Line, CartesianGrid,
@@ -11,14 +13,14 @@ import { searchExercises } from '../data/exerciseDatabase';
 
 /* ── palette ── */
 const C = {
-  bg: '#f7f7f5', card: '#ffffff', border: 'rgba(0,0,0,0.08)',
-  text: '#1a1a1a', sub: '#888888',
-  green: '#3B6D11', greenBg: '#EAF3DE',
-  amber: '#854F0B', amberBg: '#FAEEDA',
-  blue: '#185FA5', blueBg: '#E6F1FB',
-  red: '#A32D2D', redBg: '#FCEBEB',
-  teal: '#0F6E56', tealBg: '#e4f5f0',
-  gray: '#9e9ea8', grayBg: '#f0f0f3',
+  bg: '#f7f7f5', card: "var(--bg-card)", border: 'var(--border)',
+  text: 'var(--text-primary)', sub: "var(--text-tertiary)",
+  green: 'var(--success)', greenBg: 'var(--success-bg)',
+  amber: 'var(--warning)', amberBg: 'var(--warning-bg)',
+  blue: 'var(--text-cta)', blueBg: 'var(--accent-bg)',
+  red: 'var(--error)', redBg: 'var(--error-bg)',
+  teal: 'var(--success)', tealBg: 'var(--success-bg)',
+  gray: 'var(--text-tertiary)', grayBg: 'var(--bg-pill)',
   coral: '#D85A30', coralBg: '#FAECE7',
 };
 
@@ -35,10 +37,10 @@ const CARD = {
 
 /* ── avatar color from name hash ── */
 const AVATAR_PALETTE = [
-  { bg: '#e8f0fb', text: '#185FA5' },
-  { bg: '#fce8e6', text: '#A32D2D' },
-  { bg: '#e8f5ee', text: '#3B6D11' },
-  { bg: '#fff4d9', text: '#854F0B' },
+  { bg: 'var(--accent-bg)', text: 'var(--text-cta)' },
+  { bg: 'var(--error-bg)', text: 'var(--error)' },
+  { bg: 'var(--success-bg)', text: 'var(--success)' },
+  { bg: 'var(--warning-bg)', text: 'var(--warning)' },
   { bg: '#f3e8fb', text: '#7b2fbf' },
 ];
 function nameColor(name = '') {
@@ -103,7 +105,7 @@ const IcoTrophy = () => (
 );
 const IcoCamera = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-    stroke="#C0C0C0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    stroke="var(--text-disabled)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
     <circle cx="12" cy="13" r="4" />
   </svg>
@@ -158,7 +160,7 @@ function NoteCard({ accent, text, date }) {
 function PlanBadge({ status }) {
   const map = {
     active: { color: C.green, bg: C.greenBg, label: 'Active' },
-    completed: { color: '#5F5E5A', bg: '#F1EFE8', label: 'Completed' },
+    completed: { color: "var(--text-secondary)", bg: 'var(--bg-pill)', label: 'Completed' },
     replaced: { color: C.amber, bg: C.amberBg, label: 'Replaced' },
   };
   const s = map[status] || map.completed;
@@ -319,7 +321,7 @@ function OverviewTab({ data, clientId, onAddNote, localNotes }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
         <button onClick={() => navigate(`/trainer/assign-plan?clientId=${clientId}`)}
-          style={{ height: 44, borderRadius: 8, border: 'none', background: C.text, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          style={{ height: 44, borderRadius: 8, border: 'none', background: C.text, color: "var(--bg-card)", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           Assign plan
         </button>
         <button onClick={() => navigate('/trainer/chat')}
@@ -470,7 +472,7 @@ function WorkoutsTab({ data, clientId }) {
           <p style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 4 }}>No active workout plan</p>
           <button
             onClick={() => navigate(`/trainer/assign-plan?clientId=${clientId}&type=workout`)}
-            style={{ marginTop: 8, height: 36, paddingInline: 16, borderRadius: 8, border: 'none', background: C.text, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ marginTop: 8, height: 36, paddingInline: 16, borderRadius: 8, border: 'none', background: C.text, color: "var(--bg-card)", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Assign plan
           </button>
         </div>
@@ -495,7 +497,7 @@ function WorkoutsTab({ data, clientId }) {
                 <div style={{
                   width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                   background: done ? C.greenBg : missed ? C.redBg : 'transparent',
-                  border: done ? 'none' : missed ? 'none' : `0.5px solid #D0D0D0`,
+                  border: done ? 'none' : missed ? 'none' : `0.5px solid var(--border-strong)`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {done && (
@@ -534,7 +536,7 @@ function WorkoutsTab({ data, clientId }) {
               return (
                 <div key={i} style={{
                   ...CARD, padding: 0, overflow: 'hidden',
-                  background: dayIsMissed ? '#FFF5F5' : C.card,
+                  background: dayIsMissed ? 'var(--error-bg)' : C.card,
                 }}>
                   <button
                     onClick={() => toggleDay(i)}
@@ -634,7 +636,7 @@ function WorkoutsTab({ data, clientId }) {
           onClick={() => { setPickerDayIdx(0); setShowExPicker(true); }}
           style={{
             width: '100%', height: 48, borderRadius: 12, border: 'none',
-            background: '#111', color: '#fff',
+            background: "var(--text-primary)", color: "var(--bg-card)",
             fontSize: 14, fontWeight: 500, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
@@ -710,6 +712,8 @@ const MEAL_ICONS = { breakfast: '☀️', lunch: '🍽️', snack: '🍎', dinne
 function DietTab({ data, clientId }) {
   const navigate = useNavigate();
   const [dietPlan, setDietPlan] = useState(null);
+  const [assignedDietPlan, setAssignedDietPlan] = useState(undefined); // new API plan
+  const [removingPlan, setRemovingPlan] = useState(false);
   const [macros, setMacros] = useState(data?.macros || null);
   const [foodLogs, setFoodLogs] = useState(data?.foodLogs || []);
   const [openDay, setOpenDay] = useState('today');
@@ -718,11 +722,24 @@ function DietTab({ data, clientId }) {
   useEffect(() => {
     if (!clientId) return;
     (async () => {
+      // Old diet plan (legacy)
       try {
         const plans = await apiFetch(`/api/trainer/assigned-plans/${clientId}`);
         setDietPlan((plans || []).find(p => p.status === 'active' && p.type === 'diet') || null);
       } catch {
         setDietPlan(data?.assignedPlans?.find(p => p.status === 'active' && p.type === 'diet') || null);
+      }
+      // New structured diet plan
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/diet-plans/assigned/${clientId}`, {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+        const plan = res.ok ? await res.json() : null;
+        setAssignedDietPlan(plan || null);
+      } catch {
+        setAssignedDietPlan(null);
       }
       try {
         const logs = await apiFetch(`/api/food-logs/${clientId}`);
@@ -734,6 +751,25 @@ function DietTab({ data, clientId }) {
       } catch {}
     })();
   }, [clientId]);
+
+  const handleRemovePlan = async () => {
+    if (!assignedDietPlan?.id) return;
+    if (!confirm('Remove this diet plan? The client will no longer see it.')) return;
+    setRemovingPlan(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      await fetch(`${import.meta.env.VITE_API_URL}/api/diet-plans/assigned/${assignedDietPlan.id}`, {
+        method: 'DELETE',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      setAssignedDietPlan(null);
+    } catch (err) {
+      alert('Failed to remove plan');
+    } finally {
+      setRemovingPlan(false);
+    }
+  };
 
   // Build byDate map
   const byDate = foodLogs.reduce((acc, log) => {
@@ -813,6 +849,43 @@ function DietTab({ data, clientId }) {
   return (
     <div style={{ padding: '16px 16px 36px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
+      {/* ── assigned diet plan (new API) ── */}
+      {assignedDietPlan !== undefined && (
+        <section style={CARD}>
+          <p style={SL}>Diet plan</p>
+          {assignedDietPlan ? (
+            <>
+              <AssignedDietPlanView plan={assignedDietPlan} />
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <button
+                  onClick={() => navigate(`/trainer/client/${clientId}/diet-plan/new`)}
+                  style={{ flex: 1, height: 36, border: '0.5px solid var(--border)', borderRadius: 8, background: 'transparent', fontSize: 13, fontWeight: 500, cursor: 'pointer', color: 'var(--text-primary)' }}
+                >
+                  Replace Plan
+                </button>
+                <button
+                  onClick={handleRemovePlan}
+                  disabled={removingPlan}
+                  style={{ height: 36, padding: '0 14px', border: '0.5px solid var(--border)', borderRadius: 8, background: 'transparent', fontSize: 13, cursor: 'pointer', color: '#D85A30', opacity: removingPlan ? 0.5 : 1 }}
+                >
+                  {removingPlan ? '…' : 'Remove'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 10px' }}>No diet plan assigned</p>
+              <button
+                onClick={() => navigate(`/trainer/client/${clientId}/diet-plan/new`)}
+                style={{ padding: '10px 20px', background: 'var(--text-primary)', color: 'var(--bg-primary)', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Assign Diet Plan
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ── macro ring card ── */}
       <section style={{ ...CARD, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <p style={SL}>Today's macros</p>
@@ -826,7 +899,7 @@ function DietTab({ data, clientId }) {
                 data={ringData} startAngle={90} endAngle={-270}
               >
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar dataKey="value" cornerRadius={4} background={{ fill: '#F5F5F3' }} />
+                <RadialBar dataKey="value" cornerRadius={4} background={{ fill: 'var(--bg-pill)' }} />
               </RadialBarChart>
               {/* center overlay */}
               <div style={{
@@ -843,10 +916,10 @@ function DietTab({ data, clientId }) {
 
             {/* pill labels */}
             <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#0C447C', background: '#E6F1FB', borderRadius: 20, padding: '3px 10px' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#0C447C', background: 'var(--accent-bg)', borderRadius: 20, padding: '3px 10px' }}>
                 Protein {avgProtein.toFixed(0)}g
               </span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#633806', background: '#FAEEDA', borderRadius: 20, padding: '3px 10px' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#633806', background: 'var(--warning-bg)', borderRadius: 20, padding: '3px 10px' }}>
                 Carbs {avgCarbs.toFixed(0)}g
               </span>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#712B13', background: '#FAECE7', borderRadius: 20, padding: '3px 10px' }}>
@@ -871,7 +944,9 @@ function DietTab({ data, clientId }) {
                 ticks={calTarget > 0 ? [Math.round(calTarget * 0.8), calTarget, Math.round(calTarget * 1.2)] : undefined}
               />
               <Tooltip
-                contentStyle={{ fontSize: 12, borderRadius: 8, border: `0.5px solid ${C.border}` }}
+                contentStyle={{ fontSize: 12, borderRadius: 8, background: 'var(--chart-tooltip-bg)', border: `0.5px solid ${C.border}`, color: 'var(--text-primary)' }}
+                labelStyle={{ color: 'var(--text-secondary)' }}
+                itemStyle={{ color: 'var(--text-primary)' }}
                 formatter={(v) => v > 0 ? [`${v} kcal`, 'Calories'] : ['No log', '']}
               />
               {calTarget > 0 && (
@@ -879,8 +954,7 @@ function DietTab({ data, clientId }) {
                   label={{ value: 'target', position: 'insideTopRight', fontSize: 10, fill: C.blue }} />
               )}
               <Bar dataKey="calories" radius={[3, 3, 0, 0]}
-                fill="#B5D4F4"
-                // tint empty/future days lighter
+                fill="var(--chart-line)" fillOpacity={0.8}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -960,7 +1034,7 @@ function DietTab({ data, clientId }) {
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.amber, flexShrink: 0 }} />
                   )}
                   {status === 'none' && (
-                    <span style={{ fontSize: 16, color: '#C0C0C0', flexShrink: 0 }}>—</span>
+                    <span style={{ fontSize: 16, color: 'var(--text-disabled)', flexShrink: 0 }}>—</span>
                   )}
                   {entry && <IcoChevron open={isOpen} />}
                 </button>
@@ -1001,7 +1075,7 @@ function DietTab({ data, clientId }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button
           onClick={() => navigate(`/trainer/assign-plan?type=diet&clientId=${clientId}`)}
-          style={{ width: '100%', height: 48, borderRadius: 10, border: 'none', background: C.text, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          style={{ width: '100%', height: 48, borderRadius: 10, border: 'none', background: C.text, color: "var(--bg-card)", fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           Update diet plan
         </button>
         <button
@@ -1120,9 +1194,9 @@ function ProgressTab({ data, clientId }) {
         {PERIODS.map(p => (
           <button key={p} onClick={() => setPeriod(p)} style={{
             height: 32, paddingInline: 16, borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            border: period === p ? 'none' : `0.5px solid #D0D0D0`,
-            background: period === p ? '#111' : 'transparent',
-            color: period === p ? '#fff' : '#888',
+            border: period === p ? 'none' : `0.5px solid var(--border-strong)`,
+            background: period === p ? "var(--text-primary)" : 'transparent',
+            color: period === p ? "var(--bg-card)" : "var(--text-tertiary)",
           }}>{p}</button>
         ))}
       </div>
@@ -1139,10 +1213,12 @@ function ProgressTab({ data, clientId }) {
             <div style={{ height: 160 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weightData} margin={{ top: 4, right: 4, left: -5, bottom: 0 }}>
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={35} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--chart-axis)' }} tickLine={false} axisLine={false} />
+                  <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11, fill: 'var(--chart-axis)' }} tickLine={false} axisLine={false} width={35} />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, border: `0.5px solid rgba(0,0,0,0.1)`, borderRadius: 8 }}
+                    contentStyle={{ fontSize: 12, background: 'var(--chart-tooltip-bg)', border: `0.5px solid var(--border)`, borderRadius: 8, color: 'var(--text-primary)' }}
+                    labelStyle={{ color: 'var(--text-secondary)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
                     formatter={(v) => [`${v} kg`, 'Weight']}
                   />
                   <Line type="monotone" dataKey="weight" stroke={C.blue} strokeWidth={2}
@@ -1213,7 +1289,7 @@ function ProgressTab({ data, clientId }) {
                   background: 'rgba(0,0,0,0.45)', padding: '4px 8px',
                   borderRadius: '0 0 8px 8px',
                 }}>
-                  <span style={{ color: '#fff', fontSize: 11 }}>
+                  <span style={{ color: "var(--bg-card)", fontSize: 11 }}>
                     {new Date(photo.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric', year: '2-digit' })}
                   </span>
                 </div>
@@ -1222,11 +1298,11 @@ function ProgressTab({ data, clientId }) {
           </div>
         ) : (
           <div style={{
-            border: '1.5px dashed #D0D0D0', borderRadius: 8,
+            border: '1.5px dashed var(--border-strong)', borderRadius: 8,
             padding: 32, textAlign: 'center',
           }}>
             <IcoCamera />
-            <p style={{ fontSize: 13, color: '#999', marginTop: 8 }}>No photos yet</p>
+            <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginTop: 8 }}>No photos yet</p>
           </div>
         )}
       </section>
@@ -1313,7 +1389,7 @@ function ProgressTab({ data, clientId }) {
               }}>Cancel</button>
               <button onClick={saveMeasurements} disabled={saving} style={{
                 flex: 1, height: 48, borderRadius: 10, border: 'none',
-                background: C.text, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                background: C.text, color: "var(--bg-card)", fontSize: 14, fontWeight: 600, cursor: 'pointer',
                 opacity: saving ? 0.6 : 1,
               }}>{saving ? 'Saving…' : 'Save'}</button>
             </div>
@@ -1380,9 +1456,9 @@ function PlansTab({ data, clientId }) {
           <button key={t} onClick={() => setPlanType(t)} style={{
             height: 36, paddingInline: 16, borderRadius: 20, cursor: 'pointer',
             fontSize: 13, fontWeight: 600, textTransform: 'capitalize',
-            border: planType === t ? 'none' : `0.5px solid #D0D0D0`,
-            background: planType === t ? '#111' : 'transparent',
-            color: planType === t ? '#fff' : '#666',
+            border: planType === t ? 'none' : `0.5px solid var(--border-strong)`,
+            background: planType === t ? "var(--text-primary)" : 'transparent',
+            color: planType === t ? "var(--bg-card)" : "var(--text-secondary)",
           }}>{t}</button>
         ))}
       </div>
@@ -1411,7 +1487,7 @@ function PlansTab({ data, clientId }) {
           </div>
 
           {/* progress bar */}
-          <div style={{ height: 6, background: '#F0F0EE', borderRadius: 9999, overflow: 'hidden', marginBottom: 14 }}>
+          <div style={{ height: 6, background: 'var(--bg-pill)', borderRadius: 9999, overflow: 'hidden', marginBottom: 14 }}>
             <div style={{ width: `${progressPct}%`, height: '100%', background: barColor, borderRadius: 9999, transition: 'width 0.6s' }} />
           </div>
 
@@ -1500,7 +1576,7 @@ function PlansTab({ data, clientId }) {
       <button
         onClick={() => navigate(`/trainer/assign-plan?clientId=${clientId}&type=${planType}`)}
         style={{
-          width: '100%', border: '1.5px dashed #D0D0D0', borderRadius: 12,
+          width: '100%', border: '1.5px dashed var(--border-strong)', borderRadius: 12,
           padding: '24px 16px', background: 'transparent', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
         }}
@@ -1613,7 +1689,7 @@ function NoteModal({ onClose, onSave }) {
               flex: 1, height: 44, borderRadius: 8, border: 'none',
               background: text.trim() ? C.text : C.grayBg,
               fontSize: 14, fontWeight: 600,
-              color: text.trim() ? '#fff' : C.sub,
+              color: text.trim() ? "var(--bg-card)" : C.sub,
               cursor: text.trim() ? 'pointer' : 'default',
             }}>Save note</button>
         </div>

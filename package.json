@@ -1,5 +1,5 @@
 {
-  "name": "fitforge-frontend",
+  "name": "gymvyn-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:dark-visual": "playwright test tests/dark-mode-visual.spec.js",
+    "test:dark-runtime": "playwright test tests/dark-mode-runtime.spec.js",
+    "test:dark-update": "playwright test tests/dark-mode-visual.spec.js --update-snapshots",
+    "test:dark": "npm run test:dark-runtime && npm run test:dark-visual"
   },
   "dependencies": {
     "@mediapipe/camera_utils": "^0.3.1675466862",

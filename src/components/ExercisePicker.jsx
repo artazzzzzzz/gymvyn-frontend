@@ -1,33 +1,35 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { EXERCISE_DATABASE, MUSCLE_GROUPS, searchExercises } from '../data/exerciseDatabase'
+import ExerciseDetailSheet from './ExerciseDetailSheet'
+import { supabase } from '../utils/supabase'
 
 const C = {
-  bg: '#f5f5f7',
-  card: '#ffffff',
-  border: '#e8e8ed',
-  text: '#1a1a1a',
-  sub: '#6e6e73',
+  bg: 'var(--bg-pill)',
+  card: 'var(--bg-card)',
+  border: 'var(--border)',
+  text: 'var(--text-primary)',
+  sub: 'var(--text-secondary)',
   overlay: 'rgba(0,0,0,0.5)',
 }
 
 const muscleColors = {
-  'Back':        { bg: '#EAF3DE', text: '#3B6D11' },
-  'Chest':       { bg: '#E6F1FB', text: '#0C447C' },
-  'Shoulders':   { bg: '#FAEEDA', text: '#854F0B' },
-  'Quads':       { bg: '#FAECE7', text: '#993C1D' },
-  'Hamstrings':  { bg: '#FAECE7', text: '#993C1D' },
-  'Glutes':      { bg: '#FAECE7', text: '#993C1D' },
-  'Calves':      { bg: '#FAECE7', text: '#993C1D' },
-  'Biceps':      { bg: '#F1EFE8', text: '#5F5E5A' },
-  'Triceps':     { bg: '#F1EFE8', text: '#5F5E5A' },
-  'Forearms':    { bg: '#F1EFE8', text: '#5F5E5A' },
-  'Core':        { bg: '#E1F5EE', text: '#0F6E56' },
-  'Cardio':      { bg: '#FCEBEB', text: '#A32D2D' },
+  'Back':        { bg: 'var(--bg-pill)', text: 'var(--muscle-back)' },
+  'Chest':       { bg: 'var(--bg-pill)', text: 'var(--muscle-chest)' },
+  'Shoulders':   { bg: 'var(--bg-pill)', text: 'var(--muscle-shoulders)' },
+  'Quads':       { bg: 'var(--bg-pill)', text: 'var(--muscle-legs)' },
+  'Hamstrings':  { bg: 'var(--bg-pill)', text: 'var(--muscle-legs)' },
+  'Glutes':      { bg: 'var(--bg-pill)', text: 'var(--muscle-legs)' },
+  'Calves':      { bg: 'var(--bg-pill)', text: 'var(--muscle-legs)' },
+  'Biceps':      { bg: 'var(--bg-pill)', text: 'var(--muscle-arms)' },
+  'Triceps':     { bg: 'var(--bg-pill)', text: 'var(--muscle-arms)' },
+  'Forearms':    { bg: 'var(--bg-pill)', text: 'var(--muscle-arms)' },
+  'Core':        { bg: 'var(--bg-pill)', text: 'var(--muscle-core)' },
+  'Cardio':      { bg: 'var(--bg-pill)', text: 'var(--muscle-cardio)' },
 }
 
 function getMuscleChip(muscle) {
   const primary = muscle?.split('·')[0]?.trim()
-  return muscleColors[primary] || { bg: '#F1EFE8', text: '#666' }
+  return muscleColors[primary] || { bg: 'var(--bg-pill)', text: 'var(--text-secondary)' }
 }
 
 const IconSearch = () => (
@@ -51,6 +53,23 @@ const IconChevronRight = () => (
 export default function ExercisePicker({ onSelect, onClose }) {
   const [search, setSearch] = useState('')
   const [activeMuscle, setActiveMuscle] = useState('All')
+  const [detailName, setDetailName] = useState(null)
+  const [thumbnailMap, setThumbnailMap] = useState({})
+
+  useEffect(() => {
+    supabase
+      .from('exercise_metadata')
+      .select('exercise_name, thumbnail_url')
+      .then(({ data }) => {
+        if (data) {
+          const map = {}
+          data.forEach(row => {
+            if (row.thumbnail_url) map[row.exercise_name.toLowerCase()] = row.thumbnail_url
+          })
+          setThumbnailMap(map)
+        }
+      })
+  }, [])
 
   const filtered = useMemo(() => {
     return searchExercises(search, {
@@ -154,7 +173,7 @@ export default function ExercisePicker({ onSelect, onClose }) {
                   whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer',
                   border: active ? 'none' : `0.5px solid ${C.border}`,
                   background: active ? C.text : C.card,
-                  color: active ? '#fff' : C.sub,
+                  color: active ? 'var(--bg-card)' : C.sub,
                   transition: 'all 0.12s',
                 }}
               >{m}</button>
@@ -186,7 +205,9 @@ export default function ExercisePicker({ onSelect, onClose }) {
                     key={ex.id ?? i}
                     ex={ex}
                     chip={chip}
+                    thumb={thumbnailMap[ex.name?.toLowerCase()]}
                     onSelect={() => handleSelect(ex)}
+                    onInfo={() => setDetailName(ex.name)}
                   />
                 )
               })}
@@ -194,47 +215,93 @@ export default function ExercisePicker({ onSelect, onClose }) {
           )}
         </div>
       </div>
+
+      <ExerciseDetailSheet
+        isOpen={!!detailName}
+        exerciseName={detailName}
+        onClose={() => setDetailName(null)}
+      />
     </div>
   )
 }
 
-function ExerciseRow({ ex, chip, onSelect }) {
+function ExerciseRow({ ex, chip, thumb, onSelect, onInfo }) {
   const [pressed, setPressed] = useState(false)
+  const abbreviation = ex.muscle?.split('·')[0]?.trim()?.slice(0, 2)?.toUpperCase() || '??'
   return (
     <div
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      onMouseLeave={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
-      onTouchEnd={() => setPressed(false)}
-      onClick={onSelect}
       style={{
         display: 'flex', alignItems: 'center', gap: 12,
-        padding: '12px 4px', minHeight: 60, cursor: 'pointer',
-        background: pressed ? C.bg : 'transparent',
-        borderRadius: 10, transition: 'background 0.1s',
+        padding: '6px 4px', minHeight: 60,
         borderBottom: `0.5px solid ${C.border}`,
       }}
     >
-      <div style={{
-        width: 36, height: 36, borderRadius: 10,
-        background: chip.bg, color: chip.text,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 10, fontWeight: 700, flexShrink: 0, letterSpacing: '0.3px',
-      }}>
-        {ex.muscle?.split('·')[0]?.trim()?.slice(0, 2)?.toUpperCase() || '??'}
+      {/* Tappable main area → add exercise */}
+      <div
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
+        onTouchStart={() => setPressed(true)}
+        onTouchEnd={() => setPressed(false)}
+        onClick={onSelect}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0,
+          cursor: 'pointer', padding: '6px 0',
+          background: pressed ? C.bg : 'transparent',
+          borderRadius: 8, transition: 'background 0.1s',
+        }}
+      >
+        {thumb ? (
+          <img
+            src={thumb}
+            alt={ex.name}
+            onError={e => { e.currentTarget.style.display = 'none' }}
+            style={{
+              width: 44, height: 44, borderRadius: 10,
+              objectFit: 'cover', flexShrink: 0,
+              background: 'var(--bg-elevated)',
+            }}
+          />
+        ) : (
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+            background: chip.bg, color: chip.text,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.3px',
+          }}>
+            {abbreviation}
+          </div>
+        )}
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 500, color: C.text, marginBottom: 2 }}>
+            {ex.name}
+          </div>
+          <div style={{ fontSize: 13, color: C.sub }}>
+            {ex.muscle}{ex.equipment ? ` · ${ex.equipment}` : ''}
+          </div>
+        </div>
+
+        <IconChevronRight />
       </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 500, color: C.text, marginBottom: 2 }}>
-          {ex.name}
-        </div>
-        <div style={{ fontSize: 13, color: C.sub }}>
-          {ex.muscle}{ex.equipment ? ` · ${ex.equipment}` : ''}
-        </div>
-      </div>
-
-      <IconChevronRight />
+      {/* Info icon — opens detail sheet without adding */}
+      <button
+        onClick={e => { e.stopPropagation(); onInfo() }}
+        style={{
+          width: 32, height: 32, borderRadius: 8, border: 'none', flexShrink: 0,
+          background: 'transparent', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--text-cta)',
+        }}
+        title="Exercise info"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </button>
     </div>
   )
 }

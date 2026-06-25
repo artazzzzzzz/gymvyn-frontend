@@ -3,8 +3,8 @@ import { supabase } from '../utils/supabase'
 
 const AuthContext = createContext(null)
 
-const lsOnboarding = (uid) => `ff_onboarding_${uid}`
-const lsRole       = (uid) => `ff_role_${uid}`
+const lsOnboarding = (uid) => `gv_onboarding_${uid}`
+const lsRole       = (uid) => `gv_role_${uid}`
 
 export function AuthProvider({ children }) {
   const [user, setUser]                     = useState(null)
@@ -68,7 +68,17 @@ export function AuthProvider({ children }) {
       } else if (userRole === 'gym_member') {
         done = !!(data?.goal && data?.training_days)
       } else if (userRole === 'staff') {
-        done = true
+        try {
+          const { data: staffRow } = await supabase
+            .from('gym_staff')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .maybeSingle()
+          done = !!staffRow
+        } catch {
+          done = false
+        }
       }
 
       if (done) {
@@ -85,6 +95,20 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    // One-time migration: ff_ localStorage keys → gv_
+    try {
+      if (!localStorage.getItem('gv_keys_migrated')) {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('ff_')) {
+            const value = localStorage.getItem(key)
+            localStorage.setItem(key.replace(/^ff_/, 'gv_'), value)
+            localStorage.removeItem(key)
+          }
+        })
+        localStorage.setItem('gv_keys_migrated', 'true')
+      }
+    } catch {}
+
     // ONLY use onAuthStateChange — never call getSession() here.
     // Supabase JS v2 fires onAuthStateChange immediately on mount with the
     // current session (INITIAL_SESSION event), so a separate getSession()

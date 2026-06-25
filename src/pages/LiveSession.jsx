@@ -1,19 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import {
   X, Check, Plus, Trash2, Camera, ChevronLeft, Loader2, AlertCircle,
-  SkipForward,
+  SkipForward, Info,
 } from 'lucide-react'
-import { useWorkoutSession } from '../hooks/useWorkoutSession'
+import { useWorkoutSessionContext } from '../contexts/WorkoutSessionContext'
 import ExercisePicker from '../components/ExercisePicker'
+import ExerciseDetailSheet from '../components/ExerciseDetailSheet'
+import PrimaryButton from '../components/PrimaryButton'
 import { supabase } from '../utils/supabase'
 import { useAuth } from '../hooks/useAuth'
 import FormCoachModal from '../components/FormCoachModal'
 import { hasFormDetection } from '../utils/formRuleMapping'
+import { useXPToast } from '../components/XPToast'
 
 const MUSCLE_COLOURS = {
   chest:     'bg-red-500/15 text-red-300 ring-red-500/30',
-  back:      'bg-blue-500/15 text-blue-300 ring-blue-500/30',
+  back:      'bg-[var(--text-cta)]/15 text-blue-300 ring-blue-500/30',
   legs:      'bg-green-500/15 text-green-300 ring-green-500/30',
   shoulders: 'bg-purple-500/15 text-purple-300 ring-purple-500/30',
   arms:      'bg-orange-500/15 text-orange-300 ring-orange-500/30',
@@ -23,7 +26,7 @@ const MUSCLE_COLOURS = {
   cardio:    'bg-teal-500/15 text-teal-300 ring-teal-500/30',
 }
 function muscleClass(group) {
-  return MUSCLE_COLOURS[(group ?? '').toLowerCase()] ?? 'bg-gray-500/15 text-gray-300 ring-gray-500/30'
+  return MUSCLE_COLOURS[(group ?? '').toLowerCase()] ?? 'bg-gray-500/15 text-[var(--text-disabled)] ring-gray-500/30'
 }
 
 function formatElapsed(s) {
@@ -65,18 +68,18 @@ function RestTimerBar({ restTimer, restDuration, onSkip, onChangeDuration }) {
               <SkipForward size={14} className="text-orange-300" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">Rest</p>
+              <p className="text-[10px] uppercase tracking-widest text-[var(--text-tertiary)] font-semibold">Rest</p>
               <p className="text-white font-mono font-bold text-base leading-tight">{formatMmSs(secondsLeft)}</p>
             </div>
           </div>
           <button
             onClick={onSkip}
-            className="text-xs text-gray-300 hover:text-white font-semibold px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] transition-colors"
+            className="text-xs text-[var(--text-disabled)] hover:text-white font-semibold px-3 py-1.5 rounded-lg bg-[var(--bg-card)]/[0.05] hover:bg-[var(--bg-card)]/[0.1] transition-colors"
           >
             Skip
           </button>
         </div>
-        <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
+        <div className="h-1 rounded-full bg-[var(--bg-card)]/[0.06] overflow-hidden">
           <div
             className="h-full bg-orange-500 transition-[width] duration-1000 ease-linear"
             style={{ width: `${pct}%` }}
@@ -91,7 +94,7 @@ function RestTimerBar({ restTimer, restDuration, onSkip, onChangeDuration }) {
                 'shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 ring-inset transition-colors',
                 restDuration === p.value
                   ? 'bg-orange-500/20 text-orange-200 ring-orange-500/40'
-                  : 'bg-white/[0.03] text-gray-400 ring-white/10 hover:text-white',
+                  : 'bg-[var(--bg-card)]/[0.03] text-[var(--text-tertiary)] ring-white/10 hover:text-white',
               ].join(' ')}
             >
               {p.label}
@@ -113,14 +116,14 @@ function SetRow({ set, previous, onUpdate, onComplete, onRemove }) {
   return (
     <div className={[
       'grid grid-cols-[28px_1fr_72px_64px_40px] items-center gap-2 px-2 py-2 rounded-lg transition-colors',
-      set.completed ? 'bg-emerald-500/10' : 'hover:bg-white/[0.02]',
+      set.completed ? 'bg-emerald-500/10' : 'hover:bg-[var(--bg-card)]/[0.02]',
     ].join(' ')}>
       <div className="flex items-center gap-1.5">
-        <span className={`text-sm font-semibold ${set.completed ? 'text-emerald-300' : 'text-gray-300'}`}>
+        <span className={`text-sm font-semibold ${set.completed ? 'text-emerald-300' : 'text-[var(--text-disabled)]'}`}>
           {set.setNumber}
         </span>
       </div>
-      <span className="text-xs text-gray-500 truncate">{prev}</span>
+      <span className="text-xs text-[var(--text-tertiary)] truncate">{prev}</span>
       <input
         type="number"
         inputMode="decimal"
@@ -150,7 +153,7 @@ function SetRow({ set, previous, onUpdate, onComplete, onRemove }) {
       ) : (
         <button
           onClick={onComplete}
-          className="w-9 h-9 rounded-md bg-white/[0.04] flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/[0.1] transition-colors"
+          className="w-9 h-9 rounded-md bg-[var(--bg-card)]/[0.04] flex items-center justify-center text-[var(--text-tertiary)] hover:text-white hover:bg-[var(--bg-card)]/[0.1] transition-colors"
           title="Complete set"
         >
           <Check size={16} strokeWidth={2.5} />
@@ -208,7 +211,7 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
               'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
               aiForm
                 ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-blue-500/15 text-blue-300 ring-1 ring-inset ring-blue-500/30 hover:bg-blue-500/25',
+                : 'bg-[var(--text-cta)]/15 text-blue-300 ring-1 ring-inset ring-blue-500/30 hover:bg-[var(--text-cta)]/25',
             ].join(' ')}
             title={aiForm ? 'AI Form Check' : 'Guided Form Check'}
           >
@@ -216,7 +219,7 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
           </button>
           <button
             onClick={onRemove}
-            className="w-9 h-9 rounded-xl bg-white/[0.03] text-gray-500 hover:text-red-300 hover:bg-red-500/15 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-xl bg-[var(--bg-card)]/[0.03] text-[var(--text-tertiary)] hover:text-red-300 hover:bg-red-500/15 flex items-center justify-center transition-colors"
             title="Remove exercise"
           >
             <X size={16} />
@@ -224,7 +227,7 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
         </div>
       </div>
 
-      <div className="grid grid-cols-[28px_1fr_72px_64px_40px] gap-2 px-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+      <div className="grid grid-cols-[28px_1fr_72px_64px_40px] gap-2 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)]">
         <span>Set</span>
         <span>Previous</span>
         <span className="text-center">Kg</span>
@@ -247,7 +250,7 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
 
       <button
         onClick={() => onAddSet(exercise.exerciseId)}
-        className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-[var(--text-tertiary)] hover:text-white py-2 rounded-lg bg-[var(--bg-card)]/[0.03] hover:bg-[var(--bg-card)]/[0.06] transition-colors"
       >
         <Plus size={13} />
         Add Set
@@ -256,6 +259,144 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
   )
 }
 
+
+// ─── Swipeable Set Row ───────────────────────────────────────────────────────
+
+function SwipeableSetRow({ set, prevData, prevText, onUpdate, onComplete, onRemove }) {
+  const [swipeX, setSwipeX]       = useState(0)
+  const [animating, setAnimating] = useState(false)
+  const touchStartX = useRef(null)
+
+  const REVEAL_W    = 72   // px width of revealed delete zone
+  const AUTO_DELETE = 160  // px threshold for auto-delete on release
+
+  function handleTouchStart(e) {
+    touchStartX.current = e.touches[0].clientX
+    setAnimating(false)
+  }
+
+  function handleTouchMove(e) {
+    if (touchStartX.current === null) return
+    const dx = e.touches[0].clientX - touchStartX.current
+    if (dx > 0) {
+      if (swipeX < 0) { setAnimating(true); setSwipeX(0) }
+      return
+    }
+    setSwipeX(Math.max(-280, dx))
+  }
+
+  function handleTouchEnd() {
+    touchStartX.current = null
+    setAnimating(true)
+    if (swipeX <= -AUTO_DELETE) {
+      onRemove()
+    } else if (swipeX <= -(REVEAL_W * 0.45)) {
+      setSwipeX(-REVEAL_W)
+    } else {
+      setSwipeX(0)
+    }
+  }
+
+  const shadowWeight = prevData?.weight_kg    ?? null
+  const shadowReps   = prevData?.reps_completed ?? null
+
+  const completedBg  = 'var(--accent-bg)'
+  const completedFg  = 'var(--text-cta)'
+  const rowBg        = set.completed ? completedBg : 'var(--bg-card)'
+  const rowBorder    = set.completed ? `2px solid ${completedFg}` : '2px solid transparent'
+
+  return (
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 8 }}>
+      {/* Red delete zone revealed behind the row */}
+      <div
+        onClick={onRemove}
+        style={{
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: REVEAL_W,
+          background: 'var(--error)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <Trash2 size={16} color="white" />
+      </div>
+
+      {/* Swipeable row content */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px',
+          gap: 6, padding: '6px 4px', alignItems: 'center', borderRadius: 8,
+          background: rowBg,
+          borderLeft: rowBorder,
+          transform: `translateX(${swipeX}px)`,
+          transition: animating ? 'transform 0.22s ease' : 'none',
+          willChange: 'transform',
+          position: 'relative', zIndex: 1,
+          touchAction: 'pan-y',
+        }}
+      >
+        {/* Set number */}
+        <span style={{ fontSize: 13, fontWeight: 500, color: set.completed ? completedFg : "var(--text-tertiary)" }}>
+          {set.setNumber}
+        </span>
+
+        {/* Previous column */}
+        <span style={{ fontSize: 12, color: 'var(--text-disabled)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {prevText ?? '—'}
+        </span>
+
+        {/* KG */}
+        {set.completed ? (
+          <span style={{ fontSize: 13, color: completedFg, textAlign: 'center', fontWeight: 500 }}>{set.weight || '—'}</span>
+        ) : (
+          <input
+            type="number" inputMode="decimal"
+            value={set.weight}
+            onChange={e => onUpdate('weight', e.target.value)}
+            placeholder={shadowWeight != null ? String(shadowWeight) : ''}
+            className="ls-set-input"
+            style={{ width: '100%', height: 36, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: "var(--text-primary)", outline: 'none', boxSizing: 'border-box' }}
+          />
+        )}
+
+        {/* Reps */}
+        {set.completed ? (
+          <span style={{ fontSize: 13, color: completedFg, textAlign: 'center', fontWeight: 500 }}>{set.reps || '—'}</span>
+        ) : (
+          <input
+            type="number" inputMode="numeric"
+            value={set.reps}
+            onChange={e => onUpdate('reps', e.target.value)}
+            placeholder={shadowReps != null ? String(shadowReps) : ''}
+            className="ls-set-input"
+            style={{ width: '100%', height: 36, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: "var(--text-primary)", outline: 'none', boxSizing: 'border-box' }}
+          />
+        )}
+
+        {/* Complete / undo button */}
+        {set.completed ? (
+          <button
+            onClick={onRemove}
+            style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent-bg)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Undo set"
+          >
+            <Check size={15} color={completedFg} strokeWidth={3} />
+          </button>
+        ) : (
+          <button
+            onClick={() => onComplete(shadowWeight, shadowReps)}
+            style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-pill)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Log set"
+          >
+            <Check size={15} color="var(--text-tertiary)" strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
 
 // ─── Cancel Confirm ──────────────────────────────────────────────────────────
 
@@ -269,7 +410,7 @@ function ConfirmDialog({ open, onConfirm, onCancel }) {
     >
       <div
         style={{
-          background: '#ffffff',
+          background: "var(--bg-card)",
           borderRadius: '20px 20px 0 0',
           padding: '32px 24px 40px',
           width: '100%',
@@ -277,24 +418,24 @@ function ConfirmDialog({ open, onConfirm, onCancel }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--error-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <span style={{ fontSize: 22 }}>🛑</span>
         </div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', textAlign: 'center', margin: '0 0 8px' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', textAlign: 'center', margin: '0 0 8px' }}>
           End this workout?
         </h2>
-        <p style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', margin: '0 0 28px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-tertiary)', textAlign: 'center', margin: '0 0 28px', lineHeight: 1.5 }}>
           Your progress won't be saved.
         </p>
         <button
           onClick={onConfirm}
-          style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#EF4444', color: '#fff', fontWeight: 600, fontSize: 15, border: 'none', marginBottom: 12, cursor: 'pointer' }}
+          style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--error)', color: "var(--bg-card)", fontWeight: 600, fontSize: 15, border: 'none', marginBottom: 12, cursor: 'pointer' }}
         >
           Discard Workout
         </button>
         <button
           onClick={onCancel}
-          style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#F3F4F6', color: '#111827', fontWeight: 600, fontSize: 15, border: 'none', cursor: 'pointer' }}
+          style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--border)', color: 'var(--text-primary)', fontWeight: 600, fontSize: 15, border: 'none', cursor: 'pointer' }}
         >
           Keep Going
         </button>
@@ -312,7 +453,7 @@ export default function LiveSession() {
   const preloaded = location.state
   const { user } = useAuth()
 
-  const session = useWorkoutSession()
+  const session = useWorkoutSessionContext()
   const {
     sessionId, exercises, isActive, elapsedSeconds, restTimer, restDuration,
     isSaving, error,
@@ -327,6 +468,59 @@ export default function LiveSession() {
   const [formCoachExercise, setFormCoachExercise] = useState('')
   const [formCoachTargetExerciseId, setFormCoachTargetExerciseId] = useState(null)
   const [bootError, setBootError] = useState(null)
+  const [detailSheetName, setDetailSheetName] = useState(null)
+
+  // ── Previous performance (per exercise, fetched once per session) ────────────
+  const [previousPerf, setPreviousPerf] = useState({})
+  const fetchedNamesRef = useRef(new Set())
+
+  useEffect(() => {
+    if (!user || !exercises.length) return
+    const newNames = exercises
+      .map(ex => ex.exerciseName)
+      .filter(name => !fetchedNamesRef.current.has(name))
+    if (!newNames.length) return
+    newNames.forEach(n => fetchedNamesRef.current.add(n))
+
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('workout_set_logs')
+        .select('exercise_name, set_number, reps_completed, weight_kg, workout_log_id, workout_log:workout_logs!inner(user_id, started_at)')
+        .in('exercise_name', newNames)
+        .eq('workout_log.user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(newNames.length * 20)
+
+      if (error || !data) return
+
+      // For each exercise, pick the most recent workout_log_id then build set map
+      const latestLog = {}  // exerciseName -> { logId, startedAt }
+      const setsByLog = {}  // `${exerciseName}:${logId}` -> { setNumber -> row }
+
+      for (const row of data) {
+        const exName = row.exercise_name
+        const logId  = row.workout_log_id
+        const startedAt = row.workout_log?.started_at ?? ''
+
+        if (!latestLog[exName] || startedAt > latestLog[exName].startedAt) {
+          latestLog[exName] = { logId, startedAt }
+        }
+
+        const key = `${exName}:${logId}`
+        if (!setsByLog[key]) setsByLog[key] = {}
+        if (!setsByLog[key][row.set_number]) {
+          setsByLog[key][row.set_number] = { weight_kg: row.weight_kg, reps_completed: row.reps_completed }
+        }
+      }
+
+      const result = {}
+      for (const [exName, { logId }] of Object.entries(latestLog)) {
+        result[exName] = setsByLog[`${exName}:${logId}`] ?? {}
+      }
+
+      setPreviousPerf(prev => ({ ...prev, ...result }))
+    })()
+  }, [exercises, user])
 
   function handleCheckForm(exercise) {
     setFormCoachExercise(exercise.exerciseName)
@@ -385,10 +579,15 @@ export default function LiveSession() {
     [exercises]
   )
 
+  const { showXPToast } = useXPToast()
   async function handleFinish() {
     const summary = await finishSession()
     if (summary) {
-      navigate('/workout/summary', { state: { summary }, replace: true })
+      if (summary.xpResult) showXPToast(summary.xpResult)
+      navigate(`/workout/summary/${summary.workoutId}`, {
+        state: { summary: { ...summary, planName: preloaded?.planName || '' } },
+        replace: true,
+      })
     }
   }
 
@@ -399,46 +598,42 @@ export default function LiveSession() {
   }
 
   return (
-    <div style={{ background: '#F7F7F5', minHeight: '100vh', paddingBottom: 48 }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingBottom: 48 }}>
 
       {/* ── Fixed top bar ────────────────────────────────────── */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        background: 'white', borderBottom: '1px solid rgba(0,0,0,0.05)',
+        background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)',
         height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 20px',
       }}>
         <button
           onClick={() => setConfirmCancel(true)}
-          style={{ fontSize: 14, fontWeight: 500, color: '#A32D2D', background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{ fontSize: 14, fontWeight: 500, color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           ← End
         </button>
-        <span style={{ fontSize: 14, fontWeight: 500, color: '#111', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", fontVariantNumeric: 'tabular-nums' }}>
           {formatElapsed(elapsedSeconds)}
         </span>
-        <button
+        <PrimaryButton
           onClick={handleFinish}
           disabled={isSaving || !sessionId}
-          style={{
-            fontSize: 14, fontWeight: 500, color: 'white', background: '#111',
-            borderRadius: 12, padding: '6px 16px', border: 'none', cursor: 'pointer',
-            opacity: (isSaving || !sessionId) ? 0.5 : 1,
-          }}
+          style={{ width: 'auto', height: 'auto', padding: '6px 16px', fontSize: 14, fontWeight: 500, borderRadius: 12, boxShadow: 'none', background: 'var(--bg-hover)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
         >
           {isSaving ? '…' : 'Finish'}
-        </button>
+        </PrimaryButton>
       </div>
 
       {/* ── Error banner ─────────────────────────────────────── */}
       {(error || bootError) && (
         <div style={{
           position: 'fixed', top: 56, left: 0, right: 0, zIndex: 49,
-          background: '#FEF2F2', borderBottom: '1px solid rgba(220,38,38,0.15)',
+          background: 'var(--error-bg)', borderBottom: '1px solid rgba(220,38,38,0.15)',
           padding: '8px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
         }}>
-          <span style={{ fontSize: 12, color: '#DC2626', flex: 1 }}>{error || bootError}</span>
-          <button onClick={() => { clearError(); setBootError(null) }} style={{ fontSize: 12, color: '#DC2626', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Dismiss</button>
+          <span style={{ fontSize: 12, color: 'var(--error)', flex: 1 }}>{error || bootError}</span>
+          <button onClick={() => { clearError(); setBootError(null) }} style={{ fontSize: 12, color: 'var(--error)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Dismiss</button>
         </div>
       )}
 
@@ -446,14 +641,14 @@ export default function LiveSession() {
       {restTimer.active && (
         <div style={{
           position: 'sticky', top: 56, zIndex: 40,
-          background: '#FFFBF5', borderBottom: '1px solid rgba(133,79,11,0.15)',
+          background: 'var(--warning-bg)', borderBottom: '1px solid rgba(133,79,11,0.15)',
           padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', background: '#FAEEDA', color: '#854F0B', padding: '2px 8px', borderRadius: 20 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', background: 'var(--warning-bg)', color: 'var(--warning)', padding: '2px 8px', borderRadius: 20 }}>
               REST
             </span>
-            <span style={{ fontSize: 22, fontWeight: 600, color: '#854F0B', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: 22, fontWeight: 600, color: 'var(--warning)', fontVariantNumeric: 'tabular-nums' }}>
               {formatMmSs(restTimer.secondsLeft)}
             </span>
           </div>
@@ -462,14 +657,14 @@ export default function LiveSession() {
               <button
                 key={label}
                 onClick={() => setRestDuration(Math.max(5, restTimer.secondsLeft + delta))}
-                style={{ height: 32, padding: '0 10px', border: '1px solid rgba(133,79,11,0.25)', borderRadius: 8, fontSize: 12, fontWeight: 500, color: '#854F0B', background: 'white', cursor: 'pointer' }}
+                style={{ height: 32, padding: '0 10px', border: '1px solid rgba(133,79,11,0.25)', borderRadius: 8, fontSize: 12, fontWeight: 500, color: 'var(--warning)', background: 'var(--bg-elevated)', cursor: 'pointer' }}
               >
                 {label}
               </button>
             ))}
             <button
               onClick={skipRest}
-              style={{ height: 32, padding: '0 10px', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'white', background: '#854F0B', cursor: 'pointer' }}
+              style={{ height: 32, padding: '0 10px', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'white', background: 'var(--warning)', cursor: 'pointer' }}
             >
               Skip
             </button>
@@ -479,10 +674,10 @@ export default function LiveSession() {
 
       {/* ── Workout title ─────────────────────────────────────── */}
       <div style={{ paddingTop: 72, paddingLeft: 20, paddingRight: 20, paddingBottom: 4 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600, color: '#111', margin: 0 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
           {preloaded?.planName || 'Workout'}
         </h2>
-        <p style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
+        <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginTop: 2 }}>
           {exercises.length === 0
             ? 'No exercises yet'
             : `${exercises.length} exercise${exercises.length === 1 ? '' : 's'}`}
@@ -492,8 +687,8 @@ export default function LiveSession() {
       {/* ── Loading spinner ───────────────────────────────────── */}
       {!sessionId && !error && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: 12 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #111', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
-          <p style={{ fontSize: 14, color: '#999' }}>Starting session…</p>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid var(--text-primary)', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+          <p style={{ fontSize: 14, color: "var(--text-tertiary)" }}>Starting session…</p>
         </div>
       )}
 
@@ -502,45 +697,51 @@ export default function LiveSession() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 20px', gap: 16, textAlign: 'center' }}>
           <button
             onClick={() => setPickerOpen(true)}
-            style={{ width: 64, height: 64, borderRadius: 20, background: '#F1EFE8', border: 'none', cursor: 'pointer', fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--bg-pill)', border: 'none', cursor: 'pointer', fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             +
           </button>
           <div>
-            <p style={{ fontSize: 16, fontWeight: 500, color: '#111', margin: 0 }}>Add your first exercise</p>
-            <p style={{ fontSize: 13, color: '#999', marginTop: 4 }}>Tap to pick from the library</p>
+            <p style={{ fontSize: 16, fontWeight: 500, color: "var(--text-primary)", margin: 0 }}>Add your first exercise</p>
+            <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginTop: 4 }}>Tap to pick from the library</p>
           </div>
         </div>
       )}
 
       {/* ── Scrollable exercise list ──────────────────────────── */}
       {sessionId && exercises.map(ex => (
-        <div key={ex.exerciseId} style={{ margin: '12px 20px 0', background: 'white', borderRadius: 12, border: '1px solid rgba(0,0,0,0.08)', padding: 16 }}>
+        <div key={ex.exerciseId} style={{ margin: '12px 20px 0', background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
 
           {/* Exercise header */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 16, fontWeight: 600, color: '#111', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {ex.exerciseName}
-              </p>
-              {ex.muscleGroup && (
-                <p style={{ fontSize: 12, color: '#999', marginTop: 2 }}>{ex.muscleGroup}</p>
-              )}
-            </div>
+            <button
+              onClick={() => setDetailSheetName(ex.exerciseName)}
+              style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {ex.exerciseName}
+                </p>
+                {ex.muscleGroup && (
+                  <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>{ex.muscleGroup}</p>
+                )}
+              </div>
+              <Info size={14} color="var(--text-cta)" style={{ flexShrink: 0 }} />
+            </button>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 8 }}>
               <button
                 onClick={() => handleCheckForm(ex)}
-                style={{ width: 32, height: 32, borderRadius: 8, background: '#EAF3DE', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--success-bg)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 title="Form check"
               >
-                <Camera size={14} color="#3B6D11" />
+                <Camera size={14} color="var(--success)" />
               </button>
               <button
                 onClick={() => removeExercise(ex.exerciseId)}
-                style={{ width: 32, height: 32, borderRadius: 8, background: '#F1EFE8', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-pill)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 title="Remove exercise"
               >
-                <X size={14} color="#999" />
+                <X size={14} color="var(--text-tertiary)" />
               </button>
             </div>
           </div>
@@ -548,78 +749,42 @@ export default function LiveSession() {
           {/* Set header row */}
           <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
             {['SET', 'PREVIOUS', 'KG', 'REPS', ''].map((h, i) => (
-              <span key={i} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#999', textAlign: i >= 2 ? 'center' : 'left' }}>{h}</span>
+              <span key={i} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: "var(--text-tertiary)", textAlign: i >= 2 ? 'center' : 'left' }}>{h}</span>
             ))}
           </div>
 
           {/* Set rows */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {ex.sets.map(set => (
-              <div
-                key={set.setNumber}
-                style={{
-                  display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px',
-                  gap: 6, padding: '6px 4px', alignItems: 'center', borderRadius: 8,
-                  background: set.completed ? 'rgba(59,109,17,0.05)' : 'transparent',
-                  borderLeft: set.completed ? '2px solid #3B6D11' : '2px solid transparent',
-                }}
-              >
-                {/* Set number */}
-                <span style={{ fontSize: 13, fontWeight: 500, color: set.completed ? '#3B6D11' : '#999' }}>
-                  {set.setNumber}
-                </span>
-                {/* Previous */}
-                <span style={{ fontSize: 12, color: '#CCC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>—</span>
-                {/* KG */}
-                {set.completed ? (
-                  <span style={{ fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 500 }}>{set.weight || '—'}</span>
-                ) : (
-                  <input
-                    type="number" inputMode="decimal"
-                    value={set.weight}
-                    onChange={e => updateSet(ex.exerciseId, set.setNumber, 'weight', e.target.value)}
-                    placeholder="0"
-                    style={{ width: '100%', height: 36, background: '#F7F7F5', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: '#111', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                )}
-                {/* Reps */}
-                {set.completed ? (
-                  <span style={{ fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 500 }}>{set.reps || '—'}</span>
-                ) : (
-                  <input
-                    type="number" inputMode="numeric"
-                    value={set.reps}
-                    onChange={e => updateSet(ex.exerciseId, set.setNumber, 'reps', e.target.value)}
-                    placeholder="0"
-                    style={{ width: '100%', height: 36, background: '#F7F7F5', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: '#111', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                )}
-                {/* Complete / undo button */}
-                {set.completed ? (
-                  <button
-                    onClick={() => removeSet(ex.exerciseId, set.setNumber)}
-                    style={{ width: 32, height: 32, borderRadius: 8, background: '#EAF3DE', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    title="Undo set"
-                  >
-                    <Check size={15} color="#3B6D11" strokeWidth={3} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => completeSet(ex.exerciseId, set.setNumber)}
-                    style={{ width: 32, height: 32, borderRadius: 8, background: '#F1EFE8', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    title="Log set"
-                  >
-                    <Check size={15} color="#CCC" strokeWidth={2.5} />
-                  </button>
-                )}
-              </div>
-            ))}
+            {ex.sets.map(set => {
+              const exPerf   = previousPerf[ex.exerciseName] ?? {}
+              const prevKeys = Object.keys(exPerf).map(Number).sort((a, b) => a - b)
+              // Match by set number; fall back to last available set from prior session
+              const prevKey  = exPerf[set.setNumber]
+                ? set.setNumber
+                : prevKeys.length ? prevKeys[prevKeys.length - 1] : null
+              const prevData = prevKey !== null ? exPerf[prevKey] : null
+              const prevText = prevData
+                ? `${prevData.weight_kg ?? 0} × ${prevData.reps_completed ?? 0}`
+                : null
+
+              return (
+                <SwipeableSetRow
+                  key={set.setNumber}
+                  set={set}
+                  prevData={prevData}
+                  prevText={prevText}
+                  onUpdate={(field, val) => updateSet(ex.exerciseId, set.setNumber, field, val)}
+                  onComplete={(fw, fr) => completeSet(ex.exerciseId, set.setNumber, { fallbackWeight: fw, fallbackReps: fr })}
+                  onRemove={() => removeSet(ex.exerciseId, set.setNumber)}
+                />
+              )
+            })}
           </div>
 
           {/* Add Set */}
           <button
             onClick={() => addSet(ex.exerciseId)}
-            style={{ marginTop: 10, fontSize: 13, fontWeight: 500, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 4px', display: 'flex', alignItems: 'center', gap: 4 }}
+            style={{ marginTop: 10, fontSize: 13, fontWeight: 500, color: 'var(--text-cta)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 4px', display: 'flex', alignItems: 'center', gap: 4 }}
           >
             <Plus size={13} /> Add Set
           </button>
@@ -632,24 +797,20 @@ export default function LiveSession() {
           <button
             onClick={() => setPickerOpen(true)}
             style={{
-              width: '100%', height: 48, borderRadius: 12, border: '1.5px dashed rgba(0,0,0,0.15)',
-              background: 'transparent', fontSize: 14, fontWeight: 500, color: '#111', cursor: 'pointer',
+              width: '100%', height: 48, borderRadius: 12, border: '1.5px dashed var(--border-strong)',
+              background: 'transparent', fontSize: 14, fontWeight: 500, color: "var(--text-primary)", cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >
             <Plus size={16} /> Add Exercise
           </button>
-          <button
+          <PrimaryButton
             onClick={handleFinish}
             disabled={isSaving || exercises.length === 0}
-            style={{
-              width: '100%', height: 52, background: '#111', color: 'white',
-              fontSize: 16, fontWeight: 500, borderRadius: 12, border: 'none', cursor: 'pointer',
-              opacity: (isSaving || exercises.length === 0) ? 0.4 : 1,
-            }}
+            style={{ background: 'var(--cta-bg)', border: '1px solid var(--cta-border)', color: 'var(--cta-text)' }}
           >
             {isSaving ? 'Saving…' : 'Finish Workout'}
-          </button>
+          </PrimaryButton>
         </div>
       )}
 
@@ -676,6 +837,12 @@ export default function LiveSession() {
         onClose={() => setFormCoachOpen(false)}
         exerciseName={formCoachExercise}
         onFormScore={handleFormScore}
+      />
+
+      <ExerciseDetailSheet
+        isOpen={!!detailSheetName}
+        exerciseName={detailSheetName}
+        onClose={() => setDetailSheetName(null)}
       />
     </div>
   )

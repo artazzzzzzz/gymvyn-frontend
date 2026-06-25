@@ -139,7 +139,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
       drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00FF88', lineWidth: 2 })
     }
     if (drawLandmarks) {
-      drawLandmarks(ctx, results.poseLandmarks, { color: '#FF4444', lineWidth: 1, radius: 4 })
+      drawLandmarks(ctx, results.poseLandmarks, { color: 'var(--error)', lineWidth: 1, radius: 4 })
     }
 
     // In guided mode we only show the skeleton — no angle-based scoring
@@ -301,7 +301,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
   const displayReps = isGuided ? manualReps : repCount
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="fixed inset-0 z-50 bg-[var(--bg-camera)] flex flex-col">
 
       {/* ── Top bar ── */}
       <header className="relative z-10 px-5 pt-12 pb-3 flex items-center justify-between gap-3 border-b border-white/[0.06]">
@@ -327,7 +327,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
 
         {/* Rep count chip (shown while running) */}
         {running && (
-          <div className="shrink-0 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
+          <div className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--bg-card)]/[0.04] border border-white/[0.08] text-center">
             <p className="text-[9px] uppercase tracking-widest text-zinc-500 leading-none">Reps</p>
             <p className="text-white font-mono font-bold text-lg leading-tight tabular-nums">{displayReps}</p>
           </div>
@@ -335,7 +335,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
 
         {/* Elapsed timer chip (shown while running) */}
         {running && (
-          <div className="shrink-0 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
+          <div className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--bg-card)]/[0.04] border border-white/[0.08] text-center">
             <p className="text-[9px] uppercase tracking-widest text-zinc-500 leading-none">Time</p>
             <p className="text-white font-mono font-bold text-lg leading-tight tabular-nums">{fmtTime(elapsedSecs)}</p>
           </div>
@@ -343,7 +343,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
 
         <button
           onClick={handleDone}
-          className="shrink-0 w-9 h-9 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
+          className="shrink-0 w-9 h-9 rounded-xl bg-[var(--bg-card)]/[0.05] hover:bg-[var(--bg-card)]/[0.1] flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
           title="Done"
         >
           <X size={18} />
@@ -358,7 +358,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
           <div className="m-auto bg-gray-900 border border-white/[0.08] rounded-2xl p-7 flex flex-col items-center gap-4 max-w-sm text-center">
             <AlertCircle size={22} className="text-zinc-500" />
             <p className="text-zinc-400 text-sm">No exercise selected.</p>
-            <button onClick={onClose} className="px-5 py-2 rounded-xl bg-white/[0.06] text-white text-sm font-medium">
+            <button onClick={onClose} className="px-5 py-2 rounded-xl bg-[var(--bg-card)]/[0.06] text-white text-sm font-medium">
               Close
             </button>
           </div>
@@ -489,7 +489,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setManualReps(n => Math.max(0, n - 1))}
-                    className="w-11 h-11 rounded-full bg-white/[0.06] border border-white/[0.1] text-zinc-300 hover:bg-white/[0.12] active:scale-95 transition-all text-xl font-bold flex items-center justify-center"
+                    className="w-11 h-11 rounded-full bg-[var(--bg-card)]/[0.06] border border-white/[0.1] text-zinc-300 hover:bg-[var(--bg-card)]/[0.12] active:scale-95 transition-all text-xl font-bold flex items-center justify-center"
                     aria-label="Remove rep"
                   >
                     −
@@ -520,7 +520,7 @@ export default function FormCoachModal({ isOpen, onClose, exerciseName, onFormSc
             {running && (
               <button
                 onClick={() => stop()}
-                className="w-full py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white font-semibold text-sm hover:bg-white/[0.08] transition-colors"
+                className="w-full py-3 rounded-xl bg-[var(--bg-card)]/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white font-semibold text-sm hover:bg-[var(--bg-card)]/[0.08] transition-colors"
               >
                 Stop Session
               </button>

@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import { supabase } from '../utils/supabase';
+import { TrainerCodeCard } from '../components/TrainerCodeCard';
+import { useTheme } from '../contexts/ThemeContext';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -20,7 +23,7 @@ const Toggle = ({ value, onChange }) => (
     onClick={onChange}
     style={{
       width: 44, height: 26, borderRadius: 13,
-      background: value ? '#111' : '#D0D0D0',
+      background: value ? "var(--text-primary)" : 'var(--border-strong)',
       position: 'relative', cursor: 'pointer',
       transition: 'background 0.2s', flexShrink: 0
     }}
@@ -30,7 +33,7 @@ const Toggle = ({ value, onChange }) => (
       top: 3,
       left: value ? 21 : 3,
       width: 20, height: 20, borderRadius: '50%',
-      background: 'white',
+      background: 'var(--bg-card)',
       transition: 'left 0.2s'
     }} />
   </div>
@@ -40,9 +43,9 @@ const SectionHeader = ({ title }) => (
   <div style={{
     padding: '16px 20px 6px',
     fontSize: 11, fontWeight: 500,
-    color: '#999', textTransform: 'uppercase',
+    color: "var(--text-tertiary)", textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    background: '#F7F7F5'
+    background: 'var(--bg-primary)'
   }}>{title}</div>
 );
 
@@ -52,24 +55,24 @@ const SettingsRow = ({ icon, label, value, onPress, toggle, toggleValue, onToggl
     style={{
       display: 'flex', alignItems: 'center',
       padding: '0 20px', height: 52,
-      background: 'white', cursor: onPress ? 'pointer' : 'default',
-      borderBottom: '0.5px solid rgba(0,0,0,0.06)'
+      background: 'var(--bg-card)', cursor: onPress ? 'pointer' : 'default',
+      borderBottom: '0.5px solid var(--border)'
     }}
   >
     <i
       className={`ti ti-${icon}`}
-      style={{ fontSize: 18, color: danger ? '#A32D2D' : '#888', marginRight: 14, width: 20, textAlign: 'center' }}
+      style={{ fontSize: 18, color: danger ? 'var(--error)' : "var(--text-tertiary)", marginRight: 14, width: 20, textAlign: 'center' }}
     />
     <div style={{ flex: 1 }}>
-      <span style={{ fontSize: 14, color: danger ? '#A32D2D' : '#111' }}>{label}</span>
+      <span style={{ fontSize: 14, color: danger ? 'var(--error)' : "var(--text-primary)" }}>{label}</span>
       {value && (
-        <span style={{ fontSize: 13, color: '#999', marginLeft: 8 }}>{value}</span>
+        <span style={{ fontSize: 13, color: "var(--text-tertiary)", marginLeft: 8 }}>{value}</span>
       )}
     </div>
     {toggle
       ? <Toggle value={toggleValue} onChange={onToggle} />
       : onPress
-        ? <i className="ti ti-chevron-right" style={{ fontSize: 16, color: '#C0C0C0' }} />
+        ? <i className="ti ti-chevron-right" style={{ fontSize: 16, color: 'var(--text-disabled)' }} />
         : null
     }
   </div>
@@ -80,6 +83,7 @@ const SettingsRow = ({ icon, label, value, onPress, toggle, toggleValue, onToggl
 export default function TrainerSettings() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme, setThemeMode } = useTheme();
   const photoInputRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
@@ -224,7 +228,7 @@ export default function TrainerSettings() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -240,14 +244,14 @@ export default function TrainerSettings() {
   const activeClients = (clients || []).filter(c => c.status === 'active');
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F7F7F5', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: 100 }}>
 
       {/* Profile card */}
-      <div style={{ background: '#F7F7F5', paddingTop: 52 }}>
+      <div style={{ background: 'var(--bg-primary)', paddingTop: 52 }}>
         <div style={{
-          background: 'white', borderRadius: 12,
+          background: 'var(--bg-card)', borderRadius: 12,
           margin: '0 20px 4px', padding: 16,
-          border: '0.5px solid rgba(0,0,0,0.08)'
+          border: '0.5px solid var(--border)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             {/* Avatar with camera overlay */}
@@ -261,18 +265,18 @@ export default function TrainerSettings() {
               />
               <div
                 onClick={() => photoInputRef.current?.click()}
-                style={{ width: 64, height: 64, borderRadius: '50%', cursor: 'pointer', overflow: 'hidden', background: '#E6F1FB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: 64, height: 64, borderRadius: '50%', cursor: 'pointer', overflow: 'hidden', background: 'var(--accent-bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 {profile?.profile_photo_url
                   ? <img src={profile.profile_photo_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: 20, fontWeight: 600, color: '#185FA5' }}>{initials}</span>
+                  : <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-cta)' }}>{initials}</span>
                 }
               </div>
               {/* Camera overlay badge */}
               <div style={{
                 position: 'absolute', bottom: 0, right: 0,
                 width: 22, height: 22, borderRadius: '50%',
-                background: '#111', display: 'flex',
+                background: "var(--text-primary)", display: 'flex',
                 alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer'
               }}
@@ -290,7 +294,7 @@ export default function TrainerSettings() {
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 2 }}>
                 {profile?.full_name || 'Trainer'}
               </div>
-              <div style={{ fontSize: 12, color: '#999', lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {profile?.bio || 'No bio yet'}
               </div>
             </div>
@@ -298,7 +302,7 @@ export default function TrainerSettings() {
             {/* Edit chevron */}
             <button
               onClick={openEdit}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C0C0C0', padding: 4 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-disabled)', padding: 4 }}
             >
               <i className="ti ti-pencil" style={{ fontSize: 18 }} />
             </button>
@@ -308,7 +312,7 @@ export default function TrainerSettings() {
           <div style={{
             display: 'flex', justifyContent: 'space-around',
             paddingTop: 14, marginTop: 14,
-            borderTop: '0.5px solid rgba(0,0,0,0.08)'
+            borderTop: '0.5px solid var(--border)'
           }}>
             {[
               { label: 'Clients', value: activeClients.length },
@@ -317,7 +321,7 @@ export default function TrainerSettings() {
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 18, fontWeight: 600 }}>{s.value}</div>
-                <div style={{ fontSize: 11, color: '#999' }}>{s.label}</div>
+                <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -326,7 +330,7 @@ export default function TrainerSettings() {
 
       {/* ── Section: Trainer ── */}
       <SectionHeader title="Trainer" />
-      <div style={{ background: 'white', borderRadius: 0, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', borderRadius: 0, overflow: 'hidden' }}>
         <SettingsRow
           icon="users"
           label="Accepting clients"
@@ -347,41 +351,15 @@ export default function TrainerSettings() {
         />
       </div>
 
-      {/* ── Section: Invite ── */}
-      <SectionHeader title="Invite code" />
-      <div style={{ background: 'white', overflow: 'hidden' }}>
-        <div style={{
-          padding: '14px 20px',
-          borderBottom: '0.5px solid rgba(0,0,0,0.06)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-        }}>
-          <div>
-            <div style={{ fontSize: 11, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Your code</div>
-            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 4, fontFamily: 'monospace' }}>
-              {profile?.invite_code || '—'}
-            </div>
-          </div>
-          <button
-            onClick={copyInviteCode}
-            style={{
-              padding: '8px 16px', borderRadius: 8,
-              background: copied ? '#EAF3DE' : '#111',
-              color: copied ? '#3B6D11' : 'white',
-              border: 'none', fontSize: 13, fontWeight: 500,
-              cursor: 'pointer', transition: 'all 0.2s'
-            }}
-          >
-            {copied ? '✓ Copied' : 'Copy'}
-          </button>
-        </div>
-        <div style={{ padding: '10px 20px', fontSize: 12, color: '#999' }}>
-          Share with clients so they can connect with you in the app
-        </div>
+      {/* ── Section: Your Trainer Code ── */}
+      <SectionHeader title="Your Trainer Code" />
+      <div style={{ padding: '0 16px 4px' }}>
+        <TrainerCodeCard />
       </div>
 
       {/* ── Section: Account ── */}
       <SectionHeader title="Account" />
-      <div style={{ background: 'white', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', overflow: 'hidden' }}>
         <SettingsRow
           icon="home"
           label="Switch to Member Mode"
@@ -402,18 +380,18 @@ export default function TrainerSettings() {
       {/* Delete account */}
       <div style={{ textAlign: 'center', padding: '4px 20px 16px' }}>
         {deleteConfirm ? (
-          <div style={{ background: '#FFF0F0', border: '0.5px solid #A32D2D', borderRadius: 10, padding: 12, marginBottom: 8 }}>
-            <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 10 }}>Are you sure? This cannot be undone.</p>
+          <div style={{ background: 'var(--error-bg)', border: '0.5px solid var(--error)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
+            <p style={{ fontSize: 13, color: 'var(--error)', marginBottom: 10 }}>Are you sure? This cannot be undone.</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => setDeleteConfirm(false)}
-                style={{ flex: 1, height: 36, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.15)', background: 'white', fontSize: 13, cursor: 'pointer' }}
+                style={{ flex: 1, height: 36, borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-card)', fontSize: 13, cursor: 'pointer' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteAccount}
-                style={{ flex: 1, height: 36, borderRadius: 8, border: 'none', background: '#A32D2D', color: 'white', fontSize: 13, cursor: 'pointer' }}
+                style={{ flex: 1, height: 36, borderRadius: 8, border: 'none', background: 'var(--error)', color: 'white', fontSize: 13, cursor: 'pointer' }}
               >
                 Delete account
               </button>
@@ -422,23 +400,65 @@ export default function TrainerSettings() {
         ) : (
           <button
             onClick={handleDeleteAccount}
-            style={{ fontSize: 12, color: '#C0C0C0', background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-            onMouseOver={e => e.currentTarget.style.color = '#A32D2D'}
-            onMouseOut={e => e.currentTarget.style.color = '#C0C0C0'}
+            style={{ fontSize: 12, color: 'var(--text-disabled)', background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
+            onMouseOver={e => e.currentTarget.style.color = 'var(--error)'}
+            onMouseOut={e => e.currentTarget.style.color = 'var(--text-disabled)'}
           >
             Delete account
           </button>
         )}
       </div>
 
+      {/* ── Appearance ── */}
+      <div style={{
+        padding: '16px 20px 6px',
+        fontSize: 11, fontWeight: 500,
+        color: 'var(--text-muted)', textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        background: 'var(--bg)',
+      }}>APPEARANCE</div>
+      <div style={{ padding: '0 16px 4px' }}>
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: 14,
+          border: '1px solid var(--border)',
+          overflow: 'hidden',
+        }}>
+          {[
+            { id: 'light', label: 'Light', Icon: Sun },
+            { id: 'dark', label: 'Dark', Icon: Moon },
+            { id: 'system', label: 'System', Icon: Monitor, sub: 'Follows your device setting' },
+          ].map((item, i) => (
+            <div
+              key={item.id}
+              onClick={() => setThemeMode(item.id)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '14px 16px', cursor: 'pointer', background: 'transparent',
+                borderBottom: i < 2 ? '1px solid var(--divider)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <item.Icon size={18} color="var(--text-primary)" />
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>{item.label}</div>
+                  {item.sub && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{item.sub}</div>}
+                </div>
+              </div>
+              {theme === item.id && <Check size={18} color="var(--accent)" />}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── Log Out ── */}
       <div style={{ padding: '8px 20px 40px' }}>
-        <div style={{ height: 1, background: '#F3F4F6', margin: '8px 0 20px' }} />
+        <div style={{ height: 1, background: 'var(--border)', margin: '8px 0 20px' }} />
         <button
           onClick={handleSignOut}
           style={{
             width: '100%', padding: '14px', borderRadius: 12,
-            background: '#FEF2F2', color: '#EF4444', fontWeight: 600,
+            background: 'var(--error-bg)', color: 'var(--error)', fontWeight: 600,
             fontSize: 15, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
@@ -450,29 +470,29 @@ export default function TrainerSettings() {
       {/* ── Edit Profile Sheet (normal flow, not fixed) ── */}
       {editOpen && (
         <div style={{
-          marginTop: 20, background: 'white',
-          border: '0.5px solid rgba(0,0,0,0.1)',
+          marginTop: 20, background: 'var(--bg-card)',
+          border: '0.5px solid var(--border)',
           borderRadius: '16px 16px 0 0', padding: 20
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <span style={{ fontSize: 16, fontWeight: 600 }}>Edit profile</span>
             <button
               onClick={() => setEditOpen(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#999', lineHeight: 1 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: "var(--text-tertiary)", lineHeight: 1 }}
             >×</button>
           </div>
 
           {/* Bio */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: '#999', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Bio</div>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Bio</div>
             <textarea
               rows={3}
               value={editForm.bio || ''}
               onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
               placeholder="Tell clients about yourself…"
               style={{
-                width: '100%', background: '#F7F7F5', border: 'none',
-                borderRadius: 8, padding: 12, fontSize: 13, color: '#333',
+                width: '100%', background: 'var(--bg-primary)', border: 'none',
+                borderRadius: 8, padding: 12, fontSize: 13, color: "var(--text-secondary)",
                 resize: 'none', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit'
               }}
             />
@@ -481,21 +501,21 @@ export default function TrainerSettings() {
           {/* Experience + Rate */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: '#999', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Experience (yrs)</div>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Experience (yrs)</div>
               <input
                 type="number"
                 value={editForm.experience_years || ''}
                 onChange={e => setEditForm(f => ({ ...f, experience_years: e.target.value }))}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.12)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: '#999', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Rate (₹/hr)</div>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Rate (₹/hr)</div>
               <input
                 type="number"
                 value={editForm.hourly_rate || ''}
                 onChange={e => setEditForm(f => ({ ...f, hourly_rate: e.target.value }))}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.12)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
           </div>
@@ -503,28 +523,28 @@ export default function TrainerSettings() {
           {/* City + Phone */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: '#999', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>City</div>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>City</div>
               <input
                 type="text"
                 value={editForm.city || ''}
                 onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.12)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: '#999', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Phone</div>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Phone</div>
               <input
                 type="tel"
                 value={editForm.phone || ''}
                 onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.12)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
           </div>
 
           {/* Specializations */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, color: '#999', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specializations</div>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Specializations</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {SPECIALIZATIONS.map(spec => {
                 const active = (editForm.specializations || []).includes(spec);
@@ -534,9 +554,9 @@ export default function TrainerSettings() {
                     onClick={() => toggleSpec(spec)}
                     style={{
                       padding: '5px 12px', borderRadius: 20, fontSize: 12,
-                      border: active ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
-                      background: active ? '#111' : 'transparent',
-                      color: active ? 'white' : '#555',
+                      border: active ? 'none' : '0.5px solid var(--border)',
+                      background: active ? "var(--text-primary)" : 'transparent',
+                      color: active ? 'var(--bg-primary)' : "var(--text-secondary)",
                       cursor: 'pointer'
                     }}
                   >
@@ -553,7 +573,7 @@ export default function TrainerSettings() {
             disabled={saving}
             style={{
               width: '100%', height: 48, borderRadius: 10,
-              background: saving ? '#ccc' : '#111',
+              background: saving ? 'var(--text-tertiary)' : "var(--text-primary)",
               color: 'white', border: 'none', fontSize: 14,
               fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer'
             }}
@@ -566,7 +586,7 @@ export default function TrainerSettings() {
       {/* Bottom nav */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'white', borderTop: '0.5px solid rgba(0,0,0,0.08)',
+        background: 'var(--bg-card)', borderTop: '0.5px solid var(--border)',
         display: 'flex', justifyContent: 'space-around', padding: '10px 0 24px'
       }}>
         {[
@@ -581,7 +601,7 @@ export default function TrainerSettings() {
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               gap: 3, background: 'none', border: 'none', cursor: 'pointer',
-              color: tab.active ? '#111' : '#999', padding: '0 12px'
+              color: tab.active ? "var(--text-primary)" : "var(--text-tertiary)", padding: '0 12px'
             }}
           >
             <span style={{ fontSize: 18 }}>{tab.icon}</span>

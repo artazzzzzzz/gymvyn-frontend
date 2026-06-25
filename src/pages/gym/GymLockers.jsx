@@ -44,9 +44,9 @@ function isExpiringSoon(expiresAt) {
 }
 
 const STATUS_META = {
-  available:   { label: 'Available',   bg: '#E8F5E9', color: '#2E7D32' },
-  occupied:    { label: 'Occupied',    bg: '#E3F2FD', color: '#1565C0' },
-  maintenance: { label: 'Maintenance', bg: '#FFF8E1', color: '#F57F17' },
+  available:   { label: 'Available',   bg: 'var(--success-bg)', color: 'var(--success)' },
+  occupied:    { label: 'Occupied',    bg: 'var(--accent-bg)', color: 'var(--text-cta)' },
+  maintenance: { label: 'Maintenance', bg: 'var(--warning-bg)', color: 'var(--warning)' },
 }
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -68,15 +68,15 @@ function Sheet({ onClose, children, title, zIndex = 51 }) {
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: zIndex - 1 }} />
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex,
-        backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+        backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
         maxHeight: '90vh', overflowY: 'auto', paddingBottom: 40,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}>
-        <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 0' }} />
+        <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 0' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 12px' }}>
-          <span style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{title}</span>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-            <X size={20} color="#666" />
+            <X size={20} color="var(--text-secondary)" />
           </button>
         </div>
         <div style={{ padding: '0 20px' }}>
@@ -93,7 +93,7 @@ function Toggle({ value, onChange }) {
       onClick={() => onChange(!value)}
       style={{
         width: 44, height: 26, borderRadius: 13,
-        backgroundColor: value ? '#111' : '#E0E0E0',
+        backgroundColor: value ? 'var(--text-primary)' : 'var(--border)',
         position: 'relative', cursor: 'pointer',
         transition: 'background-color 0.2s', flexShrink: 0,
       }}
@@ -102,7 +102,7 @@ function Toggle({ value, onChange }) {
         position: 'absolute', top: 3,
         left: value ? 21 : 3,
         width: 20, height: 20, borderRadius: '50%',
-        backgroundColor: 'white',
+        backgroundColor: "var(--bg-card)",
         transition: 'left 0.2s',
         boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
       }} />
@@ -113,7 +113,7 @@ function Toggle({ value, onChange }) {
 function FieldInput({ label, value, onChange, placeholder, type = 'text', error }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      {label && <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginBottom: 6 }}>{label}</div>}
+      {label && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{label}</div>}
       <input
         type={type}
         placeholder={placeholder}
@@ -121,12 +121,12 @@ function FieldInput({ label, value, onChange, placeholder, type = 'text', error 
         onChange={e => onChange(e.target.value)}
         style={{
           width: '100%', height: 48,
-          border: `1px solid ${error ? '#D32F2F' : 'rgba(0,0,0,0.15)'}`,
+          border: `1px solid ${error ? 'var(--error)' : 'rgba(0,0,0,0.15)'}`,
           borderRadius: 12, padding: '0 14px', fontSize: 15,
-          boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit', color: '#111',
+          boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit', color: 'var(--text-primary)',
         }}
       />
-      {error && <div style={{ fontSize: 12, color: '#D32F2F', marginTop: 4 }}>{error}</div>}
+      {error && <div style={{ fontSize: 12, color: 'var(--error)', marginTop: 4 }}>{error}</div>}
     </div>
   )
 }
@@ -136,11 +136,11 @@ function Toast({ toast }) {
   return (
     <div style={{
       position: 'fixed', top: 16, left: 16, right: 16, zIndex: 200,
-      backgroundColor: toast.type === 'error' ? '#FCEBEB' : '#EAF3DE',
+      backgroundColor: toast.type === 'error' ? 'var(--error-bg)' : 'var(--success-bg)',
       borderRadius: 16, padding: '14px 16px',
       boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
     }}>
-      <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'error' ? '#A32D2D' : '#3B6D11' }}>
+      <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'error' ? 'var(--error)' : 'var(--success)' }}>
         {toast.message}
       </div>
     </div>
@@ -184,8 +184,8 @@ function AddLockerSheet({ onClose, onAdded }) {
         placeholder="e.g. A1, VIP-1" error={labelError} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, minHeight: 44 }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Paid locker?</div>
-          <div style={{ fontSize: 12, color: '#666' }}>Charge members for this locker</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Paid locker?</div>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Charge members for this locker</div>
         </div>
         <Toggle value={isPaid} onChange={setIsPaid} />
       </div>
@@ -193,7 +193,7 @@ function AddLockerSheet({ onClose, onAdded }) {
         <FieldInput label="Price (₹)" value={price} onChange={v => { setPrice(v); setError(null) }}
           placeholder="e.g. 500" type="number" error={error} />
       )}
-      {error && !isPaid && <div style={{ fontSize: 12, color: '#D32F2F', marginBottom: 10 }}>{error}</div>}
+      {error && !isPaid && <div style={{ fontSize: 12, color: 'var(--error)', marginBottom: 10 }}>{error}</div>}
       <PrimaryButton onClick={handleSubmit} disabled={saving || !label.trim()}>
         {saving ? 'Adding…' : 'Add Locker'}
       </PrimaryButton>
@@ -258,15 +258,15 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
     <Sheet title={`Assign ${locker.label}`} onClose={onClose} zIndex={62}>
       {/* Member search */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginBottom: 6 }}>Member</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Member</div>
         {selectedMember ? (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '10px 14px', borderRadius: 12, border: '1px solid #111', background: '#F7F7F5',
+            padding: '10px 14px', borderRadius: 12, border: '1px solid var(--text-primary)', background: 'var(--bg-primary)',
           }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>{selectedMember.full_name}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{selectedMember.full_name}</span>
             <button onClick={() => setSelectedMember(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-              <X size={16} color="#666" />
+              <X size={16} color="var(--text-secondary)" />
             </button>
           </div>
         ) : (
@@ -278,7 +278,7 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
               style={{
                 width: '100%', height: 44, border: '1px solid rgba(0,0,0,0.15)',
                 borderRadius: 12, padding: '0 14px', fontSize: 15,
-                boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit', color: '#111',
+                boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit', color: 'var(--text-primary)',
               }}
             />
             {search && (
@@ -287,9 +287,9 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
                 overflow: 'hidden', maxHeight: 180, overflowY: 'auto',
               }}>
                 {membersLoading ? (
-                  <div style={{ padding: '12px 14px', fontSize: 13, color: '#999' }}>Loading…</div>
+                  <div style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-tertiary)' }}>Loading…</div>
                 ) : filtered.length === 0 ? (
-                  <div style={{ padding: '12px 14px', fontSize: 13, color: '#999' }}>No members found</div>
+                  <div style={{ padding: '12px 14px', fontSize: 13, color: 'var(--text-tertiary)' }}>No members found</div>
                 ) : filtered.slice(0, 20).map(m => (
                   <button key={m.user_id || m.id}
                     onClick={() => { setSelectedMember(m); setSearch('') }}
@@ -297,11 +297,11 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
                       width: '100%', textAlign: 'left', padding: '10px 14px',
                       background: 'none', border: 'none', cursor: 'pointer',
                       borderBottom: '0.5px solid rgba(0,0,0,0.06)',
-                      fontSize: 14, color: '#111',
+                      fontSize: 14, color: 'var(--text-primary)',
                     }}
                   >
                     {m.full_name}
-                    {m.plan_type && <span style={{ color: '#999', marginLeft: 8, fontSize: 12 }}>{m.plan_type}</span>}
+                    {m.plan_type && <span style={{ color: 'var(--text-tertiary)', marginLeft: 8, fontSize: 12 }}>{m.plan_type}</span>}
                   </button>
                 ))}
               </div>
@@ -312,16 +312,16 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
 
       {/* Duration presets */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginBottom: 8 }}>Duration</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>Duration</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {DURATION_PRESETS.map(p => (
             <button key={p.days}
               onClick={() => { setDurationPreset(p.days); setIsCustom(false) }}
               style={{
                 padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-                border: !isCustom && durationPreset === p.days ? '1.5px solid #111' : '1px solid rgba(0,0,0,0.15)',
-                background: !isCustom && durationPreset === p.days ? '#111' : 'white',
-                color: !isCustom && durationPreset === p.days ? 'white' : '#111',
+                border: !isCustom && durationPreset === p.days ? '1.5px solid var(--text-primary)' : '1px solid rgba(0,0,0,0.15)',
+                background: !isCustom && durationPreset === p.days ? 'var(--text-primary)' : "var(--bg-card)",
+                color: !isCustom && durationPreset === p.days ? 'white' : 'var(--text-primary)',
                 cursor: 'pointer',
               }}
             >{p.label}</button>
@@ -330,9 +330,9 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
             onClick={() => setIsCustom(true)}
             style={{
               padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-              border: isCustom ? '1.5px solid #111' : '1px solid rgba(0,0,0,0.15)',
-              background: isCustom ? '#111' : 'white',
-              color: isCustom ? 'white' : '#111',
+              border: isCustom ? '1.5px solid var(--text-primary)' : '1px solid rgba(0,0,0,0.15)',
+              background: isCustom ? 'var(--text-primary)' : "var(--bg-card)",
+              color: isCustom ? 'white' : 'var(--text-primary)',
               cursor: 'pointer',
             }}
           >Custom</button>
@@ -347,14 +347,14 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
       {/* Price reminder */}
       {locker.is_paid && (
         <div style={{
-          padding: '10px 14px', borderRadius: 12, background: '#E3F2FD',
-          fontSize: 13, color: '#1565C0', marginBottom: 16, fontWeight: 500,
+          padding: '10px 14px', borderRadius: 12, background: 'var(--accent-bg)',
+          fontSize: 13, color: 'var(--text-cta)', marginBottom: 16, fontWeight: 500,
         }}>
           ₹{locker.price?.toLocaleString('en-IN')} will be due for this locker
         </div>
       )}
 
-      {error && <div style={{ fontSize: 13, color: '#D32F2F', marginBottom: 12 }}>{error}</div>}
+      {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
 
       <PrimaryButton onClick={handleAssign} disabled={saving || !canSubmit}>
         {saving ? 'Assigning…' : 'Assign Locker'}
@@ -484,8 +484,8 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
   }
 
   const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }
-  const labelStyle = { fontSize: 13, color: '#666', fontWeight: 500 }
-  const valueStyle = { fontSize: 14, color: '#111', fontWeight: 600, textAlign: 'right' }
+  const labelStyle = { fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }
+  const valueStyle = { fontSize: 14, color: 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }
 
   return (
     <Sheet title={`Locker ${locker.label}`} onClose={onClose}>
@@ -493,7 +493,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <StatusBadge status={locker.status} />
         {locker.is_paid && (
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#5F5E5A', background: '#F1EFE8', padding: '3px 8px', borderRadius: 20 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-pill)', padding: '3px 8px', borderRadius: 20 }}>
             ₹{locker.price?.toLocaleString('en-IN')}
           </span>
         )}
@@ -508,7 +508,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
                 placeholder="e.g. A1" error={labelError} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, minHeight: 44 }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Paid locker?</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Paid locker?</div>
                 </div>
                 <Toggle value={editIsPaid} onChange={setEditIsPaid} />
               </div>
@@ -517,30 +517,30 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
                   placeholder="e.g. 500" type="number" />
               )}
               <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginBottom: 6 }}>Status</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Status</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['available', 'maintenance'].map(s => (
                     <button key={s}
                       onClick={() => setEditStatus(s)}
                       style={{
                         padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                        border: editStatus === s ? '1.5px solid #111' : '1px solid rgba(0,0,0,0.15)',
-                        background: editStatus === s ? '#111' : 'white',
-                        color: editStatus === s ? 'white' : '#111',
+                        border: editStatus === s ? '1.5px solid var(--text-primary)' : '1px solid rgba(0,0,0,0.15)',
+                        background: editStatus === s ? 'var(--text-primary)' : "var(--bg-card)",
+                        color: editStatus === s ? 'white' : 'var(--text-primary)',
                       }}
                     >{s === 'available' ? 'Available' : 'Maintenance'}</button>
                   ))}
                 </div>
               </div>
-              {error && <div style={{ fontSize: 12, color: '#D32F2F', marginBottom: 10 }}>{error}</div>}
+              {error && <div style={{ fontSize: 12, color: 'var(--error)', marginBottom: 10 }}>{error}</div>}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setEditMode(false)} style={{
                   flex: 1, height: 48, borderRadius: 12, border: '1px solid rgba(0,0,0,0.15)',
-                  background: 'white', fontSize: 15, fontWeight: 500, cursor: 'pointer', color: '#111',
+                  background: "var(--bg-card)", fontSize: 15, fontWeight: 500, cursor: 'pointer', color: 'var(--text-primary)',
                 }}>Cancel</button>
                 <button onClick={handleSaveEdit} disabled={saving} style={{
                   flex: 1, height: 48, borderRadius: 12, border: 'none',
-                  background: '#111', fontSize: 15, fontWeight: 500, cursor: 'pointer', color: 'white',
+                  background: 'var(--text-primary)', fontSize: 15, fontWeight: 500, cursor: 'pointer', color: "var(--bg-card)",
                   opacity: saving ? 0.6 : 1,
                 }}>{saving ? 'Saving…' : 'Save'}</button>
               </div>
@@ -548,7 +548,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
           ) : (
             <>
               <button onClick={() => setEditMode(true)} style={{
-                background: 'none', border: 'none', fontSize: 13, color: '#007AFF',
+                background: 'none', border: 'none', fontSize: 13, color: 'var(--text-cta)',
                 cursor: 'pointer', padding: 0, marginBottom: 20, fontWeight: 500,
               }}>Edit locker details</button>
               <PrimaryButton onClick={() => onAssign(locker)}>Assign to Member</PrimaryButton>
@@ -558,7 +558,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
           <button
             onClick={() => setShowDeleteConfirm(true)}
             style={{
-              background: 'none', border: 'none', fontSize: 13, color: '#D32F2F',
+              background: 'none', border: 'none', fontSize: 13, color: 'var(--error)',
               cursor: 'pointer', padding: '12px 0 0', width: '100%', textAlign: 'center',
             }}
           >Delete locker</button>
@@ -568,7 +568,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
       {/* ── OCCUPIED ──────────────────────────────────────────────────── */}
       {locker.status === 'occupied' && a && (
         <>
-          <div style={{ background: '#F7F7F5', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 12, padding: '12px 14px', marginBottom: 16 }}>
             <div style={rowStyle}>
               <span style={labelStyle}>Member</span>
               <span style={valueStyle}>{a.member_name || '—'}</span>
@@ -585,7 +585,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
               <span style={labelStyle}>Expires</span>
               <span style={{
                 ...valueStyle,
-                color: expSoon ? '#D32F2F' : '#111',
+                color: expSoon ? 'var(--error)' : 'var(--text-primary)',
               }}>
                 {formatDate(a.expires_at)}
                 {expSoon && ' ⚠'}
@@ -599,7 +599,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
               {a.payment.payment_status === 'paid' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{
-                    background: '#E8F5E9', color: '#2E7D32',
+                    background: 'var(--success-bg)', color: 'var(--success)',
                     fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                   }}>
                     ✓ Paid · {a.payment.payment_method === 'cash' ? 'Cash' : 'UPI'}
@@ -608,13 +608,13 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{
-                    background: '#FCEBEB', color: '#D32F2F',
+                    background: 'var(--error-bg)', color: 'var(--error)',
                     fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                   }}>Unpaid</span>
                   <button
                     onClick={() => setShowMarkPaid(true)}
                     style={{
-                      background: '#111', color: 'white', border: 'none',
+                      background: 'var(--text-primary)', color: "var(--bg-card)", border: 'none',
                       borderRadius: 10, padding: '6px 14px', fontSize: 13,
                       fontWeight: 500, cursor: 'pointer',
                     }}
@@ -624,14 +624,14 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
             </div>
           )}
 
-          {error && <div style={{ fontSize: 13, color: '#D32F2F', marginBottom: 12 }}>{error}</div>}
+          {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
 
           <button
             onClick={() => setShowEndConfirm(true)}
             style={{
               width: '100%', height: 48, borderRadius: 12,
-              border: '1.5px solid #D32F2F', background: 'white',
-              color: '#D32F2F', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+              border: '1.5px solid var(--error)', background: "var(--bg-card)",
+              color: 'var(--error)', fontSize: 15, fontWeight: 600, cursor: 'pointer',
             }}
           >End Assignment</button>
         </>
@@ -640,10 +640,10 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
       {/* ── MAINTENANCE ───────────────────────────────────────────────── */}
       {locker.status === 'maintenance' && (
         <>
-          <p style={{ fontSize: 14, color: '#666', marginBottom: 20 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>
             This locker is under maintenance and cannot be assigned.
           </p>
-          {error && <div style={{ fontSize: 13, color: '#D32F2F', marginBottom: 12 }}>{error}</div>}
+          {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
           <PrimaryButton onClick={handleMarkAvailable} disabled={busy}>
             {busy ? 'Updating…' : 'Mark Available'}
           </PrimaryButton>
@@ -656,24 +656,24 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
           <div onClick={() => setShowEndConfirm(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 70 }} />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 71,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             padding: '12px 20px 40px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '0 auto 16px' }} />
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 10 }}>End Assignment?</div>
-            <p style={{ fontSize: 14, color: '#666', marginBottom: 24 }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '0 auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10 }}>End Assignment?</div>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
               The locker will become available immediately.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button onClick={handleEndAssignment} disabled={busy} style={{
                 height: 52, borderRadius: 12, border: 'none',
-                background: '#D32F2F', color: 'white',
+                background: 'var(--error)', color: "var(--bg-card)",
                 fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: busy ? 0.6 : 1,
               }}>{busy ? 'Ending…' : 'End Assignment'}</button>
               <button onClick={() => setShowEndConfirm(false)} style={{
-                height: 52, borderRadius: 12, border: '1px solid #111',
-                background: 'white', color: '#111', fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                height: 52, borderRadius: 12, border: '1px solid var(--text-primary)',
+                background: "var(--bg-card)", color: 'var(--text-primary)', fontSize: 15, fontWeight: 500, cursor: 'pointer',
               }}>Cancel</button>
             </div>
           </div>
@@ -686,28 +686,28 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
           <div onClick={() => setShowDeleteConfirm(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 70 }} />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 71,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             padding: '12px 20px 40px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '0 auto 16px' }} />
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 10 }}>Delete Locker?</div>
-            <p style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '0 auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10 }}>Delete Locker?</div>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 4 }}>
               This locker and all its data will be permanently deleted.
             </p>
-            <p style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 24 }}>
               Note: lockers with assignment history cannot be deleted.
             </p>
-            {error && <div style={{ fontSize: 13, color: '#D32F2F', marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button onClick={handleDelete} disabled={busy} style={{
                 height: 52, borderRadius: 12, border: 'none',
-                background: '#D32F2F', color: 'white',
+                background: 'var(--error)', color: "var(--bg-card)",
                 fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: busy ? 0.6 : 1,
               }}>{busy ? 'Deleting…' : 'Delete'}</button>
               <button onClick={() => setShowDeleteConfirm(false)} style={{
-                height: 52, borderRadius: 12, border: '1px solid #111',
-                background: 'white', color: '#111', fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                height: 52, borderRadius: 12, border: '1px solid var(--text-primary)',
+                background: "var(--bg-card)", color: 'var(--text-primary)', fontSize: 15, fontWeight: 500, cursor: 'pointer',
               }}>Cancel</button>
             </div>
           </div>
@@ -720,13 +720,13 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
           <div onClick={() => setShowMarkPaid(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 70 }} />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 71,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             padding: '12px 20px 40px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '0 auto 16px' }} />
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 16 }}>Mark Paid</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginBottom: 10 }}>Payment method</div>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '0 auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>Mark Paid</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>Payment method</div>
             <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
               {['cash', 'upi'].map(m => (
                 <button key={m}
@@ -734,17 +734,17 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
                   style={{
                     flex: 1, height: 52, borderRadius: 12, fontSize: 15, fontWeight: 600,
                     cursor: 'pointer',
-                    border: payMethod === m ? '1.5px solid #111' : '1px solid rgba(0,0,0,0.15)',
-                    background: payMethod === m ? '#111' : 'white',
-                    color: payMethod === m ? 'white' : '#111',
+                    border: payMethod === m ? '1.5px solid var(--text-primary)' : '1px solid rgba(0,0,0,0.15)',
+                    background: payMethod === m ? 'var(--text-primary)' : "var(--bg-card)",
+                    color: payMethod === m ? 'white' : 'var(--text-primary)',
                   }}
                 >{m === 'cash' ? 'Cash' : 'UPI'}</button>
               ))}
             </div>
-            {error && <div style={{ fontSize: 13, color: '#D32F2F', marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
             <button onClick={handleMarkPaid} disabled={!payMethod || busy} style={{
               width: '100%', height: 52, borderRadius: 12, border: 'none',
-              background: !payMethod ? '#E0E0E0' : '#111', color: !payMethod ? '#999' : 'white',
+              background: !payMethod ? 'var(--border)' : 'var(--text-primary)', color: !payMethod ? 'var(--text-tertiary)' : "var(--bg-card)",
               fontSize: 15, fontWeight: 600, cursor: payMethod ? 'pointer' : 'not-allowed',
               opacity: busy ? 0.6 : 1,
             }}>{busy ? 'Saving…' : 'Confirm'}</button>
@@ -765,7 +765,7 @@ function LockerCard({ locker, onClick }) {
     <button
       onClick={onClick}
       style={{
-        background: 'white',
+        background: "var(--bg-card)",
         border: '1px solid rgba(0,0,0,0.08)',
         borderRadius: 16,
         padding: '14px 12px',
@@ -778,18 +778,18 @@ function LockerCard({ locker, onClick }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 20, fontWeight: 800, color: '#111' }}>{locker.label}</span>
+        <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>{locker.label}</span>
         <StatusBadge status={locker.status} />
       </div>
       {locker.is_paid && (
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#5F5E5A' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
           ₹{locker.price?.toLocaleString('en-IN')}
         </span>
       )}
       {a && (
         <div>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#555' }}>{a.member_name}</div>
-          <div style={{ fontSize: 11, color: expSoon ? '#D32F2F' : '#999', marginTop: 2, fontWeight: expSoon ? 600 : 400 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>{a.member_name}</div>
+          <div style={{ fontSize: 11, color: expSoon ? 'var(--error)' : 'var(--text-tertiary)', marginTop: 2, fontWeight: expSoon ? 600 : 400 }}>
             Exp {formatDate(a.expires_at)}{expSoon ? ' ⚠' : ''}
           </div>
         </div>
@@ -870,30 +870,30 @@ export default function GymLockers() {
   if (featureDisabled) {
     return (
       <div style={{
-        minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+        minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         display: 'flex', flexDirection: 'column',
       }}>
         <div style={{
-          position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white',
+          position: 'sticky', top: 0, zIndex: 10, backgroundColor: "var(--bg-card)",
           padding: '16px 20px 12px', display: 'flex', alignItems: 'center', gap: 12,
           borderBottom: '0.5px solid rgba(0,0,0,0.08)',
         }}>
-          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#111', padding: 0 }}>←</button>
-          <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', textAlign: 'center' }}>Lockers</span>
+          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--text-primary)', padding: 0 }}>←</button>
+          <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', textAlign: 'center' }}>Lockers</span>
           <span style={{ width: 24 }} />
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', textAlign: 'center', gap: 16 }}>
-          <Lock size={48} color="#CCC" />
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#111' }}>Locker Management is off</div>
-          <p style={{ fontSize: 15, color: '#666', lineHeight: 1.5 }}>
+          <Lock size={48} color="var(--text-tertiary)" />
+          <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Locker Management is off</div>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             Enable it in Settings to start assigning lockers to your members.
           </p>
           <button
             onClick={() => navigate('/gym/settings')}
             style={{
-              marginTop: 8, background: '#111', color: 'white', border: 'none',
+              marginTop: 8, background: 'var(--text-primary)', color: "var(--bg-card)", border: 'none',
               borderRadius: 12, height: 48, padding: '0 28px',
               fontSize: 15, fontWeight: 600, cursor: 'pointer',
             }}
@@ -911,11 +911,11 @@ export default function GymLockers() {
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh', backgroundColor: '#F7F7F5',
+        minHeight: '100vh', backgroundColor: 'var(--bg-primary)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}>
-        <span style={{ fontSize: 14, color: '#999' }}>Loading lockers…</span>
+        <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>Loading lockers…</span>
       </div>
     )
   }
@@ -924,20 +924,20 @@ export default function GymLockers() {
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* Header */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white',
+        position: 'sticky', top: 0, zIndex: 10, backgroundColor: "var(--bg-card)",
         padding: '16px 20px 12px', display: 'flex', alignItems: 'center', gap: 12,
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#111', padding: 0, lineHeight: 1 }}>←</button>
-        <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: '#111', textAlign: 'center' }}>Locker Management</span>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--text-primary)', padding: 0, lineHeight: 1 }}>←</button>
+        <span style={{ flex: 1, fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', textAlign: 'center' }}>Locker Management</span>
         <button
           onClick={() => setShowAdd(true)}
-          style={{ background: 'none', border: 'none', fontSize: 15, fontWeight: 600, color: '#007AFF', cursor: 'pointer', padding: 0 }}
+          style={{ background: 'none', border: 'none', fontSize: 15, fontWeight: 600, color: 'var(--text-cta)', cursor: 'pointer', padding: 0 }}
         >+ Add</button>
       </div>
 
@@ -947,9 +947,9 @@ export default function GymLockers() {
           display: 'flex', gap: 10, marginBottom: 16,
         }}>
           {[
-            { label: `${totalCount} total`, bg: '#F1EFE8', color: '#5F5E5A' },
-            { label: `${availableCount} available`, bg: '#E8F5E9', color: '#2E7D32' },
-            { label: `${occupiedCount} occupied`, bg: '#E3F2FD', color: '#1565C0' },
+            { label: `${totalCount} total`, bg: 'var(--bg-pill)', color: 'var(--text-secondary)' },
+            { label: `${availableCount} available`, bg: 'var(--success-bg)', color: 'var(--success)' },
+            { label: `${occupiedCount} occupied`, bg: 'var(--accent-bg)', color: 'var(--text-cta)' },
           ].map(s => (
             <span key={s.label} style={{
               background: s.bg, color: s.color,
@@ -963,20 +963,20 @@ export default function GymLockers() {
         {expiringSoon.length > 0 && !bannerDismissed && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: '#FFF8E1', border: '1px solid #F57F17',
+            background: 'var(--warning-bg)', border: '1px solid var(--warning)',
             borderRadius: 12, padding: '10px 14px', marginBottom: 16,
           }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#F57F17' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--warning)' }}>
               ⚠ {expiringSoon.length} locker{expiringSoon.length > 1 ? 's' : ''} expiring within 3 days
             </span>
             <button
               onClick={() => { setBannerDismissed(true); setFilter('occupied') }}
-              style={{ background: 'none', border: 'none', fontSize: 12, color: '#F57F17', cursor: 'pointer', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}
+              style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--warning)', cursor: 'pointer', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}
             >View</button>
             <button
               onClick={() => setBannerDismissed(true)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 6px' }}
-            ><X size={14} color="#F57F17" /></button>
+            ><X size={14} color="var(--warning)" /></button>
           </div>
         )}
 
@@ -988,9 +988,9 @@ export default function GymLockers() {
               onClick={() => setFilter(f)}
               style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500,
-                border: filter === f ? '1.5px solid #111' : '1px solid rgba(0,0,0,0.15)',
-                background: filter === f ? '#111' : 'white',
-                color: filter === f ? 'white' : '#555',
+                border: filter === f ? '1.5px solid var(--text-primary)' : '1px solid rgba(0,0,0,0.15)',
+                background: filter === f ? 'var(--text-primary)' : "var(--bg-card)",
+                color: filter === f ? 'white' : 'var(--text-secondary)',
                 cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
               }}
             >{f === 'all' ? 'All' : STATUS_META[f]?.label || f}</button>
@@ -1004,9 +1004,9 @@ export default function GymLockers() {
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: '60px 32px', textAlign: 'center', gap: 12,
         }}>
-          <KeyRound size={48} color="#CCC" />
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>No lockers added yet</div>
-          <p style={{ fontSize: 14, color: '#666', lineHeight: 1.5 }}>
+          <KeyRound size={48} color="var(--text-tertiary)" />
+          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>No lockers added yet</div>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             Add your gym's lockers to start assigning them to members
           </p>
           <div style={{ marginTop: 8, width: '100%', maxWidth: 280 }}>
@@ -1016,7 +1016,7 @@ export default function GymLockers() {
           </div>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999', fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-tertiary)', fontSize: 14 }}>
           No {STATUS_META[filter]?.label.toLowerCase()} lockers
         </div>
       ) : (

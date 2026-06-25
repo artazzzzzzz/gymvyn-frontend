@@ -34,12 +34,12 @@ function ProgressBar({ current }) {
   const currentNum = current === 'success' ? 5 : current
   return (
     <div>
-      <div style={{ display: 'flex', height: 3, backgroundColor: '#E0E0E0' }}>
+      <div style={{ display: 'flex', height: 3, backgroundColor: 'var(--border)' }}>
         {Array.from({ length: total }, (_, i) => (
-          <div key={i} style={{ flex: 1, backgroundColor: i < currentNum ? '#111' : '#E0E0E0' }} />
+          <div key={i} style={{ flex: 1, backgroundColor: i < currentNum ? 'var(--text-primary)' : 'var(--border)' }} />
         ))}
       </div>
-      <div style={{ fontSize: 12, color: '#999', padding: '6px 0 0 20px' }}>
+      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '6px 0 0 20px' }}>
         {current === 'success' ? 'Complete!' : `Step ${current} of 5`}
       </div>
     </div>
@@ -47,10 +47,10 @@ function ProgressBar({ current }) {
 }
 
 const inputStyle = {
-  width: '100%', height: 52, border: '0.5px solid rgba(0,0,0,0.15)',
+  width: '100%', height: 52, border: '0.5px solid var(--border)',
   borderRadius: 12, padding: '0 16px', fontSize: 15,
   boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit',
-  backgroundColor: 'white',
+  backgroundColor: "var(--bg-card)",
 }
 
 export default function GymOnboarding() {
@@ -208,34 +208,34 @@ export default function GymOnboarding() {
   }
 
   const btnPrimary = (disabled) => ({
-    width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+    width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
     border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
     cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1,
   })
 
   const btnSecondary = {
-    flex: 1, height: 52, backgroundColor: 'white', color: '#111',
-    border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+    flex: 1, height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)',
+    border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
   }
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', display: 'flex', flexDirection: 'column',
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', flexDirection: 'column',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* HEADER */}
       {step !== 'success' && (
-        <div style={{ backgroundColor: 'white', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ backgroundColor: "var(--bg-card)", borderBottom: '0.5px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', justifyContent: 'space-between' }}>
             <button
               onClick={() => navigate('/home')}
-              style={{ background: 'none', border: 'none', fontSize: 22, color: '#999', cursor: 'pointer', padding: 0 }}
+              style={{ background: 'none', border: 'none', fontSize: 22, color: 'var(--text-tertiary)', cursor: 'pointer', padding: 0 }}
             >×</button>
-            <span style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>Set Up Your Gym</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Set Up Your Gym</span>
             {step === 3 ? (
               <button
                 onClick={goNext}
-                style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 500, color: '#185FA5', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 500, color: 'var(--text-cta)', cursor: 'pointer' }}
               >Skip →</button>
             ) : (
               <div style={{ width: 40 }} />
@@ -250,36 +250,36 @@ export default function GymOnboarding() {
         {/* ─── STEP 1 ─── */}
         {step === 1 && (
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Tell us about your gym</h1>
-            <p style={{ fontSize: 16, color: '#666', margin: '0 0 24px' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Tell us about your gym</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
               This is what members will see when they search for your gym.
             </p>
 
             <div style={{ marginBottom: 12 }}>
               <input type="text" placeholder="Gym Name*" value={gymName} onChange={e => setGymName(e.target.value)} style={inputStyle} />
-              <div style={{ fontSize: 13, color: '#999', marginTop: 4 }}>Choose a name members will recognize</div>
+              <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 4 }}>Choose a name members will recognize</div>
             </div>
 
             <div style={{ marginBottom: 20 }}>
               <input type="text" placeholder="City*" value={city} onChange={e => setCity(e.target.value)} style={inputStyle} />
             </div>
 
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#111', marginBottom: 10 }}>Gym Type*</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 10 }}>Gym Type*</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 32 }}>
               {GYM_TYPES.map(type => (
                 <button
                   key={type} onClick={() => setGymType(type)}
                   style={{
-                    height: 48, backgroundColor: gymType === type ? '#111' : 'white',
-                    color: gymType === type ? 'white' : '#111',
-                    border: gymType === type ? 'none' : '0.5px solid rgba(0,0,0,0.12)',
+                    height: 48, backgroundColor: gymType === type ? 'var(--text-primary)' : "var(--bg-card)",
+                    color: gymType === type ? 'var(--bg-primary)' : 'var(--text-primary)',
+                    border: gymType === type ? 'none' : '0.5px solid var(--border)',
                     borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}
                 >{type}</button>
               ))}
             </div>
 
-            {error && <div style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
 
             <button onClick={goNext} disabled={!canContinueStep1} style={{ ...btnPrimary(!canContinueStep1), marginBottom: 20 }}>Continue</button>
           </div>
@@ -288,18 +288,24 @@ export default function GymOnboarding() {
         {/* ─── STEP 2 ─── */}
         {step === 2 && (
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>How can members reach you?</h1>
-            <p style={{ fontSize: 16, color: '#666', margin: '0 0 24px' }}>Used for your gym's public profile.</p>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>How can members reach you?</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>Used for your gym's public profile.</p>
 
-            {[
-              { val: address, set: setAddress, placeholder: 'Street address, area', type: 'text' },
-              { val: phone, set: setPhone, placeholder: '+91 98765 43210', type: 'tel' },
-            ].map((field, i) => (
-              <div key={i} style={{ marginBottom: 12 }}>
-                <input type={field.type} placeholder={field.placeholder} value={field.val}
-                  onChange={e => field.set(e.target.value)} style={inputStyle} />
-              </div>
-            ))}
+            <div style={{ marginBottom: 12 }}>
+              <input type="text" placeholder="Street address, area" value={address}
+                onChange={e => setAddress(e.target.value)} style={inputStyle} />
+            </div>
+            <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', ...inputStyle, padding: 0 }}>
+              <span style={{ padding: '0 10px 0 16px', color: 'var(--text-tertiary)', fontSize: 15, whiteSpace: 'nowrap', userSelect: 'none' }}>+91</span>
+              <input
+                type="tel"
+                placeholder="98765 43210"
+                value={phone}
+                maxLength={10}
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                style={{ ...inputStyle, border: 'none', padding: '0 16px 0 0', flex: 1, height: '100%' }}
+              />
+            </div>
 
             <div style={{ marginBottom: 8 }}>
               <textarea
@@ -307,15 +313,15 @@ export default function GymOnboarding() {
                 value={description} maxLength={200}
                 onChange={e => setDescription(e.target.value)}
                 style={{
-                  width: '100%', height: 100, border: '0.5px solid rgba(0,0,0,0.15)',
+                  width: '100%', height: 100, border: '0.5px solid var(--border)',
                   borderRadius: 12, padding: 16, fontSize: 15, boxSizing: 'border-box',
-                  outline: 'none', resize: 'none', fontFamily: 'inherit', backgroundColor: 'white',
+                  outline: 'none', resize: 'none', fontFamily: 'inherit', backgroundColor: "var(--bg-card)",
                 }}
               />
-              <div style={{ fontSize: 11, color: '#999', textAlign: 'right', marginTop: 4 }}>{description.length}/200</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right', marginTop: 4 }}>{description.length}/200</div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#999', textAlign: 'center', marginBottom: 28 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginBottom: 28 }}>
               These fields are optional. You can add them later in Settings.
             </div>
 
@@ -329,20 +335,20 @@ export default function GymOnboarding() {
         {/* ─── STEP 3: LOGO ─── */}
         {step === 3 && (
           <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px', textAlign: 'left' }}>Add your gym's logo</h1>
-            <p style={{ fontSize: 16, color: '#666', margin: '0 0 12px', textAlign: 'left' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px', textAlign: 'left' }}>Add your gym's logo</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 12px', textAlign: 'left' }}>
               Optional — you can always add this later from Settings.
             </p>
             <span style={{
-              display: 'inline-block', backgroundColor: '#FAEEDA', color: '#854F0B',
+              display: 'inline-block', backgroundColor: 'var(--warning-bg)', color: 'var(--warning)',
               fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 20, marginBottom: 36,
             }}>Optional</span>
 
             <div
               onClick={() => logoInputRef.current?.click()}
               style={{
-                width: 120, height: 120, borderRadius: '50%', backgroundColor: '#F7F7F5',
-                border: '2px dashed rgba(0,0,0,0.2)', margin: '0 auto 12px',
+                width: 120, height: 120, borderRadius: '50%', backgroundColor: 'var(--bg-primary)',
+                border: '2px dashed var(--border-strong)', margin: '0 auto 12px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', position: 'relative', overflow: 'hidden',
               }}
@@ -355,28 +361,28 @@ export default function GymOnboarding() {
                     style={{
                       position: 'absolute', top: 4, right: 4,
                       width: 24, height: 24, borderRadius: '50%',
-                      backgroundColor: 'white', border: '0.5px solid rgba(0,0,0,0.12)',
-                      fontSize: 14, color: '#999', cursor: 'pointer',
+                      backgroundColor: "var(--bg-card)", border: '0.5px solid var(--border)',
+                      fontSize: 14, color: 'var(--text-tertiary)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
                     }}
                   >×</button>
                 </>
               ) : (
                 <div>
-                  <div style={{ fontSize: 32, color: '#999' }}>↑</div>
-                  <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>Tap to upload</div>
+                  <div style={{ fontSize: 32, color: 'var(--text-tertiary)' }}>↑</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Tap to upload</div>
                 </div>
               )}
             </div>
 
-            <div style={{ fontSize: 12, color: '#999', marginBottom: 32 }}>JPG or PNG, max 5MB</div>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 32 }}>JPG or PNG, max 5MB</div>
 
             <input
               ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }}
               onChange={e => { if (e.target.files?.[0]) handleLogoSelect(e.target.files[0]) }}
             />
 
-            {error && <div style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
 
             <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
               <button onClick={goBack} style={btnSecondary}>← Back</button>
@@ -390,29 +396,29 @@ export default function GymOnboarding() {
         {/* ─── STEP 4: PLANS ─── */}
         {step === 4 && (
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Set up your plans</h1>
-            <p style={{ fontSize: 16, color: '#666', margin: '0 0 24px' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Set up your plans</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
               Define what members can purchase. You can edit these anytime.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
               {plans.map(plan => (
-                <div key={plan.id} style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', padding: 14 }}>
+                <div key={plan.id} style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid var(--border)', padding: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{plan.name}</span>
-                    <span style={{ fontSize: 14, color: '#555' }}>₹{plan.price?.toLocaleString('en-IN')}</span>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{plan.name}</span>
+                    <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>₹{plan.price?.toLocaleString('en-IN')}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: '#999', marginBottom: plan.features?.length ? 8 : 0 }}>{plan.duration_days} days</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: plan.features?.length ? 8 : 0 }}>{plan.duration_days} days</div>
                   {plan.features?.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                       {plan.features.map((f, i) => (
-                        <span key={i} style={{ backgroundColor: '#F7F7F5', borderRadius: 6, padding: '4px 8px', fontSize: 12, color: '#555' }}>{f}</span>
+                        <span key={i} style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 6, padding: '4px 8px', fontSize: 12, color: 'var(--text-secondary)' }}>{f}</span>
                       ))}
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <button onClick={() => openEditPlan(plan)} style={{ background: 'none', border: 'none', fontSize: 13, color: '#185FA5', cursor: 'pointer', padding: 0 }}>✏ Edit</button>
-                    <button onClick={() => deletePlan(plan.id)} style={{ background: 'none', border: 'none', fontSize: 13, color: '#A32D2D', cursor: 'pointer', padding: 0 }}>× Delete</button>
+                    <button onClick={() => openEditPlan(plan)} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-cta)', cursor: 'pointer', padding: 0 }}>✏ Edit</button>
+                    <button onClick={() => deletePlan(plan.id)} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--error)', cursor: 'pointer', padding: 0 }}>× Delete</button>
                   </div>
                 </div>
               ))}
@@ -421,16 +427,16 @@ export default function GymOnboarding() {
             <button
               onClick={openAddPlan}
               style={{
-                width: '100%', height: 52, backgroundColor: 'white',
-                border: '0.5px dashed rgba(0,0,0,0.2)', borderRadius: 12,
-                fontSize: 14, fontWeight: 500, color: '#111', cursor: 'pointer',
+                width: '100%', height: 52, backgroundColor: "var(--bg-card)",
+                border: '1px dashed var(--border-strong)', borderRadius: 12,
+                fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer',
                 marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             ><span style={{ fontSize: 18 }}>+</span> Add Plan</button>
 
             {/* Inline plan form */}
             {showPlanForm && (
-              <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', padding: 16, marginBottom: 8 }}>
+              <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid var(--border)', padding: 16, marginBottom: 8 }}>
                 {[
                   { key: 'name', placeholder: 'Plan Name*', type: 'text' },
                   { key: 'price', placeholder: 'Price (₹)*', type: 'number' },
@@ -449,7 +455,7 @@ export default function GymOnboarding() {
                     onClick={savePlan}
                     disabled={!planForm.name || !planForm.price || !planForm.duration_days}
                     style={{
-                      flex: 1, height: 40, backgroundColor: '#111', color: 'white',
+                      flex: 1, height: 40, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                       border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                       opacity: (!planForm.name || !planForm.price || !planForm.duration_days) ? 0.4 : 1,
                     }}
@@ -458,7 +464,7 @@ export default function GymOnboarding() {
               </div>
             )}
 
-            <div style={{ fontSize: 12, color: '#999', textAlign: 'center', marginBottom: 24 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginBottom: 24 }}>
               Or skip for now — you can add plans in Settings.
             </div>
 
@@ -472,28 +478,28 @@ export default function GymOnboarding() {
         {/* ─── STEP 5: REVIEW ─── */}
         {step === 5 && (
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Review your gym</h1>
-            <p style={{ fontSize: 16, color: '#666', margin: '0 0 20px' }}>Looks good? Launch your gym on FitForge.</p>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Review your gym</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 20px' }}>Looks good? Launch your gym on Gymvyn.</p>
 
-            <div style={{ backgroundColor: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden', marginBottom: 16 }}>
               <div style={{ padding: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
-                      width: 48, height: 48, borderRadius: '50%', backgroundColor: '#F1EFE8',
+                      width: 48, height: 48, borderRadius: '50%', backgroundColor: 'var(--bg-pill)',
                       overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {logoPreview
                         ? <img src={logoPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: 16, fontWeight: 600, color: '#5F5E5A' }}>{gymName.slice(0, 2).toUpperCase()}</span>
+                        : <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-secondary)' }}>{gymName.slice(0, 2).toUpperCase()}</span>
                       }
                     </div>
                     <div>
-                      <div style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>{gymName}</div>
-                      <div style={{ fontSize: 14, color: '#666' }}>{city}</div>
+                      <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>{gymName}</div>
+                      <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{city}</div>
                     </div>
                   </div>
-                  <button onClick={() => goToStep(1)} style={{ background: 'none', border: 'none', fontSize: 12, color: '#185FA5', cursor: 'pointer' }}>Edit →</button>
+                  <button onClick={() => goToStep(1)} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-cta)', cursor: 'pointer' }}>Edit →</button>
                 </div>
 
                 {[
@@ -501,31 +507,31 @@ export default function GymOnboarding() {
                   { label: 'Address', value: address || '—' },
                   { label: 'Phone', value: phone || '—' },
                 ].map(row => (
-                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
-                    <span style={{ fontSize: 14, color: '#999' }}>{row.label}</span>
-                    <span style={{ fontSize: 14, color: '#111', fontWeight: 500 }}>{row.value}</span>
+                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '0.5px solid var(--border)' }}>
+                    <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>{row.label}</span>
+                    <span style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{row.value}</span>
                   </div>
                 ))}
 
                 {description && (
-                  <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', paddingTop: 10 }}>
-                    <div style={{ fontSize: 14, color: '#999', marginBottom: 4 }}>Description</div>
-                    <div style={{ fontSize: 14, color: '#111' }}>{description}</div>
+                  <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: 10 }}>
+                    <div style={{ fontSize: 14, color: 'var(--text-tertiary)', marginBottom: 4 }}>Description</div>
+                    <div style={{ fontSize: 14, color: 'var(--text-primary)' }}>{description}</div>
                   </div>
                 )}
               </div>
 
-              <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.08)', padding: 16 }}>
+              <div style={{ borderTop: '0.5px solid var(--border)', padding: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em' }}>PLANS</div>
-                  <button onClick={() => goToStep(4)} style={{ background: 'none', border: 'none', fontSize: 12, color: '#185FA5', cursor: 'pointer' }}>Edit →</button>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>PLANS</div>
+                  <button onClick={() => goToStep(4)} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-cta)', cursor: 'pointer' }}>Edit →</button>
                 </div>
                 {plans.length === 0
-                  ? <div style={{ fontSize: 13, color: '#999' }}>No plans added</div>
+                  ? <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>No plans added</div>
                   : plans.map(plan => (
-                    <div key={plan.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid rgba(0,0,0,0.04)' }}>
-                      <span style={{ fontSize: 13, color: '#555' }}>{plan.name} · {plan.duration_days}d</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>₹{plan.price?.toLocaleString('en-IN')}</span>
+                    <div key={plan.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid var(--border)' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{plan.name} · {plan.duration_days}d</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>₹{plan.price?.toLocaleString('en-IN')}</span>
                     </div>
                   ))
                 }
@@ -533,7 +539,7 @@ export default function GymOnboarding() {
             </div>
 
             {error && (
-              <div style={{ backgroundColor: '#FCEBEB', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#A32D2D', marginBottom: 16 }}>
+              <div style={{ backgroundColor: 'var(--error-bg)', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: 'var(--error)', marginBottom: 16 }}>
                 {error}
               </div>
             )}
@@ -543,7 +549,7 @@ export default function GymOnboarding() {
                 onClick={handleSubmit} disabled={submitting}
                 style={{ ...btnPrimary(submitting) }}
               >{submitting ? 'Launching...' : '🚀 Launch My Gym'}</button>
-              <button onClick={goBack} style={{ width: '100%', height: 52, backgroundColor: 'white', color: '#111', border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+              <button onClick={goBack} style={{ width: '100%', height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)', border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
                 Back
               </button>
             </div>
@@ -553,40 +559,40 @@ export default function GymOnboarding() {
         {/* ─── SUCCESS ─── */}
         {step === 'success' && (
           <div style={{
-            minHeight: '100vh', backgroundColor: 'white',
+            minHeight: '100vh', backgroundColor: "var(--bg-card)",
             display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
             padding: '0 24px', textAlign: 'center',
           }}>
             <style>{`@keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}`}</style>
             <div style={{
-              width: 80, height: 80, borderRadius: '50%', backgroundColor: '#EAF3DE',
+              width: 80, height: 80, borderRadius: '50%', backgroundColor: 'var(--success-bg)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 40, marginBottom: 20,
               animation: 'popIn 0.4s ease forwards',
             }}>✓</div>
 
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Your gym is live! 🎉</h1>
-            <p style={{ fontSize: 16, color: '#666', margin: '0 0 8px' }}>{gymName}</p>
-            <p style={{ fontSize: 14, color: '#666', margin: '0 0 32px', lineHeight: 1.5 }}>
-              FitForge members in {city} can now discover and join your gym.
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Your gym is live! 🎉</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 8px' }}>{gymName}</p>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 32px', lineHeight: 1.5 }}>
+              Gymvyn members in {city} can now discover and join your gym.
             </p>
 
             <div style={{ display: 'flex', gap: 10, width: '100%', marginBottom: 32 }}>
               {[{ value: '0', label: 'Members' }, { value: '0', label: 'Trainers' }, { value: '0', label: 'Check-ins' }].map((stat, i) => (
                 <div key={i} style={{
-                  flex: 1, backgroundColor: 'white', border: '0.5px solid rgba(0,0,0,0.08)',
+                  flex: 1, backgroundColor: "var(--bg-card)", border: '0.5px solid var(--border)',
                   borderRadius: 10, padding: 12, textAlign: 'center',
                 }}>
-                  <div style={{ fontSize: 20, fontWeight: 600, color: '#111' }}>{stat.value}</div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>{stat.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>{stat.label}</div>
                 </div>
               ))}
             </div>
 
             <button
               onClick={() => navigate('/gym/dashboard')}
-              style={{ width: '100%', height: 52, backgroundColor: '#111', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+              style={{ width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)", border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
             >Go to Dashboard →</button>
           </div>
         )}

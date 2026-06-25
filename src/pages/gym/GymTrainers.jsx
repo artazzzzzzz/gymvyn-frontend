@@ -6,9 +6,9 @@ import { getAvatarColor, getInitials } from '../../utils/avatarColor'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
 
 const statusConfig = {
-  active:  { label: 'Active',  bg: '#EAF3DE', color: '#3B6D11' },
-  invited: { label: 'Invited', bg: '#FAEEDA', color: '#854F0B' },
-  manual:  { label: 'Manual',  bg: '#F1EFE8', color: '#5F5E5A' },
+  active:  { label: 'Active',  bg: 'var(--success-bg)', color: 'var(--success)' },
+  invited: { label: 'Invited', bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  manual:  { label: 'Manual',  bg: 'var(--bg-pill)', color: 'var(--text-secondary)' },
 }
 
 const formatSpecializations = (specs) => {
@@ -126,22 +126,22 @@ export default function GymTrainers() {
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* STICKY HEADER */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        backgroundColor: '#F7F7F5',
+        backgroundColor: 'var(--bg-primary)',
         padding: '16px 20px 12px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
-        <span style={{ fontSize: 20, fontWeight: 600, color: '#111' }}>Trainers</span>
+        <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Trainers</span>
         <button
           onClick={() => setShowAddSheet(true)}
           style={{
-            backgroundColor: '#111', color: 'white',
+            backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
             border: 'none', borderRadius: 10, height: 32,
             padding: '0 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer',
           }}
@@ -153,7 +153,7 @@ export default function GymTrainers() {
         {/* SUMMARY STRIP */}
         {!loading && !error && (
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)',
             padding: 12, display: 'flex', alignItems: 'center',
           }}>
@@ -166,9 +166,9 @@ export default function GymTrainers() {
                 flex: 1, textAlign: 'center',
                 borderRight: i < 2 ? '0.5px solid rgba(0,0,0,0.08)' : 'none',
               }}>
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>{stat.value}</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{stat.value}</div>
                 <div style={{
-                  fontSize: 11, fontWeight: 600, color: '#999',
+                  fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
                   textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2,
                 }}>{stat.label}</div>
               </div>
@@ -176,16 +176,46 @@ export default function GymTrainers() {
           </div>
         )}
 
+        {/* MANAGE PAYOUTS CARD */}
+        <button
+          onClick={() => navigate('/gym/trainer-payouts')}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+            backgroundColor: 'var(--bg-card)', borderRadius: 12,
+            border: '0.5px solid rgba(0,0,0,0.08)', padding: '14px 16px',
+            cursor: 'pointer', textAlign: 'left', boxSizing: 'border-box',
+          }}
+        >
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            backgroundColor: 'var(--warning-bg)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Manage Payouts</div>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 1 }}>Rates, earnings & payout records</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+
         {/* LOADING */}
         {loading && (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#999', fontSize: 14 }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>
             Loading trainers...
           </div>
         )}
 
         {/* ERROR */}
         {error && (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#A32D2D', fontSize: 14 }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--error)', fontSize: 14 }}>
             {error}
           </div>
         )}
@@ -194,16 +224,16 @@ export default function GymTrainers() {
         {!loading && !error && trainers.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ fontSize: 40, marginBottom: 16 }}>👥</div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#111', marginBottom: 8 }}>
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
               No trainers yet
             </div>
-            <div style={{ fontSize: 14, color: '#666', marginBottom: 24 }}>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
               Add your first trainer to get started
             </div>
             <button
               onClick={() => setShowAddSheet(true)}
               style={{
-                backgroundColor: '#111', color: 'white',
+                backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                 border: 'none', borderRadius: 12, height: 52,
                 padding: '0 32px', fontSize: 15, fontWeight: 500, cursor: 'pointer',
               }}
@@ -219,7 +249,7 @@ export default function GymTrainers() {
 
           return (
             <div key={trainer.id} style={{
-              backgroundColor: 'white', borderRadius: 12,
+              backgroundColor: "var(--bg-card)", borderRadius: 12,
               border: '0.5px solid rgba(0,0,0,0.08)',
               padding: 16, position: 'relative',
             }}>
@@ -234,10 +264,10 @@ export default function GymTrainers() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: 18, fontWeight: 600, color: '#111',
+                    fontSize: 18, fontWeight: 600, color: 'var(--text-primary)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{trainer.full_name}</div>
-                  <div style={{ fontSize: 13, color: '#666', marginTop: 2 }}>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
                     {formatSpecializations(trainer.specializations)}
                   </div>
                 </div>
@@ -247,7 +277,7 @@ export default function GymTrainers() {
                     onClick={() => setMoreOpenId(moreOpenId === trainer.id ? null : trainer.id)}
                     style={{
                       background: 'none', border: 'none',
-                      fontSize: 20, color: '#999', cursor: 'pointer',
+                      fontSize: 20, color: 'var(--text-tertiary)', cursor: 'pointer',
                       padding: '4px 8px', lineHeight: 1,
                     }}
                   >⋮</button>
@@ -255,7 +285,7 @@ export default function GymTrainers() {
                   {moreOpenId === trainer.id && (
                     <div style={{
                       position: 'absolute', right: 0, top: 32,
-                      backgroundColor: 'white', borderRadius: 10,
+                      backgroundColor: "var(--bg-card)", borderRadius: 10,
                       border: '0.5px solid rgba(0,0,0,0.12)',
                       boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                       zIndex: 20, minWidth: 160,
@@ -270,7 +300,7 @@ export default function GymTrainers() {
                           display: 'block', width: '100%',
                           padding: '12px 16px', textAlign: 'left',
                           background: 'none', border: 'none',
-                          fontSize: 14, color: '#A32D2D', cursor: 'pointer',
+                          fontSize: 14, color: 'var(--error)', cursor: 'pointer',
                         }}
                       >Remove Trainer</button>
                     </div>
@@ -285,8 +315,8 @@ export default function GymTrainers() {
                   { label: `⏱ ${trainer.experience_years ?? 0} yrs exp` },
                 ].map((pill, i) => (
                   <span key={i} style={{
-                    backgroundColor: '#F7F7F5', borderRadius: 6,
-                    padding: '6px 10px', fontSize: 12, fontWeight: 500, color: '#555',
+                    backgroundColor: 'var(--bg-primary)', borderRadius: 6,
+                    padding: '6px 10px', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)',
                   }}>{pill.label}</span>
                 ))}
                 <span style={{
@@ -298,11 +328,11 @@ export default function GymTrainers() {
               {/* ROW 3: Manual warning */}
               {trainer.status === 'manual' && (
                 <div style={{
-                  marginTop: 10, backgroundColor: '#FAEEDA',
-                  borderLeft: '3px solid #854F0B',
+                  marginTop: 10, backgroundColor: 'var(--warning-bg)',
+                  borderLeft: '3px solid var(--warning)',
                   borderRadius: '0 8px 8px 0',
                   padding: '8px 10px',
-                  fontSize: 11, color: '#854F0B',
+                  fontSize: 11, color: 'var(--warning)',
                 }}>
                   ⚠ Not on platform yet — invite them to claim this profile
                 </div>
@@ -332,19 +362,19 @@ export default function GymTrainers() {
           />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 0 32px',
             maxHeight: '90vh', overflowY: 'auto',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 0' }} />
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 0' }} />
             <div style={{ padding: '16px 20px 0' }}>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#111', marginBottom: 16 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
                 Add Trainer
               </div>
 
               {/* Tab bar */}
               <div style={{
-                display: 'flex', gap: 4, backgroundColor: '#F7F7F5',
+                display: 'flex', gap: 4, backgroundColor: 'var(--bg-primary)',
                 borderRadius: 8, padding: 4, marginBottom: 20,
               }}>
                 {[
@@ -360,7 +390,7 @@ export default function GymTrainers() {
                       backgroundColor: activeTab === tab.key ? 'white' : 'transparent',
                       border: activeTab === tab.key ? '0.5px solid rgba(0,0,0,0.12)' : 'none',
                       borderRadius: 6, fontSize: 11, fontWeight: 600,
-                      color: activeTab === tab.key ? '#111' : '#999', cursor: 'pointer',
+                      color: activeTab === tab.key ? 'var(--text-primary)' : 'var(--text-tertiary)', cursor: 'pointer',
                     }}
                   >{tab.label}</button>
                 ))}
@@ -376,14 +406,14 @@ export default function GymTrainers() {
                     onChange={e => setInviteValue(e.target.value)}
                     style={{ ...inputStyle, marginBottom: 8 }}
                   />
-                  <div style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
-                    They'll receive an SMS with a link to join FitForge and get linked to your gym.
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>
+                    They'll receive an SMS with a link to join Gymvyn and get linked to your gym.
                   </div>
                   <button
                     onClick={handleInvite}
                     disabled={submitting || !inviteValue.trim()}
                     style={{
-                      width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                      width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                       border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                       cursor: 'pointer', opacity: submitting || !inviteValue.trim() ? 0.5 : 1,
                     }}
@@ -401,14 +431,14 @@ export default function GymTrainers() {
                     onChange={e => setInviteValue(e.target.value)}
                     style={{ ...inputStyle, marginBottom: 8 }}
                   />
-                  <div style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
-                    They'll receive an email invite to join FitForge.
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>
+                    They'll receive an email invite to join Gymvyn.
                   </div>
                   <button
                     onClick={handleInvite}
                     disabled={submitting || !inviteValue.trim()}
                     style={{
-                      width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                      width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                       border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                       cursor: 'pointer', opacity: submitting || !inviteValue.trim() ? 0.5 : 1,
                     }}
@@ -433,7 +463,7 @@ export default function GymTrainers() {
                         style={inputStyle}
                       />
                       {field.key === 'specializations' && (
-                        <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
                           Comma-separated. Trainer can edit later.
                         </div>
                       )}
@@ -443,13 +473,13 @@ export default function GymTrainers() {
                     onClick={handleManualAdd}
                     disabled={submitting || !manualForm.full_name.trim()}
                     style={{
-                      width: '100%', height: 52, backgroundColor: '#111', color: 'white',
+                      width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
                       border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                       cursor: 'pointer', opacity: submitting || !manualForm.full_name.trim() ? 0.5 : 1,
                       marginTop: 8,
                     }}
                   >{submitting ? 'Adding...' : 'Add to Gym'}</button>
-                  <div style={{ fontSize: 12, color: '#888', textAlign: 'center', marginTop: 16 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginTop: 16 }}>
                     This trainer won't have an app account until they sign up.<br />
                     They can claim this profile using their phone number.
                   </div>
@@ -469,10 +499,10 @@ export default function GymTrainers() {
           />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0,
-            backgroundColor: 'white', borderRadius: '20px 20px 0 0',
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
             zIndex: 51, padding: '0 20px 32px',
           }}>
-            <div style={{ width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 16px' }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               <div style={{
@@ -483,20 +513,20 @@ export default function GymTrainers() {
                 fontSize: 15, fontWeight: 600,
               }}>{getInitials(selectedTrainer.full_name)}</div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
                   {selectedTrainer.full_name}
                 </div>
-                <div style={{ fontSize: 13, color: '#666' }}>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                   {formatSpecializations(selectedTrainer.specializations)}
                 </div>
               </div>
             </div>
 
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#111', marginBottom: 8 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
               Remove {selectedTrainer.full_name} from your gym?
             </div>
-            <div style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
-              They'll lose access to gym features. Their FitForge account stays active.
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
+              They'll lose access to gym features. Their Gymvyn account stays active.
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -504,7 +534,7 @@ export default function GymTrainers() {
                 onClick={handleRemove}
                 disabled={submitting}
                 style={{
-                  width: '100%', height: 52, backgroundColor: '#A32D2D', color: 'white',
+                  width: '100%', height: 52, backgroundColor: 'var(--error)', color: "var(--bg-card)",
                   border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
                   cursor: 'pointer', opacity: submitting ? 0.6 : 1,
                 }}
@@ -512,8 +542,8 @@ export default function GymTrainers() {
               <button
                 onClick={() => { setShowRemoveSheet(false); setSelectedTrainer(null) }}
                 style={{
-                  width: '100%', height: 52, backgroundColor: 'white', color: '#111',
-                  border: '0.5px solid #111', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                  width: '100%', height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)',
+                  border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500,
                   cursor: 'pointer',
                 }}
               >Cancel</button>

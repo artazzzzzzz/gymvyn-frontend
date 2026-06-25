@@ -25,6 +25,13 @@ const ROLES = [
     sub: 'Manage members, trainers, schedules, and your gym operations.',
     next: '/gym-onboarding',
   },
+  {
+    key: 'staff',
+    emoji: '🪪',
+    title: 'Staff',
+    sub: 'Front desk & gym management.',
+    next: '/stagv-onboarding',
+  },
 ]
 
 export default function RoleSelect() {
@@ -32,7 +39,6 @@ export default function RoleSelect() {
   const navigate = useNavigate()
   const [saving, setSaving] = useState(null) // key of role being saved
 
-  // Already has a role — send them to the right place
   useEffect(() => {
     if (!existingRole) return
     const match = ROLES.find(r => r.key === existingRole)
@@ -64,7 +70,7 @@ export default function RoleSelect() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: 'white',
+      backgroundColor: 'var(--bg-primary)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       padding: '0 20px',
       display: 'flex',
@@ -73,16 +79,17 @@ export default function RoleSelect() {
       {/* Header */}
       <div style={{ paddingTop: 56, paddingBottom: 32 }}>
         <div style={{
-          width: 44, height: 44, backgroundColor: '#111',
+          width: 44, height: 44, backgroundColor: "var(--bg-card)",
           borderRadius: 10, display: 'flex', alignItems: 'center',
           justifyContent: 'center', marginBottom: 24,
+          border: '1px solid var(--border)',
         }}>
-          <span style={{ color: 'white', fontSize: 17, fontWeight: 900, letterSpacing: '-0.5px' }}>FF</span>
+          <span style={{ color: 'var(--text-primary)', fontSize: 17, fontWeight: 900, letterSpacing: '-0.5px' }}>GV</span>
         </div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111', margin: '0 0 8px', lineHeight: 1.15 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: "var(--text-primary)", margin: '0 0 8px', lineHeight: 1.15 }}>
           What brings you here?
         </h1>
-        <p style={{ fontSize: 15, color: '#888', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 15, color: "var(--text-tertiary)", margin: 0, lineHeight: 1.5 }}>
           Pick your role — you can only choose once.
         </p>
       </div>
@@ -100,8 +107,8 @@ export default function RoleSelect() {
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 16,
-                backgroundColor: 'white',
-                border: isSaving ? '1.5px solid #111' : '0.5px solid rgba(0,0,0,0.12)',
+                backgroundColor: 'var(--bg-card)',
+                border: isSaving ? '1.5px solid var(--text-cta)' : '1px solid var(--border)',
                 borderRadius: 12,
                 padding: '18px 16px',
                 cursor: saving ? 'default' : 'pointer',
@@ -113,33 +120,33 @@ export default function RoleSelect() {
             >
               <div style={{
                 width: 48, height: 48, borderRadius: 12,
-                backgroundColor: '#F7F7F5',
+                backgroundColor: 'var(--bg-primary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 22, flexShrink: 0,
               }}>
                 {isSaving ? (
                   <div style={{
-                    width: 20, height: 20, border: '2px solid #111',
+                    width: 20, height: 20, border: '2px solid var(--text-primary)',
                     borderTopColor: 'transparent', borderRadius: '50%',
                     animation: 'spin 0.7s linear infinite',
                   }} />
                 ) : r.emoji}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 18, fontWeight: 600, color: '#111', marginBottom: 4 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
                   {r.title}
                 </div>
-                <div style={{ fontSize: 13, color: '#888', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 13, color: "var(--text-tertiary)", lineHeight: 1.5 }}>
                   {r.sub}
                 </div>
               </div>
-              <div style={{ color: '#CCC', fontSize: 18, paddingTop: 2 }}>›</div>
+              <div style={{ color: "var(--text-tertiary)", fontSize: 18, paddingTop: 2 }}>›</div>
             </button>
           )
         })}
       </div>
 
-      <p style={{ textAlign: 'center', fontSize: 12, color: '#C0C0C0', padding: '24px 0 40px' }}>
+      <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-disabled)', padding: '24px 0 40px' }}>
         Your role determines which features you see.
       </p>
 

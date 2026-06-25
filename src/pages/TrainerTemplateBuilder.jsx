@@ -161,23 +161,23 @@ export default function TrainerTemplateBuilder() {
     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
       <button
         onClick={() => onChange(Math.max(min, value - 1))}
-        style={{ width: 32, height: 32, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.15)', background: 'transparent', fontSize: 18, cursor: 'pointer' }}
+        style={{ width: 32, height: 32, borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 18, cursor: 'pointer' }}
       >−</button>
       <span style={{ fontSize: 20, fontWeight: 500, minWidth: 32, textAlign: 'center' }}>{value}</span>
       <button
         onClick={() => onChange(Math.min(max, value + 1))}
-        style={{ width: 32, height: 32, borderRadius: 8, border: '0.5px solid rgba(0,0,0,0.15)', background: 'transparent', fontSize: 18, cursor: 'pointer' }}
+        style={{ width: 32, height: 32, borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 18, cursor: 'pointer' }}
       >+</button>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F7F7F5', paddingBottom: 80 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: 80 }}>
       {/* Header */}
       <div style={{ padding: '52px 16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button
           onClick={() => navigate('/trainer/templates')}
-          style={{ fontSize: 14, color: '#666', background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{ fontSize: 14, color: "var(--text-secondary)", background: 'none', border: 'none', cursor: 'pointer' }}
         >
           ← Templates
         </button>
@@ -189,7 +189,7 @@ export default function TrainerTemplateBuilder() {
 
       <div style={{ padding: '0 16px' }}>
         {/* Meta card */}
-        <div style={{ background: 'white', borderRadius: 12, padding: 16, marginBottom: 12, border: '0.5px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, marginBottom: 12, border: '0.5px solid var(--border)' }}>
           <input
             type="text"
             placeholder="Template name"
@@ -197,7 +197,7 @@ export default function TrainerTemplateBuilder() {
             onChange={e => setName(e.target.value)}
             style={{
               fontSize: 18, fontWeight: 500, border: 'none',
-              borderBottom: '0.5px solid rgba(0,0,0,0.1)',
+              borderBottom: '0.5px solid var(--border)',
               outline: 'none', width: '100%', padding: '8px 0',
               marginBottom: 12, background: 'transparent', display: 'block'
             }}
@@ -209,15 +209,15 @@ export default function TrainerTemplateBuilder() {
             onChange={e => setDescription(e.target.value)}
             style={{
               fontSize: 13, border: 'none',
-              borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+              borderBottom: '0.5px solid var(--border)',
               outline: 'none', width: '100%', padding: '6px 0',
-              marginBottom: 14, background: 'transparent', color: '#555', display: 'block'
+              marginBottom: 14, background: 'transparent', color: "var(--text-secondary)", display: 'block'
             }}
           />
 
           {/* Difficulty pills */}
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Difficulty</div>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6 }}>Difficulty</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {['beginner', 'intermediate', 'advanced'].map(d => (
                 <button
@@ -225,9 +225,9 @@ export default function TrainerTemplateBuilder() {
                   onClick={() => setDifficulty(d)}
                   style={{
                     padding: '5px 14px', borderRadius: 20, fontSize: 13,
-                    border: difficulty === d ? 'none' : '0.5px solid rgba(0,0,0,0.2)',
-                    background: difficulty === d ? '#111' : 'transparent',
-                    color: difficulty === d ? 'white' : '#555',
+                    border: difficulty === d ? 'none' : '0.5px solid var(--border)',
+                    background: difficulty === d ? "var(--text-primary)" : 'transparent',
+                    color: difficulty === d ? 'white' : "var(--text-secondary)",
                     cursor: 'pointer', textTransform: 'capitalize'
                   }}
                 >
@@ -239,13 +239,13 @@ export default function TrainerTemplateBuilder() {
 
           {/* Tags */}
           <div>
-            <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>Tags</div>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6 }}>Tags</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
               {tags.map((t, i) => (
                 <span
                   key={i}
                   style={{
-                    background: '#F1EFE8', color: '#5F5E5A',
+                    background: 'var(--bg-pill)', color: "var(--text-secondary)",
                     borderRadius: 20, padding: '3px 10px', fontSize: 11,
                     display: 'flex', alignItems: 'center', gap: 4
                   }}
@@ -253,7 +253,7 @@ export default function TrainerTemplateBuilder() {
                   {t}
                   <button
                     onClick={() => removeTag(i)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 12, padding: 0, lineHeight: 1 }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: "var(--text-tertiary)", fontSize: 12, padding: 0, lineHeight: 1 }}
                   >×</button>
                 </span>
               ))}
@@ -263,7 +263,7 @@ export default function TrainerTemplateBuilder() {
                 value={tagInput}
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={addTag}
-                style={{ fontSize: 12, border: 'none', outline: 'none', background: 'transparent', color: '#555', minWidth: 70 }}
+                style={{ fontSize: 12, border: 'none', outline: 'none', background: 'transparent', color: "var(--text-secondary)", minWidth: 70 }}
               />
             </div>
           </div>
@@ -276,11 +276,11 @@ export default function TrainerTemplateBuilder() {
           return (
             <div
               key={day.id || dayIdx}
-              style={{ background: 'white', borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', marginBottom: 10 }}
+              style={{ background: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', marginBottom: 10 }}
             >
               {/* Day header */}
               <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: '#C0C0C0', fontSize: 16, cursor: 'grab', userSelect: 'none' }}>⠿</span>
+                <span style={{ color: 'var(--text-disabled)', fontSize: 16, cursor: 'grab', userSelect: 'none' }}>⠿</span>
                 <input
                   type="text"
                   value={day.name}
@@ -290,10 +290,10 @@ export default function TrainerTemplateBuilder() {
                 {muscles.length > 0 && (
                   <span style={{ fontSize: 11, color: '#aaa', whiteSpace: 'nowrap' }}>{muscles.join(', ')}</span>
                 )}
-                <span style={{ fontSize: 12, color: '#bbb', whiteSpace: 'nowrap' }}>{day.exercises.length} ex</span>
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)", whiteSpace: 'nowrap' }}>{day.exercises.length} ex</span>
                 <button
                   onClick={() => toggleDay(dayIdx)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', fontSize: 11, padding: 0 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: "var(--text-tertiary)", fontSize: 11, padding: 0 }}
                 >
                   {isOpen ? '▲' : '▼'}
                 </button>
@@ -311,18 +311,18 @@ export default function TrainerTemplateBuilder() {
                     <div
                       key={ex.id || exIdx}
                       style={{
-                        borderTop: '0.5px solid rgba(0,0,0,0.06)',
+                        borderTop: '0.5px solid var(--border)',
                         height: 44, display: 'flex', alignItems: 'center',
                         padding: '0 16px', gap: 8
                       }}
                     >
-                      <span style={{ fontSize: 12, color: '#bbb', minWidth: 16, textAlign: 'center' }}>{exIdx + 1}</span>
+                      <span style={{ fontSize: 12, color: "var(--text-tertiary)", minWidth: 16, textAlign: 'center' }}>{exIdx + 1}</span>
                       <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{ex.name}</span>
                       <button
                         onClick={() => setEditingSets({ dayIdx, exIdx, sets: ex.sets, reps: ex.reps, rest: ex.rest })}
                         style={{
-                          background: '#F5F5F3', borderRadius: 6,
-                          padding: '2px 8px', fontSize: 12, color: '#666',
+                          background: 'var(--bg-pill)', borderRadius: 6,
+                          padding: '2px 8px', fontSize: 12, color: "var(--text-secondary)",
                           border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
                         }}
                       >
@@ -330,11 +330,11 @@ export default function TrainerTemplateBuilder() {
                       </button>
                       <button
                         onClick={() => moveExercise(dayIdx, exIdx, -1)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 13, padding: '0 1px' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: 13, padding: '0 1px' }}
                       >↑</button>
                       <button
                         onClick={() => moveExercise(dayIdx, exIdx, 1)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 13, padding: '0 1px' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: 13, padding: '0 1px' }}
                       >↓</button>
                       <button
                         onClick={() => deleteExercise(dayIdx, exIdx)}
@@ -347,10 +347,10 @@ export default function TrainerTemplateBuilder() {
                   <div
                     onClick={() => { setPickingForDay(dayIdx); setShowExPicker(true); }}
                     style={{
-                      borderTop: '0.5px dashed rgba(0,0,0,0.1)',
+                      borderTop: '0.5px dashed var(--border)',
                       height: 40, display: 'flex', alignItems: 'center',
                       padding: '0 16px', cursor: 'pointer',
-                      color: '#185FA5', fontSize: 13
+                      color: 'var(--text-cta)', fontSize: 13
                     }}
                   >
                     + Add Exercise
@@ -366,9 +366,9 @@ export default function TrainerTemplateBuilder() {
           onClick={addDay}
           style={{
             width: '100%', padding: 14,
-            border: '1.5px dashed #D0D0D0',
+            border: '1.5px dashed var(--border-strong)',
             borderRadius: 12, background: 'transparent',
-            fontSize: 13, color: '#999', cursor: 'pointer', marginBottom: 12
+            fontSize: 13, color: "var(--text-tertiary)", cursor: 'pointer', marginBottom: 12
           }}
         >
           + Add Day
@@ -381,25 +381,25 @@ export default function TrainerTemplateBuilder() {
           if (!ex) return null;
           return (
             <div style={{
-              marginTop: 32, background: 'white',
-              border: '0.5px solid rgba(0,0,0,0.1)',
+              marginTop: 32, background: 'var(--bg-card)',
+              border: '0.5px solid var(--border)',
               borderRadius: '16px 16px 0 0', padding: 20
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <span style={{ fontSize: 15, fontWeight: 600 }}>{ex.name}</span>
                 <button
                   onClick={() => setEditingSets(null)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#999', lineHeight: 1 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: "var(--text-tertiary)", lineHeight: 1 }}
                 >×</button>
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>Sets</div>
+                <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 10 }}>Sets</div>
                 <Spinner value={s.sets} onChange={v => setEditingSets({ ...s, sets: v })} min={1} max={10} />
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>Reps</div>
+                <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 8 }}>Reps</div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {['6–8', '8–10', '10–12', '12–15', '15–20', 'AMRAP'].map(r => (
                     <button
@@ -407,9 +407,9 @@ export default function TrainerTemplateBuilder() {
                       onClick={() => setEditingSets({ ...s, reps: r })}
                       style={{
                         padding: '6px 12px', borderRadius: 20, fontSize: 12,
-                        border: s.reps === r ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
-                        background: s.reps === r ? '#111' : 'transparent',
-                        color: s.reps === r ? 'white' : '#555', cursor: 'pointer'
+                        border: s.reps === r ? 'none' : '0.5px solid var(--border)',
+                        background: s.reps === r ? "var(--text-primary)" : 'transparent',
+                        color: s.reps === r ? 'white' : "var(--text-secondary)", cursor: 'pointer'
                       }}
                     >{r}</button>
                   ))}
@@ -417,7 +417,7 @@ export default function TrainerTemplateBuilder() {
               </div>
 
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>Rest</div>
+                <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 8 }}>Rest</div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {[30, 60, 90, 120].map(r => (
                     <button
@@ -425,9 +425,9 @@ export default function TrainerTemplateBuilder() {
                       onClick={() => setEditingSets({ ...s, rest: r })}
                       style={{
                         padding: '6px 14px', borderRadius: 20, fontSize: 12,
-                        border: s.rest === r ? 'none' : '0.5px solid rgba(0,0,0,0.15)',
-                        background: s.rest === r ? '#111' : 'transparent',
-                        color: s.rest === r ? 'white' : '#555', cursor: 'pointer'
+                        border: s.rest === r ? 'none' : '0.5px solid var(--border)',
+                        background: s.rest === r ? "var(--text-primary)" : 'transparent',
+                        color: s.rest === r ? 'white' : "var(--text-secondary)", cursor: 'pointer'
                       }}
                     >{REST_LABELS[r]}</button>
                   ))}
@@ -440,8 +440,8 @@ export default function TrainerTemplateBuilder() {
                   setEditingSets(null);
                 }}
                 style={{
-                  width: '100%', padding: 14, background: '#111',
-                  color: 'white', border: 'none', borderRadius: 10,
+                  width: '100%', padding: 14, background: "var(--text-primary)",
+                  color: 'var(--bg-primary)', border: 'none', borderRadius: 10,
                   fontSize: 14, fontWeight: 500, cursor: 'pointer'
                 }}
               >
@@ -455,12 +455,12 @@ export default function TrainerTemplateBuilder() {
       {/* Bottom save bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'white', borderTop: '0.5px solid rgba(0,0,0,0.08)',
+        background: 'var(--bg-card)', borderTop: '0.5px solid var(--border)',
         padding: '12px 20px', display: 'flex',
         justifyContent: 'space-between', alignItems: 'center',
         zIndex: 10
       }}>
-        <span style={{ fontSize: 13, color: '#999' }}>
+        <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>
           {days.length} day{days.length !== 1 ? 's' : ''} · {totalExercises} exercise{totalExercises !== 1 ? 's' : ''}
         </span>
         <button
@@ -468,7 +468,7 @@ export default function TrainerTemplateBuilder() {
           disabled={saving || !name.trim()}
           style={{
             padding: '10px 24px',
-            background: saving || !name.trim() ? '#ccc' : '#111',
+            background: saving || !name.trim() ? 'var(--text-tertiary)' : "var(--text-primary)",
             color: 'white', border: 'none', borderRadius: 10,
             fontSize: 14, fontWeight: 500,
             cursor: saving || !name.trim() ? 'not-allowed' : 'pointer'

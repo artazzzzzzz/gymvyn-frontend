@@ -41,7 +41,7 @@ export default function GymBottomNav({ onMorePress }) {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-black/[0.06] h-16 pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-t border-[var(--border)] h-16 pb-safe">
       <div className="grid grid-cols-5 h-full">
 
         {tabs.map((item, index) => {
@@ -51,8 +51,8 @@ export default function GymBottomNav({ onMorePress }) {
                 key={index}
                 onClick={onMorePress}
                 className="flex flex-col items-center justify-center gap-0.5">
-                <i className={`ti ${item.icon} text-[22px] text-[#CCC]`}></i>
-                <span className="text-[10px] font-normal text-[#CCC]">More</span>
+                <i className={`ti ${item.icon} text-[22px] text-[var(--text-tertiary)]`}></i>
+                <span className="text-[10px] font-normal text-[var(--text-tertiary)]">More</span>
               </button>
             )
           }
@@ -63,14 +63,14 @@ export default function GymBottomNav({ onMorePress }) {
               key={index}
               onClick={() => navigate(item.path)}
               className="flex flex-col items-center justify-center gap-0.5 relative">
-              <i className={`ti ${item.icon} text-[22px] ${active ? 'text-[#111]' : 'text-[#CCC]'}`}></i>
+              <i className={`ti ${item.icon} text-[22px] ${active ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`}></i>
               <span className={`text-[10px] transition-colors ${
-                active ? 'font-semibold text-[#111]' : 'font-normal text-[#CCC]'
+                active ? 'font-semibold text-[var(--text-primary)]' : 'font-normal text-[var(--text-tertiary)]'
               }`}>
                 {item.label}
               </span>
               {active && (
-                <span className="absolute bottom-1 w-1 h-1 bg-[#111] rounded-full"/>
+                <span className="absolute bottom-1 w-1 h-1 bg-[var(--text-primary)] rounded-full"/>
               )}
             </button>
           )

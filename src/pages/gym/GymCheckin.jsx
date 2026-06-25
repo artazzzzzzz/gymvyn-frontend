@@ -148,21 +148,21 @@ export default function GymCheckin() {
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: '#F7F7F5', paddingBottom: 80,
+      minHeight: '100vh', backgroundColor: 'var(--bg-primary)', paddingBottom: 80,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* STICKY HEADER + TABS */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        backgroundColor: 'white', borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+        backgroundColor: "var(--bg-card)", borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
         <div style={{
           padding: '16px 20px 12px', display: 'flex',
           alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontSize: 20, fontWeight: 600, color: '#111' }}>Check-in</span>
+          <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Check-in</span>
           <span style={{
-            backgroundColor: '#EAF3DE', color: '#3B6D11',
+            backgroundColor: 'var(--success-bg)', color: 'var(--success)',
             fontSize: 13, fontWeight: 600, padding: '6px 12px', borderRadius: 20,
           }}>● {occupancy.current_occupancy} Inside</span>
         </div>
@@ -179,8 +179,8 @@ export default function GymCheckin() {
               style={{
                 flex: 1, height: 44, border: 'none', backgroundColor: 'transparent',
                 fontSize: 13, fontWeight: 600,
-                color: activeTab === tab.key ? '#111' : '#999',
-                borderBottom: activeTab === tab.key ? '2px solid #111' : '2px solid transparent',
+                color: activeTab === tab.key ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                borderBottom: activeTab === tab.key ? '2px solid var(--text-primary)' : '2px solid transparent',
                 cursor: 'pointer',
               }}
             >{tab.label}</button>
@@ -194,7 +194,7 @@ export default function GymCheckin() {
           {/* QR Scanner box */}
           <div style={{
             width: '100%', paddingBottom: '100%', position: 'relative',
-            backgroundColor: '#1a1a1a', borderRadius: 16, overflow: 'hidden', marginBottom: 12,
+            backgroundColor: 'var(--bg-camera)', borderRadius: 16, overflow: 'hidden', marginBottom: 12,
           }}>
             <div style={{
               position: 'absolute', inset: 0, display: 'flex',
@@ -213,8 +213,8 @@ export default function GymCheckin() {
               <style>{`@keyframes scanLine{0%{top:20%}50%{top:75%}100%{top:20%}}`}</style>
               <div style={{
                 position: 'absolute', left: '10%', right: '10%', height: 2,
-                backgroundColor: '#10b981', animation: 'scanLine 2s ease-in-out infinite',
-                boxShadow: '0 0 8px #10b981',
+                backgroundColor: 'var(--success)', animation: 'scanLine 2s ease-in-out infinite',
+                boxShadow: '0 0 8px var(--success)',
               }} />
               <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: '0 40px' }}>
                 Point camera at member's QR code
@@ -226,26 +226,26 @@ export default function GymCheckin() {
           <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
             {['Enter code manually', 'Upload QR image'].map((label, i) => (
               <button key={i} style={{
-                flex: 1, height: 40, backgroundColor: 'white',
-                border: '0.5px solid #111', borderRadius: 12,
-                fontSize: 13, fontWeight: 500, color: '#111', cursor: 'pointer',
+                flex: 1, height: 40, backgroundColor: "var(--bg-card)",
+                border: '0.5px solid var(--text-primary)', borderRadius: 12,
+                fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer',
               }}>{label}</button>
             ))}
           </div>
 
           {/* Today's scans */}
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
           }}>TODAY'S SCANS</div>
 
           {occupancy.members_inside.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
               No check-ins yet today
             </div>
           ) : (
             <div style={{
-              backgroundColor: 'white', borderRadius: 12,
+              backgroundColor: "var(--bg-card)", borderRadius: 12,
               border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden',
             }}>
               {occupancy.members_inside.slice(0, 5).map((m, i) => {
@@ -263,11 +263,11 @@ export default function GymCheckin() {
                       fontSize: 13, fontWeight: 600, flexShrink: 0,
                     }}>{getInitials(m.full_name)}</div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>{m.full_name}</div>
-                      <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>{formatRelative(m.checked_in_at)}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{m.full_name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{formatRelative(m.checked_in_at)}</div>
                     </div>
                     <span style={{
-                      backgroundColor: '#E1F5EE', color: '#0F6E56',
+                      backgroundColor: 'var(--success-bg)', color: 'var(--success)',
                       fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                     }}>Inside</span>
                   </div>
@@ -275,7 +275,7 @@ export default function GymCheckin() {
               })}
               {occupancy.members_inside.length > 5 && (
                 <div style={{
-                  padding: '10px 16px', textAlign: 'center', fontSize: 13, color: '#185FA5',
+                  padding: '10px 16px', textAlign: 'center', fontSize: 13, color: 'var(--text-cta)',
                   borderTop: '0.5px solid rgba(0,0,0,0.06)', cursor: 'pointer',
                 }}>View all</div>
               )}
@@ -291,7 +291,7 @@ export default function GymCheckin() {
           <div style={{ position: 'relative', marginBottom: 16 }}>
             <span style={{
               position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-              fontSize: 16, color: '#999', pointerEvents: 'none',
+              fontSize: 16, color: 'var(--text-tertiary)', pointerEvents: 'none',
             }}>🔍</span>
             <input
               type="text"
@@ -301,7 +301,7 @@ export default function GymCheckin() {
               style={{
                 width: '100%', height: 52, border: '0.5px solid rgba(0,0,0,0.15)',
                 borderRadius: 16, padding: '0 44px 0 44px', fontSize: 15,
-                boxSizing: 'border-box', outline: 'none', backgroundColor: 'white',
+                boxSizing: 'border-box', outline: 'none', backgroundColor: "var(--bg-card)",
               }}
             />
             {searchQuery && (
@@ -309,14 +309,14 @@ export default function GymCheckin() {
                 onClick={() => { setSearchQuery(''); setSearchResults([]) }}
                 style={{
                   position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', fontSize: 18, color: '#999', cursor: 'pointer',
+                  background: 'none', border: 'none', fontSize: 18, color: 'var(--text-tertiary)', cursor: 'pointer',
                 }}
               >×</button>
             )}
           </div>
 
           {searching && (
-            <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 13, color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
               Searching...
             </div>
           )}
@@ -327,7 +327,7 @@ export default function GymCheckin() {
                 const { bg, text } = getAvatarColor(member.full_name)
                 return (
                   <div key={member.member_id} style={{
-                    backgroundColor: 'white', borderRadius: 12,
+                    backgroundColor: "var(--bg-card)", borderRadius: 12,
                     border: '0.5px solid rgba(0,0,0,0.08)',
                     padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
                   }}>
@@ -338,21 +338,21 @@ export default function GymCheckin() {
                       fontSize: 14, fontWeight: 600, flexShrink: 0,
                     }}>{getInitials(member.full_name)}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{member.full_name}</div>
-                      <div style={{ fontSize: 13, color: '#666', marginTop: 2 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{member.full_name}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
                         {member.phone || 'No phone'} · {member.membership_type || 'Member'}
                       </div>
                     </div>
                     {member.is_inside ? (
                       <span style={{
-                        backgroundColor: '#E1F5EE', color: '#0F6E56',
+                        backgroundColor: 'var(--success-bg)', color: 'var(--success)',
                         fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                       }}>Inside</span>
                     ) : (
                       <button
                         onClick={() => handleCheckIn(member.member_id, member.user_id, member.full_name, null, member.membership_type)}
                         style={{
-                          backgroundColor: '#111', color: 'white', border: 'none',
+                          backgroundColor: 'var(--text-primary)', color: "var(--bg-card)", border: 'none',
                           borderRadius: 8, height: 32, padding: '0 16px',
                           fontSize: 12, fontWeight: 500, cursor: 'pointer', flexShrink: 0,
                         }}
@@ -366,27 +366,27 @@ export default function GymCheckin() {
 
           {/* Currently Inside */}
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
           }}>CURRENTLY INSIDE</div>
 
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden',
           }}>
             <div style={{
               padding: '14px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>Currently Inside</span>
+              <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Currently Inside</span>
               <span style={{
-                backgroundColor: '#E1F5EE', color: '#0F6E56',
+                backgroundColor: 'var(--success-bg)', color: 'var(--success)',
                 fontSize: 13, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
               }}>{occupancy.current_occupancy}</span>
             </div>
 
             {occupancy.members_inside.length === 0 ? (
-              <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 13, color: '#999' }}>
+              <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 13, color: 'var(--text-tertiary)' }}>
                 No members inside right now
               </div>
             ) : (
@@ -407,16 +407,16 @@ export default function GymCheckin() {
                         fontSize: 12, fontWeight: 600, flexShrink: 0,
                       }}>{getInitials(m.full_name)}</div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500, color: '#111' }}>{m.full_name}</div>
-                        <div style={{ fontSize: 12, color: '#999' }}>
+                        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{m.full_name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                           {new Date(m.checked_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
                       <button
                         onClick={() => handleCheckOut(m.checkin_id, m.full_name)}
                         style={{
-                          backgroundColor: 'white', color: '#A32D2D',
-                          border: '0.5px solid #A32D2D', borderRadius: 8, height: 28,
+                          backgroundColor: "var(--bg-card)", color: 'var(--error)',
+                          border: '0.5px solid var(--error)', borderRadius: 8, height: 28,
                           padding: '0 12px', fontSize: 11, fontWeight: 500,
                           cursor: 'pointer', flexShrink: 0,
                         }}
@@ -444,8 +444,8 @@ export default function GymCheckin() {
                 onClick={() => setSelectedDate(d.value)}
                 style={{
                   flexShrink: 0, width: 80, height: 36, borderRadius: 20,
-                  backgroundColor: selectedDate === d.value ? '#111' : 'white',
-                  color: selectedDate === d.value ? 'white' : '#111',
+                  backgroundColor: selectedDate === d.value ? 'var(--text-primary)' : "var(--bg-card)",
+                  color: selectedDate === d.value ? 'white' : 'var(--text-primary)',
                   border: selectedDate === d.value ? 'none' : '0.5px solid rgba(0,0,0,0.12)',
                   fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 }}
@@ -455,7 +455,7 @@ export default function GymCheckin() {
 
           {/* Stats strip */}
           <div style={{
-            backgroundColor: 'white', borderRadius: 12,
+            backgroundColor: "var(--bg-card)", borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)', padding: 12,
             display: 'flex', alignItems: 'center', marginBottom: 16,
           }}>
@@ -468,9 +468,9 @@ export default function GymCheckin() {
                 flex: 1, textAlign: 'center',
                 borderRight: i < 2 ? '0.5px solid rgba(0,0,0,0.08)' : 'none',
               }}>
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>{stat.value}</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{stat.value}</div>
                 <div style={{
-                  fontSize: 11, fontWeight: 600, color: '#999',
+                  fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
                   textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2,
                 }}>{stat.label}</div>
               </div>
@@ -478,9 +478,9 @@ export default function GymCheckin() {
           </div>
 
           {historyLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: '#999' }}>Loading...</div>
+            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>Loading...</div>
           ) : (historyData.checkins?.length ?? 0) === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
               No check-ins on this date
             </div>
           ) : (
@@ -490,7 +490,7 @@ export default function GymCheckin() {
                 const duration = formatDuration(ci.checked_in_at, ci.checked_out_at)
                 return (
                   <div key={ci.id} style={{
-                    backgroundColor: 'white', borderRadius: 12,
+                    backgroundColor: "var(--bg-card)", borderRadius: 12,
                     border: '0.5px solid rgba(0,0,0,0.08)', padding: 16,
                     display: 'flex', alignItems: 'center', gap: 12,
                   }}>
@@ -501,25 +501,25 @@ export default function GymCheckin() {
                       fontSize: 14, fontWeight: 600, flexShrink: 0,
                     }}>{getInitials(ci.full_name)}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{ci.full_name}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{ci.full_name}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, color: '#666' }}>{ci.membership_type || 'Member'}</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{ci.membership_type || 'Member'}</span>
                         <span style={{
-                          backgroundColor: ci.method === 'qr' ? '#E6F1FB' : '#F1EFE8',
-                          color: ci.method === 'qr' ? '#185FA5' : '#5F5E5A',
+                          backgroundColor: ci.method === 'qr' ? 'var(--accent-bg)' : 'var(--bg-pill)',
+                          color: ci.method === 'qr' ? 'var(--text-cta)' : 'var(--text-secondary)',
                           fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
                           textTransform: 'uppercase', letterSpacing: '0.06em',
                         }}>{ci.method === 'qr' ? 'QR' : 'Manual'}</span>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                         {new Date(ci.checked_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
                         {ci.checked_out_at
                           ? duration
-                          : <span style={{ color: '#0F6E56' }}>● Still inside</span>
+                          : <span style={{ color: 'var(--success)' }}>● Still inside</span>
                         }
                       </div>
                     </div>
@@ -535,17 +535,17 @@ export default function GymCheckin() {
       {toast && (
         <div style={{
           position: 'fixed', top: 16, left: 16, right: 16, zIndex: 100,
-          backgroundColor: toast.type === 'success' ? '#EAF3DE' : '#FCEBEB',
+          backgroundColor: toast.type === 'success' ? 'var(--success-bg)' : 'var(--error-bg)',
           borderRadius: 16, padding: '14px 16px',
           animation: 'slideDown 0.3s ease',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         }}>
           <style>{`@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
-          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? '#3B6D11' : '#A32D2D' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? 'var(--success)' : 'var(--error)' }}>
             {toast.type === 'success' ? '✓ ' : '⚠ '}{toast.message}
           </div>
           {toast.subtitle && (
-            <div style={{ fontSize: 12, marginTop: 4, color: toast.type === 'success' ? '#3B6D11' : '#A32D2D' }}>
+            <div style={{ fontSize: 12, marginTop: 4, color: toast.type === 'success' ? 'var(--success)' : 'var(--error)' }}>
               {toast.subtitle}
             </div>
           )}

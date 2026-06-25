@@ -3,17 +3,17 @@ import React from 'react'
 const RISK_CONFIG = {
   high: {
     label: 'High Risk',
-    borderColor: '#A32D2D',
+    borderColor: 'var(--error)',
     bgColor: '#FCEBEB',
-    textColor: '#A32D2D',
-    barColor: '#E24B4A',
+    textColor: 'var(--error)',
+    barColor: 'var(--error)',
   },
   medium: {
     label: 'Medium Risk',
-    borderColor: '#854F0B',
+    borderColor: 'var(--warning)',
     bgColor: '#FAEEDA',
-    textColor: '#854F0B',
-    barColor: '#EF9F27',
+    textColor: 'var(--warning)',
+    barColor: 'var(--warning)',
   },
 }
 
@@ -33,9 +33,9 @@ export default function ChurnRiskCard({
       background: cfg.bgColor,
       borderRadius: 12,
       borderLeft: `3px solid ${cfg.borderColor}`,
-      borderTop: `0.5px solid rgba(0,0,0,0.06)`,
-      borderRight: `0.5px solid rgba(0,0,0,0.06)`,
-      borderBottom: `0.5px solid rgba(0,0,0,0.06)`,
+      borderTop: `0.5px solid var(--border)`,
+      borderRight: `0.5px solid var(--border)`,
+      borderBottom: `0.5px solid var(--border)`,
       padding: 16,
     }}>
       <div style={{
@@ -54,7 +54,7 @@ export default function ChurnRiskCard({
         <span style={{
           fontSize: 12,
           color: cfg.textColor,
-          background: '#fff',
+          background: 'var(--bg-card)',
           border: `0.5px solid ${cfg.borderColor}`,
           borderRadius: 20,
           padding: '3px 10px'
@@ -65,7 +65,7 @@ export default function ChurnRiskCard({
 
       <div style={{
         height: 6,
-        background: 'rgba(0,0,0,0.08)',
+        background: 'var(--border)',
         borderRadius: 3,
         marginBottom: 8,
         overflow: 'hidden'
@@ -95,7 +95,7 @@ export default function ChurnRiskCard({
             fontSize: 11,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: '#999',
+            color: 'var(--text-tertiary)',
             margin: '0 0 6px'
           }}>
             Key factors

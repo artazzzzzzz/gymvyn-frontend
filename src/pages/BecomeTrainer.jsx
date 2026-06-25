@@ -40,7 +40,7 @@ function FloatingInput({ label, value, onChange, type = 'text' }) {
         top: raised ? 0 : 14,
         left: 0,
         fontSize: raised ? 11 : 16,
-        color: focused ? '#111' : '#999',
+        color: focused ? "var(--text-primary)" : "var(--text-tertiary)",
         transition: 'all 0.15s ease',
         pointerEvents: 'none',
         fontWeight: raised ? 500 : 400,
@@ -55,7 +55,7 @@ function FloatingInput({ label, value, onChange, type = 'text' }) {
         style={{
           width: '100%',
           border: 'none',
-          borderBottom: focused ? '1px solid #111' : '0.5px solid rgba(0,0,0,0.15)',
+          borderBottom: focused ? '1px solid var(--text-primary)' : '1px solid var(--border)',
           padding: '18px 0 10px',
           fontSize: 16,
           background: 'transparent',
@@ -74,14 +74,14 @@ function StepHeader({ emoji, title, subtitle }) {
     <div style={{ marginBottom: 32 }}>
       <div style={{
         width: 72, height: 72, borderRadius: '50%',
-        background: '#E6F1FB',
+        background: 'var(--accent-bg)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginBottom: 16, fontSize: 32
       }}>
         {emoji}
       </div>
       <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 6 }}>{title}</h1>
-      {subtitle && <p style={{ fontSize: 14, color: '#888', lineHeight: 1.5 }}>{subtitle}</p>}
+      {subtitle && <p style={{ fontSize: 14, color: "var(--text-tertiary)", lineHeight: 1.5 }}>{subtitle}</p>}
     </div>
   );
 }
@@ -205,14 +205,14 @@ export default function BecomeTrainer() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'white' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
 
       {/* Sticky progress bar */}
-      <div style={{ height: 3, background: '#F0F0EE', position: 'sticky', top: 0, zIndex: 10 }}>
+      <div style={{ height: 3, background: 'var(--bg-pill)', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{
           height: '100%',
           width: `${(step / TOTAL_STEPS) * 100}%`,
-          background: '#111',
+          background: "var(--text-primary)",
           transition: 'width 0.3s ease'
         }} />
       </div>
@@ -251,7 +251,7 @@ export default function BecomeTrainer() {
               <label style={{
                 display: 'block',
                 fontSize: step1.experience ? 11 : 16,
-                color: step1.experience ? '#111' : '#999',
+                color: step1.experience ? "var(--text-primary)" : "var(--text-tertiary)",
                 marginBottom: step1.experience ? 4 : 0,
                 paddingTop: step1.experience ? 0 : 14,
                 transition: 'all 0.15s ease',
@@ -264,11 +264,11 @@ export default function BecomeTrainer() {
                 onChange={e => setStep1(f => ({ ...f, experience: e.target.value }))}
                 style={{
                   width: '100%', border: 'none',
-                  borderBottom: '0.5px solid rgba(0,0,0,0.15)',
+                  borderBottom: '1px solid var(--border)',
                   padding: step1.experience ? '4px 0 10px' : '18px 0 10px',
                   fontSize: 16,
                   background: 'transparent', outline: 'none',
-                  color: step1.experience ? '#111' : '#999',
+                  color: step1.experience ? "var(--text-primary)" : "var(--text-tertiary)",
                   appearance: 'none', boxSizing: 'border-box'
                 }}
               >
@@ -301,9 +301,9 @@ export default function BecomeTrainer() {
                     style={{
                       height: 38, padding: '0 14px',
                       borderRadius: 8, fontSize: 12, fontWeight: 500,
-                      border: active ? '1px solid #111' : '0.5px solid #D0D0D0',
-                      background: active ? '#111' : 'white',
-                      color: active ? 'white' : '#555',
+                      border: active ? '1.5px solid var(--text-cta)' : '1px solid var(--border)',
+                      background: 'var(--bg-card)',
+                      color: active ? 'var(--text-cta)' : "var(--text-secondary)",
                       cursor: 'pointer', transition: 'all 0.15s'
                     }}
                   >
@@ -315,13 +315,13 @@ export default function BecomeTrainer() {
 
             {/* Hourly rate stepper */}
             <div style={{ marginBottom: 32 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Hourly rate</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Hourly rate</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
                 <button
                   onClick={() => adjustRate(-100)}
                   style={{
                     width: 40, height: 40, borderRadius: '50%',
-                    border: '0.5px solid rgba(0,0,0,0.2)',
+                    border: '1px solid var(--border)',
                     background: 'transparent', fontSize: 20,
                     cursor: 'pointer', display: 'flex',
                     alignItems: 'center', justifyContent: 'center'
@@ -329,13 +329,13 @@ export default function BecomeTrainer() {
                 >−</button>
                 <div style={{ textAlign: 'center', flex: 1 }}>
                   <span style={{ fontSize: 32, fontWeight: 500 }}>₹{hourlyRate}</span>
-                  <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>per hour</div>
+                  <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>per hour</div>
                 </div>
                 <button
                   onClick={() => adjustRate(100)}
                   style={{
                     width: 40, height: 40, borderRadius: '50%',
-                    border: '0.5px solid rgba(0,0,0,0.2)',
+                    border: '1px solid var(--border)',
                     background: 'transparent', fontSize: 20,
                     cursor: 'pointer', display: 'flex',
                     alignItems: 'center', justifyContent: 'center'
@@ -350,9 +350,9 @@ export default function BecomeTrainer() {
                     onClick={() => adjustRate(d)}
                     style={{
                       padding: '4px 10px', borderRadius: 6,
-                      border: '0.5px solid rgba(0,0,0,0.15)',
+                      border: '1px solid var(--border)',
                       background: 'transparent', fontSize: 12,
-                      color: '#666', cursor: 'pointer'
+                      color: "var(--text-secondary)", cursor: 'pointer'
                     }}
                   >
                     {d > 0 ? `+${d}` : d}
@@ -363,7 +363,7 @@ export default function BecomeTrainer() {
 
             {/* Trainer type */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Trainer type</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Trainer type</div>
               <div style={{ display: 'flex', gap: 10 }}>
                 {[
                   { label: 'Independent', desc: 'Freelance / online', value: true, emoji: '🌐' },
@@ -374,14 +374,14 @@ export default function BecomeTrainer() {
                     onClick={() => setIsIndependent(opt.value)}
                     style={{
                       flex: 1, padding: 16, borderRadius: 10, cursor: 'pointer',
-                      border: isIndependent === opt.value ? '1.5px solid #111' : '0.5px solid #E0E0E0',
-                      background: isIndependent === opt.value ? '#F7F7F5' : 'white',
+                      border: isIndependent === opt.value ? '1.5px solid var(--text-cta)' : '1px solid var(--border)',
+                      background: 'var(--bg-card)',
                       transition: 'all 0.15s'
                     }}
                   >
                     <div style={{ fontSize: 22, marginBottom: 6 }}>{opt.emoji}</div>
                     <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{opt.label}</div>
-                    <div style={{ fontSize: 11, color: '#999' }}>{opt.desc}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{opt.desc}</div>
                   </div>
                 ))}
               </div>
@@ -400,7 +400,7 @@ export default function BecomeTrainer() {
 
             {/* Photo upload */}
             <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Profile photo</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Profile photo</div>
               <input
                 type="file"
                 accept="image/*"
@@ -412,10 +412,10 @@ export default function BecomeTrainer() {
                 onClick={() => photoRef.current?.click()}
                 style={{
                   width: 96, height: 96, borderRadius: '50%',
-                  border: photoPreview ? 'none' : '2px dashed #D0D0D0',
+                  border: photoPreview ? 'none' : '2px dashed var(--border-strong)',
                   cursor: 'pointer', overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: photoPreview ? 'transparent' : '#FAFAFA',
+                  background: photoPreview ? 'transparent' : 'var(--bg-pill)',
                   position: 'relative'
                 }}
               >
@@ -423,7 +423,7 @@ export default function BecomeTrainer() {
                   ? <img src={photoPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
-                      <div style={{ fontSize: 10, color: '#999' }}>Add photo</div>
+                      <div style={{ fontSize: 10, color: "var(--text-tertiary)" }}>Add photo</div>
                     </div>
                 }
               </div>
@@ -431,39 +431,39 @@ export default function BecomeTrainer() {
 
             {/* Bio */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Bio</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Bio</div>
               <textarea
                 rows={4}
                 placeholder="Tell clients about your training philosophy, achievements, and approach…"
                 value={bio}
                 onChange={e => setBio(e.target.value)}
                 style={{
-                  width: '100%', background: '#F7F7F5',
+                  width: '100%', background: 'var(--bg-elevated)',
                   borderRadius: 10, padding: 14, fontSize: 14,
-                  border: 'none', outline: 'none', resize: 'none',
+                  border: '1px solid var(--border)', outline: 'none', resize: 'none',
                   minHeight: 100, boxSizing: 'border-box',
-                  fontFamily: 'inherit', color: '#333', lineHeight: 1.5
+                  fontFamily: 'inherit', color: "var(--text-secondary)", lineHeight: 1.5
                 }}
               />
-              <div style={{ fontSize: 11, color: '#bbb', marginTop: 4, textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 4, textAlign: 'right' }}>
                 {bio.length} chars
               </div>
             </div>
 
             {/* Certifications */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Certifications</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Certifications</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {certifications.map((c, i) => (
                   <span key={i} style={{
-                    background: '#F1EFE8', color: '#5F5E5A',
+                    background: 'var(--bg-pill)', color: "var(--text-secondary)",
                     borderRadius: 6, padding: '4px 10px', fontSize: 12,
                     display: 'flex', alignItems: 'center', gap: 4
                   }}>
                     {c}
                     <button
                       onClick={() => setCertifications(prev => prev.filter((_, idx) => idx !== i))}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 13, padding: 0, lineHeight: 1 }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: "var(--text-tertiary)", fontSize: 13, padding: 0, lineHeight: 1 }}
                     >×</button>
                   </span>
                 ))}
@@ -476,7 +476,7 @@ export default function BecomeTrainer() {
                 onKeyDown={addCert}
                 style={{
                   width: '100%', border: 'none',
-                  borderBottom: '0.5px solid rgba(0,0,0,0.15)',
+                  borderBottom: '1px solid var(--border)',
                   padding: '10px 0', fontSize: 14,
                   background: 'transparent', outline: 'none',
                   boxSizing: 'border-box'
@@ -486,9 +486,9 @@ export default function BecomeTrainer() {
 
             {/* Instagram */}
             <div style={{ position: 'relative', marginBottom: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Instagram handle (optional)</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Instagram handle (optional)</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 16, color: '#999' }}>@</span>
+                <span style={{ fontSize: 16, color: "var(--text-tertiary)" }}>@</span>
                 <input
                   type="text"
                   placeholder="yourhandle"
@@ -496,7 +496,7 @@ export default function BecomeTrainer() {
                   onChange={e => setInstagram(e.target.value)}
                   style={{
                     flex: 1, border: 'none',
-                    borderBottom: '0.5px solid rgba(0,0,0,0.15)',
+                    borderBottom: '1px solid var(--border)',
                     padding: '10px 0', fontSize: 16,
                     background: 'transparent', outline: 'none'
                   }}
@@ -516,39 +516,39 @@ export default function BecomeTrainer() {
             />
 
             {/* Checklist */}
-            <div style={{ background: 'white', borderRadius: 12, padding: 16, border: '0.5px solid rgba(0,0,0,0.08)', marginBottom: 20 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 16, border: '1px solid var(--border)', marginBottom: 20 }}>
               {checks.map((c, i) => (
                 <div
                   key={i}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     height: 40,
-                    borderBottom: i < checks.length - 1 ? '0.5px solid rgba(0,0,0,0.05)' : 'none'
+                    borderBottom: i < checks.length - 1 ? '1px solid var(--border)' : 'none'
                   }}
                 >
                   <div style={{
                     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                    background: c.done ? '#EAF3DE' : 'transparent',
-                    border: c.done ? 'none' : '1.5px solid #D0D0D0',
+                    background: c.done ? 'var(--success-bg)' : 'transparent',
+                    border: c.done ? 'none' : '1.5px solid var(--border-strong)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
                     {c.done && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     )}
                   </div>
-                  <span style={{ fontSize: 14, color: c.done ? '#111' : '#999', flex: 1 }}>{c.label}</span>
+                  <span style={{ fontSize: 14, color: c.done ? "var(--text-primary)" : "var(--text-tertiary)", flex: 1 }}>{c.label}</span>
                   {c.optional && !c.done && (
-                    <span style={{ fontSize: 11, color: '#C0C0C0' }}>optional</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-disabled)' }}>optional</span>
                   )}
                 </div>
               ))}
             </div>
 
             {/* Summary card */}
-            <div style={{ background: '#F7F7F5', borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#999', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Summary</div>
+            <div style={{ background: 'var(--bg-primary)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Summary</div>
               {[
                 { label: 'Name', value: step1.full_name || '—' },
                 { label: 'City', value: step1.city || '—' },
@@ -560,15 +560,15 @@ export default function BecomeTrainer() {
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '8px 0',
-                  borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none'
+                  borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none'
                 }}>
-                  <span style={{ fontSize: 13, color: '#999' }}>{row.label}</span>
+                  <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>{row.label}</span>
                   <span style={{ fontSize: 13, fontWeight: 500, maxWidth: '55%', textAlign: 'right' }}>{row.value}</span>
                 </div>
               ))}
             </div>
 
-            <div style={{ background: '#E6F1FB', borderRadius: 10, padding: 14, fontSize: 13, color: '#185FA5', lineHeight: 1.5 }}>
+            <div style={{ background: 'var(--accent-bg)', borderRadius: 10, padding: 14, fontSize: 13, color: 'var(--text-cta)', lineHeight: 1.5 }}>
               After setup you'll get a unique invite code to share with clients. They can join using the code in the app.
             </div>
           </div>
@@ -578,7 +578,7 @@ export default function BecomeTrainer() {
       {/* Bottom nav */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'white', borderTop: '0.5px solid rgba(0,0,0,0.08)',
+        background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)',
         padding: '12px 24px 28px', display: 'flex', gap: 10
       }}>
         {step > 1 && (
@@ -586,9 +586,9 @@ export default function BecomeTrainer() {
             onClick={prevStep}
             style={{
               flex: 1, height: 52, borderRadius: 12,
-              border: '0.5px solid rgba(0,0,0,0.15)',
+              border: '1px solid var(--border)',
               background: 'transparent', fontSize: 15,
-              fontWeight: 500, cursor: 'pointer', color: '#333'
+              fontWeight: 500, cursor: 'pointer', color: "var(--text-secondary)"
             }}
           >
             Back
@@ -600,9 +600,10 @@ export default function BecomeTrainer() {
             disabled={!canNext}
             style={{
               flex: 1, height: 52, borderRadius: 12,
-              background: canNext ? '#111' : '#E0E0E0',
-              color: canNext ? 'white' : '#999',
-              border: 'none', fontSize: 15, fontWeight: 500,
+              background: canNext ? 'var(--cta-bg)' : 'var(--border)',
+              color: canNext ? 'var(--cta-text)' : "var(--text-tertiary)",
+              border: canNext ? '1px solid var(--cta-border)' : 'none',
+              fontSize: 15, fontWeight: 500,
               cursor: canNext ? 'pointer' : 'not-allowed',
               transition: 'background 0.15s'
             }}
@@ -615,8 +616,9 @@ export default function BecomeTrainer() {
             disabled={loading}
             style={{
               flex: 1, height: 56, borderRadius: 12,
-              background: loading ? '#ccc' : '#111',
-              color: 'white', border: 'none',
+              background: loading ? 'var(--border)' : 'var(--cta-bg)',
+              color: loading ? "var(--text-tertiary)" : 'var(--cta-text)',
+              border: loading ? 'none' : '1px solid var(--cta-border)',
               fontSize: 15, fontWeight: 500,
               cursor: loading ? 'not-allowed' : 'pointer'
             }}

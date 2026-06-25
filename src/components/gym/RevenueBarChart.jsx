@@ -33,12 +33,12 @@ export default function RevenueBarChart({
             <div style={{
               width: '100%',
               height: barH,
-              background: isCurrent ? '#111111' : '#3B6D11',
+              background: isCurrent ? 'var(--chart-line)' : 'var(--success)',
               borderRadius: '3px 3px 0 0'
             }} />
             <span style={{
               fontSize: 10,
-              color: '#999999',
+              color: 'var(--chart-axis)',
               textAlign: 'center',
               lineHeight: 1
             }}>

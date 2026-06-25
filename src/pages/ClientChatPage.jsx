@@ -42,7 +42,7 @@ export default function ClientChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -50,15 +50,15 @@ export default function ClientChatPage() {
 
   if (!conversation) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center px-8 text-center">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-8 text-center">
         <p className="text-4xl mb-4">💬</p>
         <h2 className="text-lg font-semibold mb-2">No conversation yet</h2>
-        <p className="text-zinc-400 text-sm mb-6">
+        <p className="text-[var(--text-secondary)] text-sm mb-6">
           Connect with a trainer to start messaging
         </p>
         <button
           onClick={() => navigate('/my-trainer')}
-          className="px-6 py-3 bg-emerald-500 rounded-xl font-semibold text-sm"
+          className="px-6 py-3 bg-[var(--success)] rounded-xl font-semibold text-sm"
         >
           Find a Trainer
         </button>

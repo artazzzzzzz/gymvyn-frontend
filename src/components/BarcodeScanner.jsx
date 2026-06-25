@@ -137,7 +137,7 @@ export default function BarcodeScanner({ onDetected, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div className="fixed inset-0 bg-[var(--bg-camera)] z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-12 pb-4 z-10">
         <button

@@ -17,9 +17,9 @@ const PRIORITY_OPTIONS = [
 ]
 
 const PRIORITY_STYLES = {
-  normal:    { bg: 'bg-white/[0.06]',     border: 'border-white/[0.10]',   text: 'text-zinc-300', icon: Info,      iconColor: 'text-zinc-400'    },
-  important: { bg: 'bg-amber-500/10',     border: 'border-amber-500/30',   text: 'text-amber-400', icon: Bell,      iconColor: 'text-amber-400'  },
-  urgent:    { bg: 'bg-red-500/10',       border: 'border-red-500/30',    text: 'text-red-400',   icon: Zap,       iconColor: 'text-red-400'    },
+  normal:    { bg: 'bg-[var(--bg-card)]/[0.06]',     border: 'border-white/[0.10]',   text: 'text-[var(--text-secondary)]', icon: Info,      iconColor: 'text-[var(--text-secondary)]'    },
+  important: { bg: 'bg-[var(--warning-bg)]',     border: 'border-[var(--warning)]',   text: 'text-[var(--warning)]', icon: Bell,      iconColor: 'text-[var(--warning)]'  },
+  urgent:    { bg: 'bg-[var(--error-bg)]',       border: 'border-[var(--error)]',    text: 'text-[var(--error)]',   icon: Zap,       iconColor: 'text-[var(--error)]'    },
 }
 
 function timeAgo(iso) {
@@ -59,12 +59,12 @@ function Toast({ toast, onClose }) {
   if (!toast) return null
   return (
     <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60]">
-      <div className="bg-[#1a1a1d] border border-white/10 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3 min-w-[260px]">
-        <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-          <Check size={14} className="text-emerald-400" />
+      <div className="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3 min-w-[260px]">
+        <div className="w-7 h-7 rounded-lg bg-[var(--success-bg)] flex items-center justify-center flex-shrink-0">
+          <Check size={14} className="text-[var(--success)]" />
         </div>
-        <p className="text-sm text-white flex-1">{toast}</p>
-        <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300">
+        <p className="text-sm text-[var(--text-primary)] flex-1">{toast}</p>
+        <button onClick={onClose} className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
           <X size={14} />
         </button>
       </div>
@@ -77,30 +77,30 @@ function ConfirmDialog({ open, title, body, onConfirm, onCancel, busy }) {
   return (
     <div className="fixed inset-0 z-[55] flex items-center justify-center p-4 bg-black/70" onClick={onCancel}>
       <div
-        className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+        className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-red-500/10">
-            <AlertTriangle size={18} className="text-red-400" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[var(--error-bg)]">
+            <AlertTriangle size={18} className="text-[var(--error)]" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-white">{title}</h3>
-            <p className="text-sm text-zinc-400 mt-1 leading-relaxed">{body}</p>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">{title}</h3>
+            <p className="text-sm text-[var(--text-secondary)] mt-1 leading-relaxed">{body}</p>
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-5">
           <button
             onClick={onCancel}
             disabled={busy}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/[0.04] disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)]/[0.04] disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={busy}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-400 inline-flex items-center gap-1.5 disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-primary)] bg-[var(--error)] hover:bg-[var(--error)] inline-flex items-center gap-1.5 disabled:opacity-50"
           >
             {busy && <Loader2 size={13} className="animate-spin" />}
             Delete
@@ -158,15 +158,15 @@ function PostAnnouncementModal({ open, gymId, postedBy, onClose, onPosted }) {
     <div className="fixed inset-0 z-[55] flex items-center justify-center p-4 bg-black/70" onClick={onClose}>
       <form
         onSubmit={submit}
-        className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full shadow-2xl"
+        className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 max-w-md w-full shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold text-white">Post announcement</h3>
-        <p className="text-sm text-zinc-400 mt-1">Share an update with everyone in your gym.</p>
+        <h3 className="text-base font-semibold text-[var(--text-primary)]">Post announcement</h3>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">Share an update with everyone in your gym.</p>
 
         <div className="mt-4 space-y-3">
           <div>
-            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+            <label className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-widest">
               Title
             </label>
             <input
@@ -174,12 +174,12 @@ function PostAnnouncementModal({ open, gymId, postedBy, onClose, onPosted }) {
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. Holiday timings"
-              className="mt-1.5 w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30"
+              className="mt-1.5 w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--success)] focus:ring-1 focus:ring-emerald-500/30"
             />
           </div>
 
           <div>
-            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+            <label className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-widest">
               Message
             </label>
             <textarea
@@ -187,18 +187,18 @@ function PostAnnouncementModal({ open, gymId, postedBy, onClose, onPosted }) {
               onChange={e => setBody(e.target.value)}
               rows={5}
               placeholder="What do you want members to know?"
-              className="mt-1.5 w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 resize-none"
+              className="mt-1.5 w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--success)] focus:ring-1 focus:ring-emerald-500/30 resize-none"
             />
           </div>
 
           <div>
-            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+            <label className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-widest">
               Priority
             </label>
             <select
               value={priority}
               onChange={e => setPriority(e.target.value)}
-              className="mt-1.5 w-full bg-[#1c1c1f] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30"
+              className="mt-1.5 w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--success)] focus:ring-1 focus:ring-emerald-500/30"
             >
               {PRIORITY_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -207,21 +207,21 @@ function PostAnnouncementModal({ open, gymId, postedBy, onClose, onPosted }) {
           </div>
         </div>
 
-        {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-xs text-[var(--error)]">{error}</p>}
 
         <div className="flex justify-end gap-2 mt-5">
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/[0.04] disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)]/[0.04] disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-400 inline-flex items-center gap-1.5 disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--text-primary)] bg-[var(--success)] hover:bg-[var(--success)] inline-flex items-center gap-1.5 disabled:opacity-50"
           >
             {busy && <Loader2 size={13} className="animate-spin" />}
             Post
@@ -300,14 +300,14 @@ export default function GymAnnouncements() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0c0c0e] pb-24 overflow-x-hidden">
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-emerald-500/[0.07] blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-24 overflow-x-hidden">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] halo-decoration bg-[rgba(212,181,117,0.08)] blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 max-w-3xl mx-auto px-5 py-10 sm:py-12">
         <header className="flex items-center justify-between gap-4 mb-7">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Announcements</h1>
-            <p className="text-zinc-500 text-sm mt-0.5">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">Announcements</h1>
+            <p className="text-[var(--text-tertiary)] text-sm mt-0.5">
               {loading
                 ? 'Loading…'
                 : `${items.length} ${items.length === 1 ? 'post' : 'posts'} in ${gym?.name ?? 'your gym'}`}
@@ -316,7 +316,7 @@ export default function GymAnnouncements() {
           <button
             onClick={() => setPostOpen(true)}
             disabled={!gym?.id}
-            className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 bg-[var(--success)] hover:bg-[var(--success)] text-[var(--text-primary)] font-semibold text-sm px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-40"
           >
             <Plus size={14} />
             <span className="hidden sm:inline">Post Announcement</span>
@@ -325,7 +325,7 @@ export default function GymAnnouncements() {
         </header>
 
         {error && (
-          <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="mb-5 px-4 py-3 rounded-xl bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
             {error}
           </div>
         )}
@@ -333,26 +333,26 @@ export default function GymAnnouncements() {
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-[#141416] border border-white/[0.06] rounded-2xl p-5 space-y-3">
-                <div className="h-3 bg-white/[0.05] rounded animate-pulse w-1/3" />
-                <div className="h-2.5 bg-white/[0.04] rounded animate-pulse w-2/3" />
-                <div className="h-2.5 bg-white/[0.04] rounded animate-pulse w-1/2" />
+              <div key={i} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 space-y-3">
+                <div className="h-3 bg-[var(--bg-card)]/[0.05] rounded animate-pulse w-1/3" />
+                <div className="h-2.5 bg-[var(--bg-card)]/[0.04] rounded animate-pulse w-2/3" />
+                <div className="h-2.5 bg-[var(--bg-card)]/[0.04] rounded animate-pulse w-1/2" />
               </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="bg-[#141416] border border-white/[0.06] rounded-2xl p-8 sm:p-12 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-5">
-              <Megaphone size={26} className="text-emerald-400" />
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-8 sm:p-12 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--success-bg)] flex items-center justify-center mx-auto mb-5">
+              <Megaphone size={26} className="text-[var(--success)]" />
             </div>
-            <h2 className="text-2xl font-bold text-white tracking-tight mb-2">No announcements yet</h2>
-            <p className="text-zinc-400 text-sm max-w-md mx-auto mb-7">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight mb-2">No announcements yet</h2>
+            <p className="text-[var(--text-secondary)] text-sm max-w-md mx-auto mb-7">
               Post updates, holiday timings, or important notices for your members.
             </p>
             <button
               onClick={() => setPostOpen(true)}
               disabled={!gym?.id}
-              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 disabled:opacity-40"
+              className="inline-flex items-center gap-2 bg-[var(--success)] hover:bg-[var(--success)] text-[var(--text-primary)] font-semibold text-sm px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 disabled:opacity-40"
             >
               <Plus size={14} />
               Post first announcement
@@ -363,23 +363,23 @@ export default function GymAnnouncements() {
             {items.map(a => (
               <li
                 key={a.id}
-                className="bg-[#141416] border border-white/[0.06] rounded-2xl p-5 group hover:border-white/[0.14] transition-colors"
+                className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 group hover:border-[var(--border-strong)] transition-colors"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-semibold text-white">{a.title}</h2>
+                    <h2 className="text-base font-semibold text-[var(--text-primary)]">{a.title}</h2>
                     <PriorityPill priority={a.priority} />
                   </div>
                   <button
                     onClick={() => setConfirmDelete(a)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 rounded-lg hover:bg-red-500/15 text-zinc-500 hover:text-red-400 flex items-center justify-center flex-shrink-0"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 rounded-lg hover:bg-[var(--error-bg)] text-[var(--text-tertiary)] hover:text-[var(--error)] flex items-center justify-center flex-shrink-0"
                     aria-label="Delete announcement"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <p className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">{a.body}</p>
-                <p className="text-[11px] text-zinc-500 mt-3">{timeAgo(a.created_at)}</p>
+                <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">{a.body}</p>
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-3">{timeAgo(a.created_at)}</p>
               </li>
             ))}
           </ul>

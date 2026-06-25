@@ -10,13 +10,13 @@ import { useAuth } from '../../hooks/useAuth'
 const BASE_URL = import.meta.env.VITE_API_URL || ''
 
 const TYPE_CONFIG = {
-  yoga:     { accent: '#0F6E56', bg: '#E1F5EE' },
-  strength: { accent: '#185FA5', bg: '#E6F1FB' },
-  zumba:    { accent: '#854F0B', bg: '#FAEEDA' },
-  hiit:     { accent: '#A32D2D', bg: '#FCEBEB' },
-  cardio:   { accent: '#3B6D11', bg: '#EAF3DE' },
+  yoga:     { accent: 'var(--success)', bg: 'var(--success-bg)' },
+  strength: { accent: 'var(--text-cta)', bg: 'var(--accent-bg)' },
+  zumba:    { accent: 'var(--warning)', bg: 'var(--warning-bg)' },
+  hiit:     { accent: 'var(--error)', bg: 'var(--error-bg)' },
+  cardio:   { accent: 'var(--success)', bg: 'var(--success-bg)' },
   pilates:  { accent: '#3C3489', bg: '#EEEDFE' },
-  other:    { accent: '#5F5E5A', bg: '#F1EFE8' },
+  other:    { accent: 'var(--text-secondary)', bg: 'var(--bg-pill)' },
 }
 
 function getMondayOfWeek(date) {
@@ -51,7 +51,7 @@ function WeekStrip({ weekData, selectedDate, onDateSelect }) {
   return (
     <div style={{
       display: 'flex',
-      background: '#fff',
+      background: 'var(--bg-card)',
       borderBottom: '0.5px solid rgba(0,0,0,0.08)',
     }}>
       {weekData?.days?.map(day => {
@@ -67,19 +67,19 @@ function WeekStrip({ weekData, selectedDate, onDateSelect }) {
               cursor: 'pointer',
               padding: '8px 0',
               borderBottom: isSelected
-                ? '2px solid #111'
+                ? '2px solid var(--text-primary)'
                 : '2px solid transparent',
             }}
           >
             <div style={{
-              fontSize: 11, color: '#999', fontWeight: 500, marginBottom: 4,
+              fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 500, marginBottom: 4,
             }}>
               {day.day_label}
             </div>
             <div style={{
               width: 28, height: 28, borderRadius: '50%',
-              background: isToday ? '#111' : 'transparent',
-              color: isToday ? '#fff' : '#111',
+              background: isToday ? 'var(--text-primary)' : 'transparent',
+              color: isToday ? 'var(--bg-card)' : 'var(--text-primary)',
               fontSize: 15,
               fontWeight: isToday ? 600 : 500,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -90,7 +90,7 @@ function WeekStrip({ weekData, selectedDate, onDateSelect }) {
             {day.has_classes && (
               <div style={{
                 width: 4, height: 4, borderRadius: '50%',
-                background: '#3B6D11',
+                background: 'var(--success)',
                 margin: '4px auto 0',
               }} />
             )}
@@ -121,7 +121,7 @@ function ClassCard({ cls }) {
   const avatarStyle = getAvatarColor(cls.trainer_name || 'T')
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--bg-card)',
       borderRadius: 12,
       border: '0.5px solid rgba(0,0,0,0.08)',
       borderLeft: `3px solid ${cfg.accent}`,
@@ -132,19 +132,19 @@ function ClassCard({ cls }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{
           fontSize: 12, fontWeight: 500,
-          background: '#F1EFE8', color: '#5F5E5A',
+          background: 'var(--bg-pill)', color: 'var(--text-secondary)',
           borderRadius: 20, padding: '3px 8px',
         }}>
           {formatTime(cls.start_time)}
         </span>
         {cls.is_full
-          ? <Pill text="Full" bg="#FCEBEB" color="#A32D2D" />
-          : <Pill text={`${cls.booked_count} / ${cls.capacity}`} bg="#EAF3DE" color="#3B6D11" />
+          ? <Pill text="Full" bg="var(--error-bg)" color="var(--error)" />
+          : <Pill text={`${cls.booked_count} / ${cls.capacity}`} bg="var(--success-bg)" color="var(--success)" />
         }
       </div>
 
       {/* Class name */}
-      <div style={{ fontSize: 16, fontWeight: 600, color: '#111', marginTop: 8 }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginTop: 8 }}>
         {cls.class_name}
       </div>
 
@@ -159,17 +159,17 @@ function ClassCard({ cls }) {
           }}>
             {getInitials(cls.trainer_name)}
           </div>
-          <span style={{ fontSize: 13, color: '#666' }}>{cls.trainer_name}</span>
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{cls.trainer_name}</span>
         </div>
       )}
 
       {/* Pills row */}
       <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-        <Pill text={`${cls.duration_minutes} min`} bg="#F1EFE8" color="#5F5E5A" />
-        <Pill text={cls.equipment || 'No equipment'} bg="#F1EFE8" color="#5F5E5A" />
+        <Pill text={`${cls.duration_minutes} min`} bg="var(--bg-pill)" color="var(--text-secondary)" />
+        <Pill text={cls.equipment || 'No equipment'} bg="var(--bg-pill)" color="var(--text-secondary)" />
         {cls.is_full
-          ? <Pill text={`${cls.booked_count} booked`} bg="#FCEBEB" color="#A32D2D" />
-          : <Pill text={`${cls.booked_count} booked`} bg="#EAF3DE" color="#3B6D11" />
+          ? <Pill text={`${cls.booked_count} booked`} bg="var(--error-bg)" color="var(--error)" />
+          : <Pill text={`${cls.booked_count} booked`} bg="var(--success-bg)" color="var(--success)" />
         }
       </div>
     </div>
@@ -180,7 +180,7 @@ function ClassCard({ cls }) {
 function SkeletonCard() {
   return (
     <div style={{
-      background: '#fff', borderRadius: 12,
+      background: 'var(--bg-card)', borderRadius: 12,
       border: '0.5px solid rgba(0,0,0,0.08)',
       padding: 16, marginBottom: 10,
     }}>
@@ -188,7 +188,7 @@ function SkeletonCard() {
       {[60, 120, 80].map((w, i) => (
         <div key={i} style={{
           height: i === 1 ? 16 : 12, width: w, borderRadius: 6,
-          background: '#F1EFE8', marginBottom: 10,
+          background: 'var(--bg-pill)', marginBottom: 10,
           animation: 'skel 1.2s ease-in-out infinite alternate',
         }} />
       ))}
@@ -213,7 +213,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
   useEffect(() => { setDate(selectedDate) }, [selectedDate])
 
   const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-  const DAY_VALUES = [1, 2, 3, 4, 5, 6, 0]
+  const DAY_VALUES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
   function toggleDay(v) {
     setRecurringDays(prev =>
@@ -244,7 +244,10 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      if (!res.ok) throw new Error('Failed to add class')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.message || errData.error || `Server error ${res.status}`)
+      }
       onSuccess()
       onClose()
       // reset
@@ -262,8 +265,8 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
 
   const inputStyle = {
     width: '100%', height: 44, borderRadius: 8, boxSizing: 'border-box',
-    border: '0.5px solid rgba(0,0,0,0.15)', background: '#fff',
-    fontSize: 14, color: '#111', padding: '0 12px',
+    border: '0.5px solid rgba(0,0,0,0.15)', background: 'var(--bg-card)',
+    fontSize: 14, color: 'var(--text-primary)', padding: '0 12px',
     outline: 'none',
   }
 
@@ -278,7 +281,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
       />
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: '#F7F7F5', borderRadius: '16px 16px 0 0',
+        background: 'var(--bg-primary)', borderRadius: '16px 16px 0 0',
         zIndex: 51, padding: '20px 20px 40px',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
@@ -288,7 +291,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
           background: 'rgba(0,0,0,0.15)', margin: '0 auto 16px',
         }} />
 
-        <div style={{ fontSize: 17, fontWeight: 600, color: '#111', marginBottom: 16 }}>
+        <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
           Add Class
         </div>
 
@@ -310,8 +313,8 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
                 style={{
                   flexShrink: 0, height: 32, padding: '0 14px', borderRadius: 20,
                   border: '0.5px solid rgba(0,0,0,0.15)',
-                  background: classType === t ? '#111' : '#fff',
-                  color: classType === t ? '#fff' : '#333',
+                  background: classType === t ? 'var(--text-primary)' : 'var(--bg-card)',
+                  color: classType === t ? 'var(--bg-card)' : 'var(--text-secondary)',
                   fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   textTransform: 'capitalize',
                 }}
@@ -346,8 +349,8 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
                 style={{
                   flex: 1, height: 40, borderRadius: 8,
                   border: '0.5px solid rgba(0,0,0,0.15)',
-                  background: duration === d ? '#111' : '#fff',
-                  color: duration === d ? '#fff' : '#666',
+                  background: duration === d ? 'var(--text-primary)' : 'var(--bg-card)',
+                  color: duration === d ? 'var(--bg-card)' : 'var(--text-secondary)',
                   fontSize: 13, fontWeight: 500, cursor: 'pointer',
                 }}
               >
@@ -380,14 +383,14 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
             borderTop: '0.5px solid rgba(0,0,0,0.08)',
             borderBottom: recurring ? 'none' : '0.5px solid rgba(0,0,0,0.08)',
           }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#111' }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
               Recurring class
             </span>
             <div
               onClick={() => setRecurring(p => !p)}
               style={{
                 width: 44, height: 26, borderRadius: 13,
-                background: recurring ? '#111' : '#ccc',
+                background: recurring ? 'var(--text-primary)' : 'var(--text-tertiary)',
                 position: 'relative', cursor: 'pointer',
                 transition: 'background 0.2s',
               }}
@@ -396,7 +399,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
                 position: 'absolute', top: 3,
                 left: recurring ? 21 : 3,
                 width: 20, height: 20, borderRadius: '50%',
-                background: '#fff',
+                background: 'var(--bg-card)',
                 transition: 'left 0.2s',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
               }} />
@@ -419,8 +422,8 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
                     onClick={() => toggleDay(v)}
                     style={{
                       width: 36, height: 36, borderRadius: '50%',
-                      background: active ? '#111' : '#F1EFE8',
-                      color: active ? '#fff' : '#5F5E5A',
+                      background: active ? 'var(--text-primary)' : 'var(--bg-pill)',
+                      color: active ? 'var(--bg-card)' : 'var(--text-secondary)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 13, fontWeight: 600, cursor: 'pointer',
                     }}
@@ -433,7 +436,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
           )}
 
           {error && (
-            <div style={{ fontSize: 13, color: '#A32D2D', textAlign: 'center' }}>
+            <div style={{ fontSize: 13, color: 'var(--error)', textAlign: 'center' }}>
               {error}
             </div>
           )}
@@ -444,8 +447,8 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
             disabled={submitting}
             style={{
               width: '100%', height: 52, borderRadius: 12,
-              background: submitting ? '#555' : '#111',
-              color: '#fff', fontSize: 16, fontWeight: 600,
+              background: submitting ? 'var(--text-secondary)' : 'var(--text-primary)',
+              color: 'var(--bg-card)', fontSize: 16, fontWeight: 600,
               border: 'none', cursor: submitting ? 'not-allowed' : 'pointer',
               marginTop: 4,
             }}
@@ -516,14 +519,14 @@ export default function GymSchedule() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#F7F7F5',
+      minHeight: '100vh', background: 'var(--bg-primary)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       paddingBottom: 80,
     }}>
       {/* Top Bar */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 20,
-        background: '#F7F7F5',
+        background: 'var(--bg-primary)',
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
         <div style={{
@@ -539,18 +542,18 @@ export default function GymSchedule() {
               justifyContent: 'center', flexShrink: 0,
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: '#111' }}>
+          <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>
             Schedule
           </span>
           <button
             onClick={() => setShowAddModal(true)}
             style={{
               height: 32, padding: '0 14px', borderRadius: 20,
-              background: '#111', color: '#fff',
+              background: 'var(--text-primary)', color: 'var(--bg-card)',
               fontSize: 13, fontWeight: 600, border: 'none',
               cursor: 'pointer',
             }}
@@ -563,7 +566,7 @@ export default function GymSchedule() {
         {loading && !weekData
           ? (
             <div style={{
-              display: 'flex', background: '#fff',
+              display: 'flex', background: 'var(--bg-card)',
               borderBottom: '0.5px solid rgba(0,0,0,0.08)',
             }}>
               {Array.from({ length: 7 }).map((_, i) => (
@@ -572,11 +575,11 @@ export default function GymSchedule() {
                 }}>
                   <div style={{
                     height: 10, width: 20, borderRadius: 4,
-                    background: '#F1EFE8', margin: '0 auto 6px',
+                    background: 'var(--bg-pill)', margin: '0 auto 6px',
                   }} />
                   <div style={{
                     width: 28, height: 28, borderRadius: '50%',
-                    background: '#F1EFE8', margin: '0 auto',
+                    background: 'var(--bg-pill)', margin: '0 auto',
                   }} />
                 </div>
               ))}
@@ -595,10 +598,10 @@ export default function GymSchedule() {
       <div style={{ padding: '16px 16px 0' }}>
         {/* Day label row */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 14, fontWeight: 500, color: '#111' }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
             {getDayName(selectedDate)}, {formatShortDate(selectedDate)}
           </div>
-          <div style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 2 }}>
             {selectedDayData.classes.length} classes scheduled
           </div>
         </div>
@@ -613,16 +616,16 @@ export default function GymSchedule() {
                 alignItems: 'center', justifyContent: 'center',
                 height: 100, gap: 6,
               }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5">
                   <rect x="3" y="4" width="18" height="18" rx="2" />
                   <line x1="16" y1="2" x2="16" y2="6" />
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                <div style={{ fontSize: 14, fontWeight: 500, color: '#888' }}>
+                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-tertiary)' }}>
                   No classes scheduled
                 </div>
-                <div style={{ fontSize: 13, color: '#999' }}>
+                <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
                   Tap + Add Class to create one
                 </div>
               </div>
@@ -635,14 +638,14 @@ export default function GymSchedule() {
         {/* Upcoming this week */}
         <div style={{ marginTop: 24 }}>
           <div style={{
-            fontSize: 11, fontWeight: 600, color: '#999',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
             letterSpacing: '0.06em', marginBottom: 10,
           }}>
             UPCOMING THIS WEEK
           </div>
 
           <div style={{
-            background: '#fff', borderRadius: 12,
+            background: 'var(--bg-card)', borderRadius: 12,
             border: '0.5px solid rgba(0,0,0,0.08)',
             overflow: 'hidden',
           }}>
@@ -651,7 +654,7 @@ export default function GymSchedule() {
                 <div style={{
                   height: 44, display: 'flex', alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 13, color: '#999',
+                  fontSize: 13, color: 'var(--text-tertiary)',
                 }}>
                   No upcoming classes this week
                 </div>
@@ -666,18 +669,18 @@ export default function GymSchedule() {
                   }}>
                     <div style={{
                       width: 8, height: 8, borderRadius: '50%',
-                      background: TYPE_CONFIG[cls.class_type]?.accent || '#5F5E5A',
+                      background: TYPE_CONFIG[cls.class_type]?.accent || 'var(--text-secondary)',
                       flexShrink: 0,
                     }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontSize: 13, fontWeight: 500, color: '#111',
+                        fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>
                         {cls.day_label} · {formatTime(cls.start_time)}
                       </div>
                       <div style={{
-                        fontSize: 13, color: '#999',
+                        fontSize: 13, color: 'var(--text-tertiary)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>
                         {cls.class_name}
@@ -707,7 +710,7 @@ export default function GymSchedule() {
         style={{
           position: 'fixed', bottom: 84, right: 20,
           width: 52, height: 52, borderRadius: '50%',
-          background: '#111', color: '#fff',
+          background: 'var(--text-primary)', color: 'var(--bg-card)',
           border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 10,

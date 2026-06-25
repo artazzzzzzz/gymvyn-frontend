@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Building2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-import { getMyGym, joinGym } from '../utils/api'
+import { getMyGym, joinGym, getGymAnnouncements, getGymSchedule, getGymOccupancy } from '../utils/api'
+import { supabase } from '../utils/supabase'
 
-// ── Utility helpers (kept from original) ─────────────────────────────────────
+const BASE = import.meta.env.VITE_API_URL
 
 function timeAgo(iso) {
   if (!iso) return '—'
@@ -20,44 +21,8 @@ function timeAgo(iso) {
   return w < 4 ? `${w}w ago` : new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
-// ── Mock / fallback data ──────────────────────────────────────────────────────
-
-const mockGym = {
-  name: 'IronPeak Fitness',
-  location: 'Bhopal · MP',
-  memberSince: 'Jan 2025',
-  tier: 'Gold Member',
-  memberId: 'FF-2024-0847',
-}
-
-const mockOccupancy = {
-  current: 34,
-  capacity: 80,
-  hourly: [20, 45, 70, 55, 35, 30, 42, 50, 38, 43, 65, 80],
-  currentHour: 7,
-}
-
-const mockClasses = [
-  { id: '1', name: 'Morning HIIT',             time: '06:30', period: 'AM', duration: '45 min', trainer: 'Priya Sharma',  spotsLeft: 4, capacity: 16, status: 'upcoming' },
-  { id: '2', name: 'Strength & Conditioning', time: '08:00', period: 'AM', duration: '60 min', trainer: 'Vikram Nair',   spotsLeft: 0, capacity: 20, status: 'booked'   },
-  { id: '3', name: 'Yoga Flow',               time: '07:00', period: 'AM', duration: '50 min', trainer: 'Ananya Singh',  spotsLeft: 0, capacity: 15, status: 'past'     },
-]
-
-const mockAnnouncements = [
-  {
-    id: '1',
-    accentColor: '#185FA5',
-    title: 'New equipment arriving this week',
-    body: '3 new cable machines and a Smith rack will be available from Monday. First come first served.',
-    postedBy: 'Management',
-    timeAgo: '2 days ago',
-  },
-]
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const occPct   = o => Math.round((o.current / o.capacity) * 100)
-const occColor = p => p < 50 ? '#3B6D11' : p < 75 ? '#854F0B' : '#A32D2D'
+const occPct   = (current, capacity) => capacity > 0 ? Math.round((current / capacity) * 100) : 0
+const occColor = p => p < 50 ? 'var(--success)' : p < 75 ? 'var(--warning)' : 'var(--error)'
 const occLabel = p => p < 50 ? 'Quiet right now — great time to go' : p < 75 ? 'Moderate — getting busy' : 'Busy — peak hours'
 
 const QR_GRID = [
@@ -70,7 +35,25 @@ const QR_GRID = [
   [1,1,1,0,1,1,1],
 ]
 
-// ── Join-a-gym view (preserved from original) ─────────────────────────────────
+function Skeleton({ width = '100%', height = 16, radius = 8, style = {} }) {
+  return (
+    <div style={{
+      width, height, borderRadius: radius,
+      background: 'linear-gradient(90deg, var(--bg-pill) 25%, var(--border) 50%, var(--bg-pill) 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'gv-pulse 1.4s ease-in-out infinite',
+      ...style,
+    }} />
+  )
+}
+
+function EmptyState({ text }) {
+  return (
+    <div style={{ fontSize: 13, color: "var(--text-tertiary)", textAlign: 'center', padding: '16px 0' }}>
+      {text}
+    </div>
+  )
+}
 
 function JoinGymView({ userId, onJoined }) {
   const [code, setCode] = useState('')
@@ -94,11 +77,11 @@ function JoinGymView({ userId, onJoined }) {
 
   return (
     <div className="flex flex-col items-center pt-12 px-5 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-[#E1F5EE] flex items-center justify-center mb-5">
-        <Building2 size={26} className="text-[#0F6E56]" />
+      <div className="w-16 h-16 rounded-2xl bg-[var(--success-bg)] flex items-center justify-center mb-5">
+        <Building2 size={26} className="text-[var(--success)]" />
       </div>
-      <h2 className="text-xl font-bold text-[#111] mb-2">Join a gym</h2>
-      <p className="text-[13px] text-[#999] max-w-xs leading-relaxed mb-6">
+      <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Join a gym</h2>
+      <p className="text-[13px] text-[var(--text-tertiary)] max-w-xs leading-relaxed mb-6">
         Enter the join code your gym shared with you to see schedule and announcements.
       </p>
       <form onSubmit={submit} className="w-full max-w-xs">
@@ -108,13 +91,13 @@ function JoinGymView({ userId, onJoined }) {
           onChange={e => setCode(e.target.value.toUpperCase())}
           placeholder="ABC123"
           maxLength={12}
-          className="w-full bg-[#F1EFE8] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-[#111] placeholder-[#CCC] focus:outline-none uppercase"
+          className="w-full bg-[var(--bg-pill)] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none uppercase"
         />
-        {error && <p className="mt-2 text-xs text-[#A32D2D]">{error}</p>}
+        {error && <p className="mt-2 text-xs text-[var(--error)]">{error}</p>}
         <button
           type="submit"
           disabled={busy || !code.trim()}
-          className="mt-4 w-full bg-[#111] text-white font-semibold text-sm px-5 py-3 rounded-xl disabled:opacity-40"
+          className="mt-4 w-full bg-[var(--bg-card)] text-[var(--text-primary)] font-semibold text-sm px-5 py-3 rounded-xl border border-[var(--text-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.08)] disabled:bg-[var(--bg-pill)] disabled:text-[var(--text-tertiary)] disabled:border-[var(--border)]"
         >
           {busy ? 'Joining…' : 'Join Gym'}
         </button>
@@ -123,111 +106,142 @@ function JoinGymView({ userId, onJoined }) {
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-
 export default function MyGym() {
-  const { user }    = useAuth()
-  const navigate    = useNavigate()
-  const [data,    setData]    = useState(null)   // { linked, gym, announcements, schedule }
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState('')
+  const { user } = useAuth()
+  const navigate = useNavigate()
 
-  async function load() {
+  const [gymInfo,        setGymInfo]        = useState(null)   // { linked, gym, membership }
+  const [announcements,  setAnnouncements]  = useState([])
+  const [classes,        setClasses]        = useState([])
+  const [occupancy,      setOccupancy]      = useState(null)
+
+  const [loadingGym,  setLoadingGym]  = useState(true)
+  const [loadingAnns, setLoadingAnns] = useState(false)
+  const [loadingCls,  setLoadingCls]  = useState(false)
+  const [loadingOcc,  setLoadingOcc]  = useState(false)
+  const [activeOrders, setActiveOrders] = useState([])
+
+  async function loadGym() {
     if (!user) return
-    setLoading(true)
-    setError('')
+    setLoadingGym(true)
     try {
       const result = await getMyGym(user.id)
-      setData(result)
+      setGymInfo(result)
+      if (result?.linked && result?.gym?.id) {
+        loadSecondary(result.gym.id)
+      }
     } catch (err) {
       console.error('Load my gym error:', err)
-      setError(err.message || 'Failed to load gym.')
+      setGymInfo({ linked: false })
     } finally {
-      setLoading(false)
+      setLoadingGym(false)
     }
   }
 
-  useEffect(() => { load() }, [user])
-
-  function onJoined() {
-    window.location.reload()
+  async function loadActiveOrders() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${BASE}/api/supplements/orders/mine`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+      if (!res.ok) return
+      const orders = await res.json()
+      setActiveOrders(
+        Array.isArray(orders)
+          ? orders.filter(o => o.status === 'pending' || o.status === 'ready_for_pickup')
+          : []
+      )
+    } catch { /* non-critical */ }
   }
 
-  // Derive display values from real API data with mock fallbacks
-  const gymData = {
-    name:        data?.gym?.name     || mockGym.name,
-    location:    data?.gym?.address  || mockGym.location,
-    memberSince: mockGym.memberSince,
-    tier:        mockGym.tier,
-    memberId:    mockGym.memberId,
+  async function loadSecondary(gymId) {
+    setLoadingAnns(true)
+    setLoadingCls(true)
+    setLoadingOcc(true)
+
+    loadActiveOrders()
+
+    getGymAnnouncements(gymId)
+      .then(data => setAnnouncements(Array.isArray(data) ? data : []))
+      .catch(() => setAnnouncements([]))
+      .finally(() => setLoadingAnns(false))
+
+    getGymSchedule(gymId)
+      .then(data => setClasses(Array.isArray(data) ? data : []))
+      .catch(() => setClasses([]))
+      .finally(() => setLoadingCls(false))
+
+    getGymOccupancy(gymId)
+      .then(data => setOccupancy(data || null))
+      .catch(() => setOccupancy(null))
+      .finally(() => setLoadingOcc(false))
   }
 
-  const occ = mockOccupancy   // no live-occupancy API yet
-  const classes = mockClasses // no class-booking API yet
+  useEffect(() => { loadGym() }, [user])
 
-  const displayAnnouncements = data?.announcements?.length > 0
-    ? data.announcements.map(a => ({
-        id: a.id,
-        accentColor: a.priority === 'urgent' ? '#A32D2D' : '#185FA5',
-        title:    a.title,
-        body:     a.body,
-        postedBy: 'Management',
-        timeAgo:  timeAgo(a.created_at),
-      }))
-    : mockAnnouncements
+  const gym        = gymInfo?.gym        || {}
+  const membership = gymInfo?.membership || {}
 
-  const pct   = occPct(occ)
+  const memberSince = membership.start_date
+    ? new Date(membership.start_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+    : '—'
+
+  const occ = occupancy
+  const pct   = occ ? occPct(occ.current, occ.capacity) : 0
   const color = occColor(pct)
   const label = occLabel(pct)
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] pb-24">
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-24">
+
+      <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
 
       {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
-        <span className="text-xl font-semibold text-[#111]">My Gym</span>
-        <button className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+        <span className="text-xl font-semibold text-[var(--text-primary)]">My Gym</span>
+        <button className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
         </button>
       </div>
 
-      {loading ? (
+      {loadingGym ? (
         <div className="pt-14 flex items-center justify-center min-h-screen">
-          <Loader2 size={24} className="text-[#999] animate-spin" />
+          <Loader2 size={24} className="text-[var(--text-tertiary)] animate-spin" />
         </div>
-      ) : !data?.linked ? (
+      ) : !gymInfo?.linked ? (
         <div className="pt-14">
-          <JoinGymView userId={user?.id} onJoined={onJoined} />
+          <JoinGymView userId={user?.id} onJoined={() => window.location.reload()} />
         </div>
       ) : (
         <div className="pt-[72px] px-5 space-y-4 pb-6">
 
-          {/* ── MEMBERSHIP CARD ─────────────────────────────── */}
-          <div className="relative w-full bg-[#111] rounded-[20px] overflow-hidden" style={{ height: 180 }}>
-
-            {/* Dot-grid texture */}
+          {/* ── MEMBERSHIP CARD ──────────────────────────────── */}
+          <div className="relative w-full bg-[var(--text-primary)] rounded-[20px] overflow-hidden" style={{ height: 180 }}>
             <div className="absolute inset-0 pointer-events-none" style={{
               backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
               backgroundSize: '14px 14px',
             }} />
-
-            {/* Gold accent at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] z-10" style={{ background: '#D4A017' }} />
-
-            {/* Content */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] z-10" style={{ background: 'var(--xp-gold)' }} />
             <div className="relative z-10 p-5 h-full flex flex-col justify-between">
-
-              {/* Top row */}
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[18px] font-bold text-white leading-tight">{gymData.name}</p>
-                  <p className="text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{gymData.location}</p>
+                  {loadingGym ? (
+                    <Skeleton width={140} height={20} style={{ marginBottom: 6 }} />
+                  ) : (
+                    <p className="text-[18px] font-bold text-white leading-tight">{gym.name || '—'}</p>
+                  )}
+                  {loadingGym ? (
+                    <Skeleton width={100} height={14} />
+                  ) : (
+                    <p className="text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      {gym.address || gym.city || '—'}
+                    </p>
+                  )}
                 </div>
-                {/* QR pattern */}
                 <div className="w-14 h-14 rounded-xl p-1.5 flex items-center justify-center"
                   style={{ background: 'rgba(255,255,255,0.10)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1.5, width: 42, height: 42 }}>
@@ -241,8 +255,6 @@ export default function MyGym() {
                   </div>
                 </div>
               </div>
-
-              {/* Bottom */}
               <div>
                 <div className="flex items-center gap-3">
                   <span
@@ -250,19 +262,19 @@ export default function MyGym() {
                     style={{
                       background: 'rgba(255,255,255,0.10)',
                       border: '0.5px solid rgba(255,255,255,0.20)',
-                      color: '#D4A017',
+                      color: 'var(--xp-gold)',
                     }}
                   >
-                    {gymData.tier}
+                    {membership.membership_type || 'Member'}
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#3B6D11]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
                     <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>Active</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    Member since {gymData.memberSince}
+                    Member since {memberSince}
                   </span>
                   <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.5)' }}>Tap to show QR</span>
                 </div>
@@ -271,155 +283,270 @@ export default function MyGym() {
           </div>
 
           {/* ── LIVE OCCUPANCY ──────────────────────────────── */}
-          <div className="bg-white rounded-2xl border border-black/[0.06] p-4">
+          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Live Occupancy</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Live Occupancy</span>
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3B6D11]" />
-                <span className="text-[11px] text-[#3B6D11]">Updated now</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
+                <span className="text-[11px] text-[var(--success)]">Updated now</span>
               </div>
             </div>
 
-            {/* Count + progress bar */}
-            <div className="flex items-center gap-4 mt-3">
-              <div className="shrink-0">
-                <div className="flex items-baseline">
-                  <span className="text-[36px] font-bold text-[#111] tabular-nums leading-none">{occ.current}</span>
-                  <span className="text-base text-[#CCC] mx-1">/</span>
-                  <span className="text-base text-[#999]">{occ.capacity}</span>
-                </div>
-                <span className="text-[11px] text-[#999] mt-0.5 block">members</span>
+            {loadingOcc ? (
+              <div className="mt-3 space-y-2">
+                <Skeleton height={36} width={120} />
+                <Skeleton height={12} />
               </div>
-              <div className="flex-1">
-                <div className="h-3 w-full bg-[#F1EFE8] rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${pct}%`, backgroundColor: color }} />
-                </div>
-                <p className="text-[12px] mt-1.5" style={{ color }}>{label}</p>
-              </div>
-            </div>
-
-            {/* Hourly bars */}
-            <div className="mt-4 pt-3 border-t border-black/[0.04]">
-              <p className="text-[11px] text-[#999] mb-2">Today's pattern</p>
-              <div className="flex items-end gap-1">
-                {occ.hourly.map((val, i) => {
-                  const h = Math.max(3, Math.round((val / 100) * 32))
-                  const isCurrent = i === occ.currentHour
-                  const isPast    = i < occ.currentHour
-                  return (
-                    <div key={i} className="flex flex-col items-center flex-1">
-                      <div className="w-full rounded-t-sm transition-all"
-                        style={{
-                          height: h,
-                          backgroundColor: isCurrent ? '#111' : isPast ? '#E5E5E3' : '#F1EFE8',
-                        }} />
+            ) : !occ ? (
+              <EmptyState text="No occupancy data available" />
+            ) : (
+              <>
+                <div className="flex items-center gap-4 mt-3">
+                  <div className="shrink-0">
+                    <div className="flex items-baseline">
+                      <span className="text-[36px] font-bold text-[var(--text-primary)] tabular-nums leading-none">{occ.current}</span>
+                      <span className="text-base text-[var(--text-tertiary)] mx-1">/</span>
+                      <span className="text-base text-[var(--text-tertiary)]">{occ.capacity}</span>
                     </div>
-                  )
-                })}
-              </div>
-              <div className="flex justify-between mt-1 px-0.5">
-                {['6a', '9a', '12p', '3p', '6p'].map(l => (
-                  <span key={l} className="text-[10px] text-[#CCC]">{l}</span>
-                ))}
-              </div>
-            </div>
+                    <span className="text-[11px] text-[var(--text-tertiary)] mt-0.5 block">members</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-3 w-full bg-[var(--bg-pill)] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, backgroundColor: color }} />
+                    </div>
+                    <p className="text-[12px] mt-1.5" style={{ color }}>{label}</p>
+                  </div>
+                </div>
+                {occ.hourly?.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-[var(--border)]">
+                    <p className="text-[11px] text-[var(--text-tertiary)] mb-2">Today's pattern</p>
+                    <div className="flex items-end gap-1">
+                      {occ.hourly.map((val, i) => {
+                        const h = Math.max(3, Math.round((val / 100) * 32))
+                        const isCurrent = i === occ.currentHour
+                        const isPast    = i < occ.currentHour
+                        return (
+                          <div key={i} className="flex flex-col items-center flex-1">
+                            <div className="w-full rounded-t-sm transition-all"
+                              style={{
+                                height: h,
+                                backgroundColor: isCurrent ? "var(--text-primary)" : isPast ? 'var(--border)' : 'var(--bg-pill)',
+                              }} />
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="flex justify-between mt-1 px-0.5">
+                      {['6a', '9a', '12p', '3p', '6p'].map(l => (
+                        <span key={l} className="text-[10px] text-[var(--text-tertiary)]">{l}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* ── TODAY'S CLASSES ─────────────────────────────── */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">Today's Classes</span>
-              <button className="text-[13px] font-medium text-[#185FA5]">View all →</button>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Today's Classes</span>
             </div>
 
-            {classes.map(cls => (
-              <div
-                key={cls.id}
-                className={`bg-white rounded-xl p-4 mb-2 flex items-center gap-3 relative overflow-hidden ${
-                  cls.status === 'booked'
-                    ? 'border-[1.5px] border-[#3B6D11]'
-                    : 'border border-black/[0.06]'
-                } ${cls.status === 'past' ? 'opacity-50' : ''}`}
-              >
-                {/* Green left accent on booked */}
-                {cls.status === 'booked' && (
-                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#3B6D11]" />
-                )}
-
-                {/* Time column */}
-                <div className="w-12 shrink-0 pl-1">
-                  <p className="text-[14px] font-semibold text-[#111] tabular-nums">{cls.time}</p>
-                  <p className="text-[10px] text-[#999]">{cls.period}</p>
-                  <p className="text-[11px] text-[#CCC] mt-0.5">{cls.duration}</p>
-                </div>
-
-                {/* Divider */}
-                <div className="w-px h-10 bg-[#F1EFE8] shrink-0" />
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#111] truncate">{cls.name}</p>
-                  <p className="text-xs text-[#999] mt-0.5">with {cls.trainer}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {cls.status === 'upcoming' && (
-                      <>
-                        <span className="text-[11px] font-medium bg-[#EAF3DE] text-[#3B6D11] px-2 py-0.5 rounded-full">
-                          {cls.spotsLeft} spots left
-                        </span>
-                        <span className="text-[11px] text-[#999]">
-                          {cls.capacity - cls.spotsLeft}/{cls.capacity}
-                        </span>
-                      </>
-                    )}
-                    {cls.status === 'booked' && (
-                      <span className="text-[11px] font-semibold bg-[#EAF3DE] text-[#3B6D11] px-2 py-0.5 rounded-full">
-                        ✓ Booked
-                      </span>
-                    )}
-                    {cls.status === 'past' && (
-                      <span className="text-[11px] bg-[#F1EFE8] text-[#999] px-2 py-0.5 rounded-full">
-                        Attended
-                      </span>
-                    )}
+            {loadingCls ? (
+              <div className="space-y-2">
+                {[1,2].map(i => (
+                  <div key={i} className="bg-[var(--bg-card)] rounded-xl p-4 border border-[var(--border)]">
+                    <Skeleton height={14} width="60%" style={{ marginBottom: 8 }} />
+                    <Skeleton height={12} width="40%" />
                   </div>
-                </div>
-
-                {/* Action */}
-                {cls.status === 'upcoming' && (
-                  <button className="bg-[#111] text-white text-[12px] font-semibold px-3 py-1.5 rounded-xl shrink-0">
-                    Book →
-                  </button>
-                )}
-                {cls.status === 'booked' && (
-                  <button className="text-[12px] text-[#999] shrink-0">Cancel</button>
-                )}
+                ))}
               </div>
-            ))}
+            ) : classes.length === 0 ? (
+              <EmptyState text="No classes scheduled" />
+            ) : (
+              classes.map(cls => {
+                const startTime = cls.start_time
+                  ? cls.start_time.slice(0, 5)
+                  : '—'
+                const [hh, mm] = startTime.split(':').map(Number)
+                const period = !isNaN(hh) ? (hh < 12 ? 'AM' : 'PM') : ''
+                const displayTime = !isNaN(hh)
+                  ? `${hh % 12 || 12}:${String(mm).padStart(2, '0')}`
+                  : startTime
+
+                return (
+                  <div
+                    key={cls.id}
+                    className="bg-[var(--bg-card)] rounded-xl p-4 mb-2 flex items-center gap-3 relative overflow-hidden border border-[var(--border)]"
+                  >
+                    <div className="w-12 shrink-0 pl-1">
+                      <p className="text-[14px] font-semibold text-[var(--text-primary)] tabular-nums">{displayTime}</p>
+                      <p className="text-[10px] text-[var(--text-tertiary)]">{period}</p>
+                    </div>
+                    <div className="w-px h-10 bg-[var(--bg-pill)] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{cls.class_name || cls.name || '—'}</p>
+                      {cls.trainer_name && (
+                        <p className="text-xs text-[var(--text-tertiary)] mt-0.5">with {cls.trainer_name}</p>
+                      )}
+                      {cls.capacity != null && (
+                        <p className="text-[11px] text-[var(--text-tertiary)] mt-1">Capacity: {cls.capacity}</p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
           </div>
 
           {/* ── ANNOUNCEMENTS ───────────────────────────────── */}
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999] mb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] mb-3">
               Announcements
             </p>
-            {displayAnnouncements.map(a => (
-              <div
-                key={a.id}
-                className="bg-white rounded-xl border border-black/[0.06] p-4 mb-2 flex gap-3 relative overflow-hidden"
-              >
-                <div className="w-[3px] rounded-full shrink-0 self-stretch"
-                  style={{ backgroundColor: a.accentColor }} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#111]">{a.title}</p>
-                  <p className="text-[13px] text-[#666] mt-1 leading-snug">{a.body}</p>
-                  <p className="text-[11px] text-[#CCC] mt-3">
-                    Posted by {a.postedBy} · {a.timeAgo}
-                  </p>
-                </div>
+            {loadingAnns ? (
+              <div className="space-y-2">
+                {[1,2].map(i => (
+                  <div key={i} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4">
+                    <Skeleton height={14} width="70%" style={{ marginBottom: 8 }} />
+                    <Skeleton height={12} width="90%" style={{ marginBottom: 4 }} />
+                    <Skeleton height={12} width="50%" />
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : announcements.length === 0 ? (
+              <EmptyState text="No announcements yet" />
+            ) : (
+              announcements.map(a => (
+                <div
+                  key={a.id}
+                  className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 mb-2 flex gap-3 relative overflow-hidden"
+                >
+                  <div className="w-[3px] rounded-full shrink-0 self-stretch"
+                    style={{ backgroundColor: a.priority === 'urgent' ? 'var(--error)' : 'var(--text-cta)' }} />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">{a.title}</p>
+                    <p className="text-[13px] text-[var(--text-secondary)] mt-1 leading-snug">{a.body}</p>
+                    <p className="text-[11px] text-[var(--text-tertiary)] mt-3">
+                      Posted by {a.posted_by || 'Management'} · {timeAgo(a.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
+
+          {/* ── BROWSE CLASSES ───────────────────────────────── */}
+          <button
+            onClick={() => navigate('/classes')}
+            className="w-full bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4 flex items-center gap-4"
+            style={{ textAlign: 'left' }}
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'var(--accent-bg)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">Browse Classes</p>
+              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">See the schedule &amp; book your spot</p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          {/* ── GYM FEED ─────────────────────────────────────── */}
+          <button
+            onClick={() => navigate('/my-gym/feed')}
+            className="w-full bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4 flex items-center gap-4"
+            style={{ textAlign: 'left' }}
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'var(--warning-bg)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h7"/>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">Gym Feed</p>
+              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">Posts, tips &amp; achievements from your gym</p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          {/* ── SUPPLEMENT STORE ────────────────────────────── */}
+          <button
+            onClick={() => navigate('/my-gym/supplements')}
+            className="w-full bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4 flex items-center gap-4"
+            style={{ textAlign: 'left' }}
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: '#E1F5EE' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="var(--success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">Supplement Store</p>
+              <p className="text-xs mt-0.5" style={{
+                color: activeOrders.some(o => o.status === 'ready_for_pickup') ? 'var(--text-cta)'
+                     : activeOrders.length > 0 ? 'var(--text-cta)'
+                     : "var(--text-tertiary)",
+              }}>
+                {activeOrders.some(o => o.status === 'ready_for_pickup')
+                  ? 'Order ready for pickup!'
+                  : activeOrders.length > 0
+                    ? `${activeOrders.length} order${activeOrders.length > 1 ? 's' : ''} in progress`
+                    : 'Browse & order supplements'}
+              </p>
+            </div>
+            {activeOrders.some(o => o.status === 'ready_for_pickup') && (
+              <span style={{
+                width: 8, height: 8, borderRadius: 4,
+                background: 'var(--text-cta)', flexShrink: 0, marginRight: 4,
+              }} />
+            )}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          {/* ── MY ORDERS ──────────────────────────────────── */}
+          <button
+            onClick={() => navigate('/my-gym/orders')}
+            className="w-full bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4 flex items-center gap-4"
+            style={{ textAlign: 'left' }}
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'var(--accent-bg)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="var(--text-cta)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">My Orders</p>
+              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">Track your supplement orders</p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
 
           {/* ── QUICK ACTIONS ───────────────────────────────── */}
           <div className="grid grid-cols-2 gap-2">
@@ -428,7 +555,7 @@ export default function MyGym() {
                 label: 'Check-in QR',
                 icon: (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                     <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
                   </svg>
@@ -438,7 +565,7 @@ export default function MyGym() {
                 label: 'Contact Gym',
                 icon: (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
                   </svg>
                 ),
@@ -447,7 +574,7 @@ export default function MyGym() {
                 label: 'My Membership',
                 icon: (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round">
                     <rect x="1" y="4" width="22" height="16" rx="2"/>
                     <line x1="1" y1="10" x2="23" y2="10"/>
                   </svg>
@@ -457,7 +584,7 @@ export default function MyGym() {
                 label: 'Leave a Review',
                 icon: (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="#111" strokeWidth="1.8" strokeLinecap="round">
+                    stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                   </svg>
                 ),
@@ -465,12 +592,12 @@ export default function MyGym() {
             ].map((a, i) => (
               <button
                 key={i}
-                className="bg-white rounded-xl border border-black/[0.06] p-4 flex items-center gap-3 h-14"
+                className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3 h-14"
               >
-                <div className="w-9 h-9 bg-[#F1EFE8] rounded-xl flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center shrink-0">
                   {a.icon}
                 </div>
-                <span className="text-sm font-medium text-[#111]">{a.label}</span>
+                <span className="text-sm font-medium text-[var(--text-primary)]">{a.label}</span>
               </button>
             ))}
           </div>

@@ -17,7 +17,7 @@ export default function TrainerBottomNav({ onMorePress }) {
       exact: true,
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke={active ? '#111' : '#CCC'} strokeWidth="1.8"
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'} strokeWidth="1.8"
           strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="7" height="7"/>
           <rect x="14" y="3" width="7" height="7"/>
@@ -33,7 +33,7 @@ export default function TrainerBottomNav({ onMorePress }) {
       navigateTo: '/trainer/clients',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke={active ? '#111' : '#CCC'} strokeWidth="1.8"
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'} strokeWidth="1.8"
           strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
@@ -48,7 +48,7 @@ export default function TrainerBottomNav({ onMorePress }) {
       path: '/trainer/templates',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke={active ? '#111' : '#CCC'} strokeWidth="1.8"
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'} strokeWidth="1.8"
           strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
@@ -63,7 +63,7 @@ export default function TrainerBottomNav({ onMorePress }) {
       path: '/trainer/chat',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke={active ? '#111' : '#CCC'} strokeWidth="1.8"
+          stroke={active ? 'var(--text-primary)' : 'var(--text-tertiary)'} strokeWidth="1.8"
           strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
@@ -72,7 +72,7 @@ export default function TrainerBottomNav({ onMorePress }) {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-black/[0.06] h-16 pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-t border-[var(--border)] h-16 pb-safe">
       <div className="grid grid-cols-5 h-full">
 
         {NAV_ITEMS.map(item => {
@@ -84,12 +84,12 @@ export default function TrainerBottomNav({ onMorePress }) {
               className="flex flex-col items-center justify-center gap-0.5 relative">
               {item.icon(active)}
               <span className={`text-[10px] transition-colors ${
-                active ? 'font-semibold text-[#111]' : 'font-normal text-[#CCC]'
+                active ? 'font-semibold text-[var(--text-primary)]' : 'font-normal text-[var(--text-tertiary)]'
               }`}>
                 {item.label}
               </span>
               {active && (
-                <span className="absolute bottom-1 w-1 h-1 bg-[#111] rounded-full"/>
+                <span className="absolute bottom-1 w-1 h-1 bg-[var(--text-primary)] rounded-full"/>
               )}
             </button>
           )
@@ -100,11 +100,11 @@ export default function TrainerBottomNav({ onMorePress }) {
           onClick={onMorePress}
           className="flex flex-col items-center justify-center gap-0.5">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round">
-            <circle cx="5"  cy="12" r="1.5" fill="#CCC"/>
-            <circle cx="12" cy="12" r="1.5" fill="#CCC"/>
-            <circle cx="19" cy="12" r="1.5" fill="#CCC"/>
+            <circle cx="5"  cy="12" r="1.5" fill="var(--text-tertiary)"/>
+            <circle cx="12" cy="12" r="1.5" fill="var(--text-tertiary)"/>
+            <circle cx="19" cy="12" r="1.5" fill="var(--text-tertiary)"/>
           </svg>
-          <span className="text-[10px] font-normal text-[#CCC]">More</span>
+          <span className="text-[10px] font-normal text-[var(--text-tertiary)]">More</span>
         </button>
 
       </div>

@@ -121,7 +121,7 @@ export function useWorkoutSession() {
 
       // Save via backend (service-role key) to bypass PostgREST schema-cache
       // issue with workout_logs.exercises JSONB column.
-      await finishWorkout({
+      const finishRes = await finishWorkout({
         sessionId: realId,
         durationMinutes,
         exercises: exercisesSnapshot,
@@ -133,11 +133,13 @@ export function useWorkoutSession() {
       skipRest()
 
       return {
-        id:             realId,
+        workoutId:      realId,
+        startedAt:      startedAtRef.current || startedAt.toISOString(),
         durationMinutes,
         totalSets:      setRows.length,
         totalVolume:    setRows.reduce((sum, s) => sum + s.weight_kg * s.reps_completed, 0),
         exerciseCount:  exercises.length,
+        xpResult:       finishRes?.xpResult || null,
         // Display-friendly shape for WorkoutSummary (separate from the DB JSONB snapshot)
         exercises: exercises
           .map(ex => ({
@@ -208,7 +210,9 @@ export function useWorkoutSession() {
   function removeSet(exerciseId, setNumber) {
     setExercises(prev => prev.map(ex => {
       if (ex.exerciseId !== exerciseId) return ex
-      return { ...ex, sets: ex.sets.filter(s => s.setNumber !== setNumber) }
+      const filtered = ex.sets.filter(s => s.setNumber !== setNumber)
+      // Renumber remaining sets sequentially so display is always 1, 2, 3…
+      return { ...ex, sets: filtered.map((s, i) => ({ ...s, setNumber: i + 1 })) }
     }))
   }
 
@@ -224,14 +228,18 @@ export function useWorkoutSession() {
     }))
   }
 
-  function completeSet(exerciseId, setNumber) {
+  function completeSet(exerciseId, setNumber, { fallbackWeight, fallbackReps } = {}) {
     setExercises(prev => prev.map(ex => {
       if (ex.exerciseId !== exerciseId) return ex
       return {
         ...ex,
-        sets: ex.sets.map(s =>
-          s.setNumber === setNumber ? { ...s, completed: true } : s
-        ),
+        sets: ex.sets.map(s => {
+          if (s.setNumber !== setNumber) return s
+          // Apply shadow/previous value only when the user left the field empty
+          const w = s.weight !== '' ? s.weight : (fallbackWeight != null ? String(fallbackWeight) : '')
+          const r = s.reps   !== '' ? s.reps   : (fallbackReps   != null ? String(fallbackReps)   : '')
+          return { ...s, completed: true, weight: w, reps: r }
+        }),
       }
     }))
     startRestTimer(restDuration)

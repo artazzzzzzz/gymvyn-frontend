@@ -26,3 +26,7 @@ dist-ssr
 tests/.auth/
 tests/playwright-output/
 tests/playwright-report/
+# Added by code-review-graph
+.code-review-graph/
+.claude/skills/
+.env*

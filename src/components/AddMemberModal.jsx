@@ -165,7 +165,7 @@ export default function AddMemberModal({
 
   // ── Copy / share ─────────────────────────────────────────────────────────
   const inviteMessage = useMemo(
-    () => `Hey! Join my gym ${gymName ?? 'on FitForge'} on FitForge. Download the app and enter join code: ${(joinCode || '').toUpperCase()}`,
+    () => `Hey! Join my gym ${gymName ?? 'on Gymvyn'} on Gymvyn. Download the app and enter join code: ${(joinCode || '').toUpperCase()}`,
     [gymName, joinCode]
   )
 
@@ -208,7 +208,7 @@ export default function AddMemberModal({
             <button
               onClick={handleClose}
               disabled={submitting}
-              className="w-8 h-8 rounded-lg hover:bg-white/[0.06] text-zinc-500 hover:text-white flex items-center justify-center disabled:opacity-50 transition-colors"
+              className="w-8 h-8 rounded-lg hover:bg-[var(--bg-card)]/[0.06] text-zinc-500 hover:text-white flex items-center justify-center disabled:opacity-50 transition-colors"
               aria-label="Close"
             >
               <X size={16} />
@@ -271,14 +271,14 @@ export default function AddMemberModal({
             <button
               onClick={handleClose}
               disabled={submitting}
-              className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/[0.04] disabled:opacity-50 transition-colors"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-[var(--bg-card)]/[0.04] disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={!valid || submitting}
-              className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-white/[0.06] disabled:text-zinc-600 disabled:cursor-not-allowed text-white font-semibold text-sm px-5 py-2 rounded-xl transition-all duration-150 shadow-lg shadow-emerald-500/20"
+              className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-[var(--bg-card)]/[0.06] disabled:text-zinc-600 disabled:cursor-not-allowed text-white font-semibold text-sm px-5 py-2 rounded-xl transition-all duration-150 shadow-lg shadow-emerald-500/20"
             >
               {submitting ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
               {submitting ? 'Adding…' : 'Add Member'}
@@ -298,7 +298,7 @@ function TabButton({ icon: Icon, label, active, onClick }) {
       onClick={onClick}
       className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
         active
-          ? 'bg-white/[0.06] text-white'
+          ? 'bg-[var(--bg-card)]/[0.06] text-white'
           : 'text-zinc-500 hover:text-zinc-300'
       }`}
     >
@@ -497,19 +497,19 @@ function InviteTab({ gymName, joinCode, inviteMessage, copied, copyToClipboard, 
       <div>
         <h3 className="text-lg font-bold text-white tracking-tight">Let members join themselves</h3>
         <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
-          Share this code with your gym members. They download FitForge, enter the code, and join your gym.
+          Share this code with your gym members. They download Gymvyn, enter the code, and join your gym.
         </p>
       </div>
 
       {/* Code card */}
-      <div className="bg-white/[0.03] border border-emerald-500/20 rounded-2xl p-6 flex flex-col items-center text-center">
+      <div className="bg-[var(--bg-card)]/[0.03] border border-emerald-500/20 rounded-2xl p-6 flex flex-col items-center text-center">
         <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-3">Your gym join code</p>
         <p className="text-[44px] sm:text-[52px] leading-none font-bold text-emerald-400 font-mono tracking-[0.25em] mb-4">
           {code || '—'}
         </p>
         <button
           onClick={() => copyToClipboard(code, 'code')}
-          className="inline-flex items-center gap-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 bg-[var(--bg-card)]/[0.06] hover:bg-[var(--bg-card)]/[0.12] text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors"
         >
           {copied === 'code'
             ? <><Check size={12} className="text-emerald-400" /> Copied!</>
@@ -538,8 +538,8 @@ function InviteTab({ gymName, joinCode, inviteMessage, copied, copyToClipboard, 
       </div>
 
       {/* QR code */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col items-center">
-        <div className="bg-white p-2.5 rounded-xl">
+      <div className="bg-[var(--bg-card)]/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col items-center">
+        <div className="bg-[var(--bg-card)] p-2.5 rounded-xl">
           <QRCodeSVG
             value={code || 'fitforge'}
             size={148}
@@ -564,7 +564,7 @@ function ShareButton({ icon: Icon, label, onClick, highlight }) {
       className={`inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors ${
         highlight
           ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/20'
-          : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white'
+          : 'bg-[var(--bg-card)]/[0.04] hover:bg-[var(--bg-card)]/[0.08] border border-white/[0.08] text-white'
       }`}
     >
       <Icon size={12} />

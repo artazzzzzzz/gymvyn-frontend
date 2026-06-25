@@ -8,7 +8,7 @@ export default function ToggleSwitch({ value, onChange }) {
         width: 44,
         height: 26,
         borderRadius: 13,
-        background: value ? '#111111' : '#E0E0E0',
+        background: value ? 'var(--text-primary)' : 'var(--bg-hover)',
         position: 'relative',
         cursor: 'pointer',
         transition: 'background 0.2s ease',
@@ -22,7 +22,7 @@ export default function ToggleSwitch({ value, onChange }) {
         width: 20,
         height: 20,
         borderRadius: '50%',
-        background: '#ffffff',
+        background: 'var(--bg-card)',
         transition: 'left 0.2s ease',
       }} />
     </div>

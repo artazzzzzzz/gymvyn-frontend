@@ -19,16 +19,16 @@ export default function MembershipProgressBar({
   )
 
   const barColor = daysRemaining < 7
-    ? '#A32D2D'
+    ? 'var(--error)'
     : daysRemaining < 14
-    ? '#EF9F27'
-    : '#3B6D11'
+    ? 'var(--warning)'
+    : 'var(--success)'
 
   const textColor = daysRemaining < 7
-    ? '#A32D2D'
+    ? 'var(--error)'
     : daysRemaining < 14
-    ? '#854F0B'
-    : '#5F5E5A'
+    ? 'var(--warning)'
+    : 'var(--text-secondary)'
 
   const startLabel = new Date(startDate)
     .toLocaleDateString('en-IN',
@@ -44,16 +44,16 @@ export default function MembershipProgressBar({
         justifyContent: 'space-between',
         marginBottom: 6
       }}>
-        <span style={{ fontSize: 12, color: '#999' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
           {startLabel}
         </span>
-        <span style={{ fontSize: 12, color: '#999' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
           {endLabel}
         </span>
       </div>
       <div style={{
         height: 6,
-        background: '#F0F0EE',
+        background: 'var(--bg-pill)',
         borderRadius: 3,
         overflow: 'hidden'
       }}>

@@ -13,14 +13,14 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 // ── Fallback list if EXERCISE_DATABASE unavailable ───────────────────────────
 
 const FALLBACK_LIST = [
-  { name: 'Squat',          muscleGroup: 'Quads · Glutes',   equipment: 'Bodyweight', bg: '#FAECE7', text: '#993C1D', abbr: 'SQ' },
-  { name: 'Deadlift',       muscleGroup: 'Back · Hamstrings', equipment: 'Barbell',    bg: '#EAF3DE', text: '#3B6D11', abbr: 'DL' },
-  { name: 'Bench Press',    muscleGroup: 'Chest · Triceps',  equipment: 'Barbell',    bg: '#E6F1FB', text: '#0C447C', abbr: 'BP' },
-  { name: 'Push Up',        muscleGroup: 'Chest · Shoulders',equipment: 'Bodyweight', bg: '#E6F1FB', text: '#0C447C', abbr: 'PU' },
-  { name: 'Bicep Curl',     muscleGroup: 'Biceps',           equipment: 'Dumbbell',   bg: '#F1EFE8', text: '#5F5E5A', abbr: 'BI' },
-  { name: 'Overhead Press', muscleGroup: 'Shoulders',        equipment: 'Barbell',    bg: '#FAEEDA', text: '#854F0B', abbr: 'OP' },
-  { name: 'Pull Up',        muscleGroup: 'Back · Biceps',    equipment: 'Bodyweight', bg: '#EAF3DE', text: '#3B6D11', abbr: 'PU' },
-  { name: 'Lunge',          muscleGroup: 'Quads · Glutes',   equipment: 'Bodyweight', bg: '#FAECE7', text: '#993C1D', abbr: 'LN' },
+  { name: 'Squat',          muscleGroup: 'Quads · Glutes',   equipment: 'Bodyweight', bg: 'var(--bg-pill)', text: 'var(--muscle-legs)', abbr: 'SQ' },
+  { name: 'Deadlift',       muscleGroup: 'Back · Hamstrings', equipment: 'Barbell',    bg: 'var(--bg-pill)', text: 'var(--muscle-back)', abbr: 'DL' },
+  { name: 'Bench Press',    muscleGroup: 'Chest · Triceps',  equipment: 'Barbell',    bg: 'var(--bg-pill)', text: 'var(--muscle-chest)', abbr: 'BP' },
+  { name: 'Push Up',        muscleGroup: 'Chest · Shoulders',equipment: 'Bodyweight', bg: 'var(--bg-pill)', text: 'var(--muscle-chest)', abbr: 'PU' },
+  { name: 'Bicep Curl',     muscleGroup: 'Biceps',           equipment: 'Dumbbell',   bg: 'var(--bg-pill)', text: 'var(--muscle-arms)', abbr: 'BI' },
+  { name: 'Overhead Press', muscleGroup: 'Shoulders',        equipment: 'Barbell',    bg: 'var(--bg-pill)', text: 'var(--muscle-shoulders)', abbr: 'OP' },
+  { name: 'Pull Up',        muscleGroup: 'Back · Biceps',    equipment: 'Bodyweight', bg: 'var(--bg-pill)', text: 'var(--muscle-back)', abbr: 'PU' },
+  { name: 'Lunge',          muscleGroup: 'Quads · Glutes',   equipment: 'Bodyweight', bg: 'var(--bg-pill)', text: 'var(--muscle-legs)', abbr: 'LN' },
 ]
 
 // ── Muscle color helper ───────────────────────────────────────────────────────
@@ -28,24 +28,24 @@ const FALLBACK_LIST = [
 const getMuscleColor = (ex) => {
   if (ex.bg) return { bg: ex.bg, text: ex.text, abbr: ex.abbr || ex.name.slice(0, 2).toUpperCase() }
   const map = {
-    'Back':      '#EAF3DE/#3B6D11/BK',
-    'Chest':     '#E6F1FB/#0C447C/CH',
-    'Shoulders': '#FAEEDA/#854F0B/SH',
-    'Quads':     '#FAECE7/#993C1D/QD',
-    'Biceps':    '#F1EFE8/#5F5E5A/BI',
-    'Triceps':   '#F1EFE8/#5F5E5A/TR',
-    'Core':      '#E1F5EE/#0F6E56/CR',
+    'Back':      'var(--bg-pill)/var(--muscle-back)/BK',
+    'Chest':     'var(--bg-pill)/var(--muscle-chest)/CH',
+    'Shoulders': 'var(--bg-pill)/var(--muscle-shoulders)/SH',
+    'Quads':     'var(--bg-pill)/var(--muscle-legs)/QD',
+    'Biceps':    'var(--bg-pill)/var(--muscle-arms)/BI',
+    'Triceps':   'var(--bg-pill)/var(--muscle-arms)/TR',
+    'Core':      'var(--bg-pill)/var(--muscle-core)/CR',
   }
   const primary = ex.muscleGroup?.split('·')[0]?.trim() || ex.muscle || 'Other'
-  const val = map[primary] || '#F1EFE8/#666/??'
+  const val = map[primary] || 'var(--bg-pill)/var(--text-secondary)/??'
   const [bg, text, abbr] = val.split('/')
   return { bg, text, abbr }
 }
 
 // ── Score color helpers ───────────────────────────────────────────────────────
 
-const scoreColor = (s) => s >= 85 ? '#3B6D11' : s >= 65 ? '#854F0B' : '#A32D2D'
-const scoreBg    = (s) => s >= 85 ? '#EAF3DE'  : s >= 65 ? '#FAEEDA'  : '#FCEBEB'
+const scoreColor = (s) => s >= 85 ? 'var(--success)' : s >= 65 ? 'var(--warning)' : 'var(--error)'
+const scoreBg    = (s) => s >= 85 ? 'var(--success-bg)'  : s >= 65 ? 'var(--warning-bg)'  : 'var(--error-bg)'
 
 // ── Mock feedback (shown when camera is off) ──────────────────────────────────
 
@@ -396,22 +396,22 @@ export default function FormCoach() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#F7F7F5] pb-32">
+      <div className="min-h-screen bg-[var(--bg-primary)] pb-32">
 
         {/* TOP BAR */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black/[0.06] h-14 flex items-center justify-between px-5">
-          <button onClick={() => navigate(-1)} className="text-sm font-medium text-[#999]">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+          <button onClick={() => navigate(-1)} className="text-sm font-medium text-[var(--text-tertiary)]">
             ← Back
           </button>
-          <span className="text-base font-semibold text-[#111]">Form Coach</span>
-          <button className="text-[13px] font-medium text-[#185FA5]">How it works</button>
+          <span className="text-base font-semibold text-[var(--text-primary)]">Form Coach</span>
+          <button className="text-[13px] font-medium text-[var(--text-cta)]">How it works</button>
         </div>
 
         <div className="pt-[72px] px-5 space-y-3">
 
           {/* CAMERA VIEWPORT — position:relative + overflow:hidden required for overlays */}
           <div
-            className="relative w-full bg-[#0D0D0D] rounded-[20px] overflow-hidden"
+            className="relative w-full bg-[var(--text-primary)] rounded-[20px] overflow-hidden"
             style={{ height: 260 }}
           >
             {/* Video feed */}
@@ -489,7 +489,7 @@ export default function FormCoach() {
             {/* LIVE indicator */}
             {isCameraActive && (
               <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/40 rounded-full px-2 py-1" style={{ zIndex: 20 }}>
-                <span className="w-2 h-2 rounded-full bg-[#E53E3E]" />
+                <span className="w-2 h-2 rounded-full bg-[var(--error)]" />
                 <span className="text-[10px] font-semibold uppercase text-white/80 tracking-wider">Live</span>
               </div>
             )}
@@ -498,7 +498,7 @@ export default function FormCoach() {
             <div className="absolute bottom-0 left-0 right-0 h-10 bg-black/50 flex items-center justify-between px-4" style={{ zIndex: 15 }}>
               <span className="text-sm font-semibold text-white capitalize">{selectedExercise}</span>
               <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                isCameraActive ? 'bg-[#0F6E56]/80 text-white' : 'bg-white/20 text-white/60'
+                isCameraActive ? 'bg-[var(--success)]/80 text-white' : 'bg-[var(--bg-card)]/20 text-white/60'
               }`}>
                 {isCameraActive ? 'AI Active' : 'AI Ready'}
               </span>
@@ -511,7 +511,7 @@ export default function FormCoach() {
                 setFacingMode(f => f === 'user' ? 'environment' : 'user')
                 setTimeout(startCamera, 300)
               }}
-              className="absolute bottom-12 right-3 w-9 h-9 bg-white/15 rounded-[10px] flex items-center justify-center"
+              className="absolute bottom-12 right-3 w-9 h-9 bg-[var(--bg-card)]/15 rounded-[10px] flex items-center justify-center"
               style={{ zIndex: 20 }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -522,9 +522,9 @@ export default function FormCoach() {
           </div>
 
           {/* FEEDBACK CARD */}
-          <div className="bg-white rounded-2xl border border-black/[0.06] p-4">
+          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
                 Form Feedback
               </span>
               <div
@@ -542,44 +542,44 @@ export default function FormCoach() {
 
             {displayFeedback.faults.map((f, i) => (
               <div key={i} className="mt-3 flex gap-3 items-start">
-                <div className="w-9 h-9 bg-[#FAEEDA] rounded-xl flex items-center justify-center shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#854F0B" strokeWidth="2" strokeLinecap="round">
+                <div className="w-9 h-9 bg-[var(--warning-bg)] rounded-xl flex items-center justify-center shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2" strokeLinecap="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                     <line x1="12" y1="9" x2="12" y2="13"/>
                     <line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/>
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#111]">{f.title}</p>
-                  <p className="text-[13px] text-[#666] mt-0.5 leading-snug">{f.desc}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{f.title}</p>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-0.5 leading-snug">{f.desc}</p>
                 </div>
               </div>
             ))}
 
             {displayFeedback.goods.map((g, i) => (
               <div key={i} className="mt-3 flex gap-3 items-start">
-                <div className="w-9 h-9 bg-[#EAF3DE] rounded-xl flex items-center justify-center shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-9 h-9 bg-[var(--success-bg)] rounded-xl flex items-center justify-center shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#111]">{g.title}</p>
-                  <p className="text-[13px] text-[#666] mt-0.5 leading-snug">{g.desc}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{g.title}</p>
+                  <p className="text-[13px] text-[var(--text-secondary)] mt-0.5 leading-snug">{g.desc}</p>
                 </div>
               </div>
             ))}
 
             {/* Rep / set / score counters */}
-            <div className="mt-4 pt-3 border-t border-black/[0.04] flex justify-around">
+            <div className="mt-4 pt-3 border-t border-[var(--border)] flex justify-around">
               {[
                 { v: repCount,              l: 'reps' },
                 { v: setCount,              l: 'sets' },
                 { v: `${formScore || 72}%`, l: 'avg score' },
               ].map((s, i) => (
                 <div key={i} className="flex flex-col items-center">
-                  <span className="text-xl font-bold text-[#111] tabular-nums">{s.v}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-[#999] mt-0.5">{s.l}</span>
+                  <span className="text-xl font-bold text-[var(--text-primary)] tabular-nums">{s.v}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] mt-0.5">{s.l}</span>
                 </div>
               ))}
             </div>
@@ -588,21 +588,21 @@ export default function FormCoach() {
           {/* EXERCISE SELECTOR */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
                 Select Exercise
               </span>
-              <button className="text-[13px] font-medium text-[#185FA5]">All muscles ▾</button>
+              <button className="text-[13px] font-medium text-[var(--text-cta)]">All muscles ▾</button>
             </div>
 
             {/* Search */}
             <div className="relative mb-3">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999] text-sm">🔍</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] text-sm">🔍</span>
               <input
                 type="text"
                 value={exerciseSearch}
                 onChange={e => setExerciseSearch(e.target.value)}
                 placeholder="Search exercises with AI form..."
-                className="w-full h-10 bg-[#F1EFE8] rounded-xl pl-8 pr-4 text-sm text-[#111] placeholder-[#999] focus:outline-none"
+                className="w-full h-10 bg-[var(--bg-pill)] rounded-xl pl-8 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none"
               />
             </div>
 
@@ -626,12 +626,12 @@ export default function FormCoach() {
                     onClick={() => setSelectedExercise(ex.name.toLowerCase())}
                     className={`relative flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
                       active
-                        ? 'bg-white border-[1.5px] border-[#111]'
-                        : 'bg-white border border-black/[0.06]'
+                        ? 'bg-[var(--bg-card)] border-[1.5px] border-[var(--text-primary)]'
+                        : 'bg-[var(--bg-card)] border border-[var(--border)]'
                     }`}
                   >
                     {active && (
-                      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#111] rounded-l-xl" />
+                      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--text-primary)] rounded-l-xl" />
                     )}
                     <div
                       className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-semibold uppercase tracking-wider"
@@ -640,21 +640,21 @@ export default function FormCoach() {
                       {color.abbr}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm text-[#111] truncate ${active ? 'font-semibold' : 'font-medium'}`}>
+                      <p className={`text-sm text-[var(--text-primary)] truncate ${active ? 'font-semibold' : 'font-medium'}`}>
                         {ex.name}
                       </p>
-                      <p className="text-xs text-[#999] mt-0.5 truncate">
+                      <p className="text-xs text-[var(--text-tertiary)] mt-0.5 truncate">
                         {ex.muscleGroup || ex.muscle}{ex.equipment ? ` · ${ex.equipment}` : ''}
                       </p>
                     </div>
                     {active ? (
-                      <div className="w-6 h-6 bg-[#111] rounded-full flex items-center justify-center shrink-0">
+                      <div className="w-6 h-6 bg-[var(--text-primary)] rounded-full flex items-center justify-center shrink-0">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                       </div>
                     ) : (
-                      <span className="text-[10px] font-semibold uppercase bg-[#E1F5EE] text-[#0F6E56] px-1.5 py-0.5 rounded-md tracking-wider shrink-0">
+                      <span className="text-[10px] font-semibold uppercase bg-[var(--success-bg)] text-[var(--success)] px-1.5 py-0.5 rounded-md tracking-wider shrink-0">
                         AI
                       </span>
                     )}
@@ -667,11 +667,11 @@ export default function FormCoach() {
         </div>{/* end content */}
 
         {/* FIXED BOTTOM CTA */}
-        <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-black/[0.06] px-5 pt-3 pb-4" style={{ zIndex: 30 }}>
+        <div className="fixed bottom-16 left-0 right-0 bg-[var(--bg-card)] border-t border-[var(--border)] px-5 pt-3 pb-4" style={{ zIndex: 30 }}>
           {isCameraActive ? (
             <button
               onClick={stopCamera}
-              className="w-full bg-[#FCEBEB] text-[#A32D2D] border border-[#A32D2D]/20 text-base font-semibold rounded-xl flex items-center justify-center gap-2 py-3.5"
+              className="w-full bg-[var(--error-bg)] text-[var(--error)] border border-[var(--error)]/20 text-base font-semibold rounded-xl flex items-center justify-center gap-2 py-3.5"
             >
               <span className="text-lg leading-none">■</span>
               Stop Camera
@@ -679,7 +679,7 @@ export default function FormCoach() {
           ) : (
             <button
               onClick={startCamera}
-              className="w-full bg-[#111] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2 py-3.5"
+              className="w-full bg-[var(--bg-card)] text-[var(--text-primary)] text-base font-semibold rounded-xl flex items-center justify-center gap-2 py-3.5 border border-[var(--text-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
             >
               <span>▶</span> Start Form Analysis
             </button>

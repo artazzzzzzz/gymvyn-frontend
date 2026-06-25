@@ -39,9 +39,9 @@ function PillGroup({ options, value, onChange }) {
             style={{
               padding: '7px 14px',
               borderRadius: 20,
-              border: active ? '1.5px solid #111' : '1.5px solid #E5E5E3',
-              background: active ? '#111' : 'white',
-              color: active ? 'white' : '#555',
+              border: active ? '1.5px solid var(--text-primary)' : '1.5px solid var(--border)',
+              background: active ? 'var(--text-primary)' : 'white',
+              color: active ? 'white' : 'var(--text-secondary)',
               fontSize: 13,
               fontWeight: active ? 600 : 500,
               cursor: 'pointer',
@@ -60,7 +60,7 @@ function SectionHeader({ emoji, title }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
       <span style={{ fontSize: 15 }}>{emoji}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#111', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
         {title}
       </span>
     </div>
@@ -69,8 +69,8 @@ function SectionHeader({ emoji, title }) {
 
 function StatInput({ label, value, onChange, placeholder }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid #F1EFE8' }}>
-      <span style={{ fontSize: 14, color: '#111' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid var(--bg-pill)' }}>
+      <span style={{ fontSize: 14, color: 'var(--text-primary)' }}>{label}</span>
       <input
         type="number"
         value={value}
@@ -79,13 +79,13 @@ function StatInput({ label, value, onChange, placeholder }) {
         style={{
           width: 80,
           textAlign: 'right',
-          border: '1.5px solid #E5E5E3',
+          border: '1.5px solid var(--border)',
           borderRadius: 8,
           padding: '5px 10px',
           fontSize: 14,
           fontWeight: 600,
-          color: '#111',
-          background: '#FAFAF9',
+          color: 'var(--text-primary)',
+          background: 'var(--bg-pill)',
           outline: 'none',
         }}
       />
@@ -216,7 +216,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
         position: 'absolute',
         bottom: 0, left: 0, right: 0,
         height: '95vh',
-        background: '#F7F7F5',
+        background: 'var(--bg-primary)',
         borderRadius: '20px 20px 0 0',
         display: 'flex',
         flexDirection: 'column',
@@ -225,7 +225,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
         {/* Header */}
         <div style={{
           background: 'white',
-          borderBottom: '1px solid #F1EFE8',
+          borderBottom: '1px solid var(--bg-pill)',
           padding: '0 20px',
           height: 56,
           display: 'flex',
@@ -233,9 +233,9 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
           justifyContent: 'space-between',
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: 16, fontWeight: 600, color: '#111' }}>Diet Settings</span>
+          <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Diet Settings</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-            <X size={20} color="#999" />
+            <X size={20} color="var(--text-tertiary)" />
           </button>
         </div>
 
@@ -243,7 +243,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 120px' }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
-              <span style={{ fontSize: 13, color: '#999' }}>Loading…</span>
+              <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Loading…</span>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -259,7 +259,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                 <SectionHeader emoji="⚡" title="Activity Level" />
                 <PillGroup options={ACTIVITY_LEVELS} value={activityLevel} onChange={setActivityLevel} />
                 {activitySub && (
-                  <p style={{ fontSize: 12, color: '#999', marginTop: 10, marginLeft: 2 }}>{activitySub}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 10, marginLeft: 2 }}>{activitySub}</p>
                 )}
               </div>
 
@@ -271,7 +271,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                 <StatInput label="Age" value={age} onChange={setAge} placeholder="25" />
                 {/* Gender */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10 }}>
-                  <span style={{ fontSize: 14, color: '#111' }}>Gender</span>
+                  <span style={{ fontSize: 14, color: 'var(--text-primary)' }}>Gender</span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {['male', 'female'].map(g => (
                       <button
@@ -280,9 +280,9 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                         style={{
                           padding: '5px 16px',
                           borderRadius: 20,
-                          border: gender === g ? '1.5px solid #111' : '1.5px solid #E5E5E3',
-                          background: gender === g ? '#111' : 'white',
-                          color: gender === g ? 'white' : '#555',
+                          border: gender === g ? '1.5px solid var(--text-primary)' : '1.5px solid var(--border)',
+                          background: gender === g ? 'var(--text-primary)' : 'white',
+                          color: gender === g ? 'white' : 'var(--text-secondary)',
                           fontSize: 13,
                           fontWeight: gender === g ? 600 : 500,
                           cursor: 'pointer',
@@ -300,33 +300,33 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               {calculated ? (
                 <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
                   <SectionHeader emoji="✨" title="Recommended for you" />
-                  <div style={{ fontSize: 26, fontWeight: 700, color: '#111', marginBottom: 14 }}>
+                  <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>
                     {calculated.calories.toLocaleString()}
-                    <span style={{ fontSize: 13, fontWeight: 500, color: '#999', marginLeft: 6 }}>kcal/day</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-tertiary)', marginLeft: 6 }}>kcal/day</span>
                   </div>
                   {[
-                    { label: 'Protein', g: calculated.protein, color: '#185FA5', calPct: (calculated.protein * 4) / calculated.calories },
-                    { label: 'Carbs',   g: calculated.carbs,   color: '#854F0B', calPct: (calculated.carbs * 4)   / calculated.calories },
+                    { label: 'Protein', g: calculated.protein, color: 'var(--text-cta)', calPct: (calculated.protein * 4) / calculated.calories },
+                    { label: 'Carbs',   g: calculated.carbs,   color: 'var(--warning)', calPct: (calculated.carbs * 4)   / calculated.calories },
                     { label: 'Fat',     g: calculated.fat,     color: '#993C1D', calPct: (calculated.fat * 9)     / calculated.calories },
                   ].map(m => (
                     <div key={m.label} style={{ marginBottom: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 13, color: '#555' }}>{m.label}</span>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{m.g}g</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{m.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{m.g}g</span>
                       </div>
-                      <div style={{ height: 5, background: '#F1EFE8', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: 5, background: 'var(--bg-pill)', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${Math.round(m.calPct * 100)}%`, background: m.color, borderRadius: 3 }} />
                       </div>
                     </div>
                   ))}
-                  <p style={{ fontSize: 11, color: '#BBB', marginTop: 10 }}>
+                  <p style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 10 }}>
                     Based on {GOAL_LABELS[dietGoal]} + {ACTIVITY_LEVELS.find(a => a.value === activityLevel)?.label} activity
                   </p>
                 </div>
               ) : (
                 <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
                   <SectionHeader emoji="✨" title="Recommended for you" />
-                  <p style={{ fontSize: 13, color: '#999' }}>Fill in your stats above to see your personalised targets.</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Fill in your stats above to see your personalised targets.</p>
                 </div>
               )}
 
@@ -334,7 +334,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
                 <SectionHeader emoji="⚙️" title="Override" />
                 {/* Auto / Custom toggle */}
-                <div style={{ display: 'flex', background: '#F1EFE8', borderRadius: 12, padding: 3, marginBottom: 16 }}>
+                <div style={{ display: 'flex', background: 'var(--bg-pill)', borderRadius: 12, padding: 3, marginBottom: 16 }}>
                   {['auto', 'custom'].map(m => (
                     <button
                       key={m}
@@ -345,7 +345,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                         borderRadius: 10,
                         border: 'none',
                         background: macroMode === m ? 'white' : 'transparent',
-                        color: macroMode === m ? '#111' : '#999',
+                        color: macroMode === m ? 'var(--text-primary)' : 'var(--text-tertiary)',
                         fontSize: 13,
                         fontWeight: macroMode === m ? 600 : 500,
                         cursor: 'pointer',
@@ -367,8 +367,8 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                       { label: 'Carbs',       value: customCarbs,    set: setCustomCarbs,    unit: 'g'    },
                       { label: 'Fat',         value: customFat,      set: setCustomFat,      unit: 'g'    },
                     ].map(({ label, value, set, unit }) => (
-                      <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid #F1EFE8' }}>
-                        <span style={{ fontSize: 14, color: '#111' }}>{label}</span>
+                      <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid var(--bg-pill)' }}>
+                        <span style={{ fontSize: 14, color: 'var(--text-primary)' }}>{label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <input
                             type="number"
@@ -377,30 +377,30 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                             style={{
                               width: 70,
                               textAlign: 'right',
-                              border: '1.5px solid #E5E5E3',
+                              border: '1.5px solid var(--border)',
                               borderRadius: 8,
                               padding: '5px 8px',
                               fontSize: 14,
                               fontWeight: 600,
-                              color: '#111',
-                              background: '#FAFAF9',
+                              color: 'var(--text-primary)',
+                              background: 'var(--bg-pill)',
                               outline: 'none',
                             }}
                           />
-                          <span style={{ fontSize: 12, color: '#999', width: 28 }}>{unit}</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-tertiary)', width: 28 }}>{unit}</span>
                         </div>
                       </div>
                     ))}
                     {(customProtein || customCarbs || customFat) && (
-                      <p style={{ fontSize: 11, color: '#999', marginTop: 10 }}>
-                        P×4 + C×4 + F×9 = <span style={{ fontWeight: 600, color: customCalMath === parseInt(customCalories) ? '#3B6D11' : '#111' }}>{customCalMath} kcal</span>
+                      <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 10 }}>
+                        P×4 + C×4 + F×9 = <span style={{ fontWeight: 600, color: customCalMath === parseInt(customCalories) ? 'var(--success)' : 'var(--text-primary)' }}>{customCalMath} kcal</span>
                       </p>
                     )}
                   </div>
                 )}
 
                 {macroMode === 'auto' && (
-                  <p style={{ fontSize: 12, color: '#999' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                     Macros are calculated automatically from your goal, activity level, and stats.
                   </p>
                 )}
@@ -414,23 +414,23 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                     onClick={() => setWaterGoal(g => Math.max(500, g - 250))}
                     style={{
                       width: 40, height: 40, borderRadius: 20,
-                      border: '1.5px solid #E5E5E3', background: 'white',
-                      fontSize: 20, color: '#111', cursor: 'pointer',
+                      border: '1.5px solid var(--border)', background: 'white',
+                      fontSize: 20, color: 'var(--text-primary)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >−</button>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: '#111', tabularNums: true }}>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', tabularNums: true }}>
                       {waterGoal.toLocaleString()} ml
                     </div>
-                    <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>({(waterGoal / 1000).toFixed(2)} L)</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>({(waterGoal / 1000).toFixed(2)} L)</div>
                   </div>
                   <button
                     onClick={() => setWaterGoal(g => g + 250)}
                     style={{
                       width: 40, height: 40, borderRadius: 20,
-                      border: '1.5px solid #E5E5E3', background: 'white',
-                      fontSize: 20, color: '#111', cursor: 'pointer',
+                      border: '1.5px solid var(--border)', background: 'white',
+                      fontSize: 20, color: 'var(--text-primary)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >+</button>
@@ -446,7 +446,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
           position: 'absolute',
           bottom: 0, left: 0, right: 0,
           padding: '16px 20px',
-          background: 'linear-gradient(to top, #F7F7F5 70%, transparent)',
+          background: 'linear-gradient(to top, var(--bg-primary) 70%, transparent)',
           paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
         }}>
           <button
@@ -456,13 +456,14 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               width: '100%',
               padding: '15px',
               borderRadius: 14,
-              background: saving ? '#555' : '#111',
-              color: 'white',
+              background: (saving || loading) ? 'var(--bg-input)' : 'var(--bg-card)',
+              color: (saving || loading) ? 'var(--text-muted)' : 'var(--text-primary)',
+              border: (saving || loading) ? '1px solid var(--border)' : '1px solid var(--text-primary)',
               fontSize: 15,
               fontWeight: 700,
-              border: 'none',
               cursor: saving ? 'default' : 'pointer',
-              transition: 'background 0.15s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+              transition: 'background 0.15s, color 0.15s, border-color 0.15s',
             }}
           >
             {saving ? 'Saving…' : 'Save Settings'}
