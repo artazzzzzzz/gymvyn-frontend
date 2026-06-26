@@ -106,7 +106,8 @@
   --cta-text: #F2EDE6;
 }
 
-body {
+html, body {
+  background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
@@ -182,3 +183,47 @@ input::placeholder, textarea::placeholder {
 .ls-set-input::-webkit-outer-spin-button,
 .ls-set-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .ls-set-input[type=number] { -moz-appearance: textfield; }
+
+/* Onboarding screen transitions */
+@keyframes ob-enter-anim {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ob-enter {
+  animation: ob-enter-anim 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Staggered element entrance (opacity + translateY + blur) */
+@keyframes ob-stagger-anim {
+  from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+}
+.ob-stagger {
+  animation: ob-stagger-anim 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Gentle float loop for hero elements */
+@keyframes ob-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-7px); }
+}
+.ob-float {
+  animation: ob-float 4s ease-in-out infinite;
+}
+
+/* Orb drift for background glows */
+@keyframes ob-orb-drift {
+  0%   { transform: translate(0px,   0px)   scale(1);    }
+  33%  { transform: translate(14px, -10px)  scale(1.06); }
+  66%  { transform: translate(-10px,  8px)  scale(0.94); }
+  100% { transform: translate(0px,   0px)   scale(1);    }
+}
+.ob-orb {
+  animation: ob-orb-drift 8s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Hide number spinners on onboarding stat inputs */
+.ob-stat-input::-webkit-outer-spin-button,
+.ob-stat-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ob-stat-input[type=number] { -moz-appearance: textfield; }

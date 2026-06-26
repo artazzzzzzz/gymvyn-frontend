@@ -35,6 +35,17 @@ export function ThemeProvider({ children }) {
     return () => mq.removeEventListener('change', handler)
   }, [theme])
 
+  // Keep theme in sync when it's changed in another tab/window.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === STORAGE_KEY) {
+        setTheme(e.newValue || 'system')
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const setThemeMode = (mode) => {
     setTheme(mode)
     localStorage.setItem(STORAGE_KEY, mode)
