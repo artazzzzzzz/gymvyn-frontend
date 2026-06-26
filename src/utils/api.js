@@ -439,3 +439,23 @@ export const getActiveSeason     = ()                  => xpFetch('/api/xp/seaso
 export const getMyClassBookings  = ()        => xpFetch('/api/class-bookings/my');
 export const bookClass           = (classId) => xpFetch(`/api/class-bookings/${classId}`, { method: 'POST' });
 export const cancelClassBooking  = (classId) => xpFetch(`/api/class-bookings/${classId}`, { method: 'DELETE' });
+
+// ── Workout editing ────────────────────────────────────────────────────────────
+
+export const updateWorkoutSet = (setId, userId, weight_kg, reps) =>
+  apiFetch(`/api/workout-sets/${setId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ userId, weight_kg, reps }),
+  });
+
+export const deleteWorkoutSet = (setId, userId) =>
+  apiFetch(`/api/workout-sets/${setId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ userId }),
+  });
+
+export const deleteWorkout = (workoutId, userId) =>
+  apiFetch(`/api/workouts/${workoutId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ userId }),
+  });
