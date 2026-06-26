@@ -777,7 +777,8 @@ export default function Progress() {
     : null
 
   const chartData = entries.map(e => ({
-    month: new Date(e.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    ts:     new Date(e.logged_at).getTime(),
+    month:  new Date(e.logged_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     weight: e.weight_kg,
   }))
 
@@ -955,7 +956,16 @@ export default function Progress() {
           ) : (
             <ResponsiveContainer width="100%" height={130}>
               <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--text-tertiary)" }} axisLine={false} tickLine={false} />
+                <XAxis
+                  dataKey="ts"
+                  type="number"
+                  domain={['dataMin', 'dataMax']}
+                  scale="time"
+                  tickFormatter={ts => new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  tick={{ fontSize: 10, fill: "var(--text-tertiary)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <Tooltip content={({ active, payload }) =>
                   active && payload?.length ? (
                     <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-2 py-1 text-xs font-medium text-[var(--text-primary)]">

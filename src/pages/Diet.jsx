@@ -266,10 +266,10 @@ export default function Diet() {
   const DIET_MEAL_LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snacks' }
 
   const dietTotals = useMemo(() => ({
-    calories: Math.round(logs.reduce((s, l) => s + (l.calories || 0), 0)),
-    protein:  Math.round(logs.reduce((s, l) => s + (l.protein  || 0), 0)),
-    carbs:    Math.round(logs.reduce((s, l) => s + (l.carbs    || 0), 0)),
-    fat:      Math.round(logs.reduce((s, l) => s + (l.fat      || 0), 0)),
+    calories: Math.round(logs.reduce((s, l) => s + (l.calories  || 0), 0)),
+    protein:  Math.round(logs.reduce((s, l) => s + (l.protein_g || 0), 0)),
+    carbs:    Math.round(logs.reduce((s, l) => s + (l.carbs_g   || 0), 0)),
+    fat:      Math.round(logs.reduce((s, l) => s + (l.fat_g     || 0), 0)),
   }), [logs])
 
   const dietMealLogs = useMemo(() => {
@@ -487,9 +487,9 @@ export default function Diet() {
                   <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Total</span>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {[
-                      `P: ${Math.round(items.reduce((s, l) => s + (l.protein || 0), 0))}g`,
-                      `C: ${Math.round(items.reduce((s, l) => s + (l.carbs   || 0), 0))}g`,
-                      `F: ${Math.round(items.reduce((s, l) => s + (l.fat     || 0), 0))}g`,
+                      `P: ${Math.round(items.reduce((s, l) => s + (l.protein_g || 0), 0))}g`,
+                      `C: ${Math.round(items.reduce((s, l) => s + (l.carbs_g   || 0), 0))}g`,
+                      `F: ${Math.round(items.reduce((s, l) => s + (l.fat_g     || 0), 0))}g`,
                     ].map(pill => (
                       <span key={pill} style={{ fontSize: 11, backgroundColor: 'var(--border)', paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3, borderRadius: 4, color: "var(--text-secondary)" }}>
                         {pill}

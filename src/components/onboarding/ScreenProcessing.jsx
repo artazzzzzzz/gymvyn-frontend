@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../utils/supabase'
+import { calculateMacros } from '../../utils/api'
 
 const MESSAGES = [
   'Setting up your dashboard...',
@@ -53,6 +54,12 @@ export default function ScreenProcessing({ answers, onNext }) {
     setError(null)
     setRetrying(false)
     try {
+      const days = parseInt(answers.trainingDays) || 0
+      const activity_level =
+        days <= 1 ? 'sedentary' :
+        days <= 3 ? 'light' :
+        days <= 5 ? 'moderate' : 'active'
+
       const payload = {
         id: user.id,
         full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
@@ -65,9 +72,14 @@ export default function ScreenProcessing({ answers, onNext }) {
         target_weight: answers.targetWeight ? parseFloat(answers.targetWeight) : null,
         age: answers.age ? parseInt(answers.age, 10) : null,
         gender: answers.gender,
+        activity_level,
       }
       await saveWithRetry(payload)
       await seedProgress(user.id, answers.currentWeight)
+
+      // Pre-compute and persist macros so the diet page loads them instantly
+      try { await calculateMacros(user.id) } catch (_) { /* non-fatal */ }
+
       onNext()
     } catch (err) {
       setError(err?.message || 'Something went wrong. Please try again.')

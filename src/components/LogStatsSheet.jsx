@@ -19,6 +19,14 @@ export default function LogStatsSheet({ user, onClose, onSave }) {
     setSaving(true)
     setError('')
 
+    // For today: use actual current time so multiple same-day logs plot at
+    // distinct X positions on the graph. For past dates: use noon to avoid
+    // midnight UTC ambiguity (new Date("YYYY-MM-DD") is always midnight UTC).
+    const todayStr = new Date().toISOString().split('T')[0]
+    const logged_at = logDate === todayStr
+      ? new Date().toISOString()
+      : new Date(`${logDate}T12:00:00`).toISOString()
+
     const { error: dbError } = await supabase
       .from('progress_entries')
       .insert({
@@ -27,8 +35,16 @@ export default function LogStatsSheet({ user, onClose, onSave }) {
         body_fat:    bodyFat    ? parseFloat(bodyFat)    : null,
         muscle_mass: muscleMass ? parseFloat(muscleMass) : null,
         notes:       notes || null,
-        logged_at:   new Date(logDate).toISOString(),
+        logged_at,
       })
+
+    // Keep users.current_weight in sync so dashboard/profile reflect latest weight
+    if (!dbError && weight) {
+      await supabase
+        .from('users')
+        .update({ current_weight: parseFloat(weight) })
+        .eq('id', user.id)
+    }
 
     setSaving(false)
 
