@@ -377,38 +377,6 @@ export default function TrainerSettings() {
         />
       </div>
 
-      {/* Delete account */}
-      <div style={{ textAlign: 'center', padding: '4px 20px 16px' }}>
-        {deleteConfirm ? (
-          <div style={{ background: 'var(--error-bg)', border: '0.5px solid var(--error)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
-            <p style={{ fontSize: 13, color: 'var(--error)', marginBottom: 10 }}>Are you sure? This cannot be undone.</p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={() => setDeleteConfirm(false)}
-                style={{ flex: 1, height: 36, borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-card)', fontSize: 13, cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                style={{ flex: 1, height: 36, borderRadius: 8, border: 'none', background: 'var(--error)', color: 'white', fontSize: 13, cursor: 'pointer' }}
-              >
-                Delete account
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={handleDeleteAccount}
-            style={{ fontSize: 12, color: 'var(--text-disabled)', background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-            onMouseOver={e => e.currentTarget.style.color = 'var(--error)'}
-            onMouseOut={e => e.currentTarget.style.color = 'var(--text-disabled)'}
-          >
-            Delete account
-          </button>
-        )}
-      </div>
-
       {/* ── Appearance ── */}
       <div style={{
         padding: '16px 20px 6px',

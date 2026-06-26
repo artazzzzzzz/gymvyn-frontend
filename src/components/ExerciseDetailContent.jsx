@@ -95,6 +95,9 @@ function VideoHeroCard({ videoUrl, duration, exercise }) {
             src={videoUrl}
             autoPlay
             controls
+            playsInline
+            muted
+            preload="metadata"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
           />
         ) : videoUrl ? (

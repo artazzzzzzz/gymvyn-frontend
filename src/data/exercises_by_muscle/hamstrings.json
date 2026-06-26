@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Band Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Dumbbell Lying Femoral",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Romanian Deadlift",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Kettlebell Romanian Deadlift",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Kettlebell"
+  },
+  {
+    "name": "Lever Kneeling Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Lying Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lying Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Seated Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Standing Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Hamstring Stretch",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  }
+]

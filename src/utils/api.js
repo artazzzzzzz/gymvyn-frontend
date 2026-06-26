@@ -1,4 +1,13 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
+// Normalize the backend URL so a misconfigured env var (missing scheme, trailing
+// slash) cannot cause every API call to land on the Vercel SPA host and 405.
+function normalizeApiBase(raw) {
+  if (!raw) throw new Error('VITE_API_URL is not set');
+  let url = String(raw).trim();
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+  return url.replace(/\/+$/, '');
+}
+
+const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_URL);
 
 export async function apiFetch(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {

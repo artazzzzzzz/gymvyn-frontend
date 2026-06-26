@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Band Overhead Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Side Triceps Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Triceps Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Barbell Close Grip Bench Press",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Bench Dip",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bench Dips",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cable Lying Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Overhead Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Overhead Triceps Extension (rope attachment)",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Pushdown (rope attachment)",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Rope High Pulley Overhead Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing One Arm Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Triceps Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Close Grip Push-ups",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Dumbbell Close Grip Press",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Kickback",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Alternate Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell One Arm Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Pronate-grip Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Kickback",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "EZ Barbell Lying Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Lever Seated Dips",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Triceps Extension (neutral grip)",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lying Cable Tricep Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Lying Tricep Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Old School Reverse Extensions",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Overhead Cable Rope Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Overhead Tricep Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Resistance Band Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Stretching - Kneeling Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Reverse Dip",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  }
+]

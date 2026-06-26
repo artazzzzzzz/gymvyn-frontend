@@ -119,7 +119,7 @@ export default function MyTrainer() {
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] pb-28">
+      <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
         <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
         <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
           <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
@@ -154,26 +154,25 @@ export default function MyTrainer() {
   // ── No trainer linked ────────────────────────────────────────────────────────
   if (noTrainer) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <div className="px-5 pt-12 pb-6">
-          <h1 className="text-2xl font-bold">My Trainer</h1>
-          <p className="text-zinc-400 text-sm mt-1">Connect with your personal trainer</p>
+      <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
+          <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
         </div>
-
-        <div className="px-5 space-y-4">
-          <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800 text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+        <div className="pt-[72px] px-5 space-y-4">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 border border-[var(--border)] text-center">
+            <div className="w-16 h-16 rounded-full bg-[var(--success-bg)] border border-[var(--border)] flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">🏋️‍♂️</span>
             </div>
-            <h2 className="text-lg font-semibold mb-2">No trainer connected yet</h2>
-            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+            <h2 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">No trainer connected yet</h2>
+            <p className="text-[var(--text-tertiary)] text-sm mb-6 leading-relaxed">
               Get a personal trainer on Gymvyn for custom workout plans, diet guidance, and direct coaching.
             </p>
 
             {!showJoin ? (
               <button
                 onClick={() => setShowJoin(true)}
-                className="w-full py-3.5 bg-emerald-500 rounded-xl font-semibold"
+                className="w-full py-3.5 rounded-xl font-semibold text-[var(--cta-text)] border"
+                style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)' }}
               >
                 Enter Trainer Code
               </button>
@@ -186,19 +185,21 @@ export default function MyTrainer() {
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   maxLength={8}
                   autoFocus
-                  className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-center text-2xl font-mono tracking-[0.3em] placeholder:text-zinc-600 placeholder:text-base placeholder:tracking-normal focus:border-emerald-500 focus:outline-none uppercase"
+                  className="w-full px-4 py-4 rounded-xl text-[var(--text-primary)] text-center text-2xl font-mono tracking-[0.3em] focus:outline-none uppercase placeholder:text-[var(--text-tertiary)] placeholder:text-base placeholder:tracking-normal"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)' }}
                 />
                 <div className="flex gap-3">
                   <button
                     onClick={() => { setShowJoin(false); setJoinCode(''); }}
-                    className="flex-1 py-3 bg-zinc-800 rounded-xl font-medium text-sm"
+                    className="flex-1 py-3 rounded-xl font-medium text-sm text-[var(--text-secondary)] border border-[var(--border)] bg-[var(--bg-elevated)]"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleJoin}
                     disabled={joinCode.length < 4 || joining}
-                    className="flex-1 py-3 bg-emerald-500 rounded-xl font-semibold text-sm disabled:opacity-40"
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-40 border text-[var(--cta-text)]"
+                    style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)' }}
                   >
                     {joining ? 'Connecting...' : 'Connect'}
                   </button>
@@ -207,9 +208,9 @@ export default function MyTrainer() {
             )}
           </div>
 
-          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-800">
-              <p className="text-sm font-medium text-zinc-300">What you get with a trainer</p>
+          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[var(--border)]">
+              <p className="text-sm font-medium text-[var(--text-primary)]">What you get with a trainer</p>
             </div>
             {[
               { icon: '📋', title: 'Custom workout plans',    desc: 'Tailored programs built for your goals' },
@@ -217,20 +218,20 @@ export default function MyTrainer() {
               { icon: '💬', title: 'Direct messaging',        desc: 'Ask questions, get feedback anytime' },
               { icon: '📈', title: 'Progress tracking',       desc: 'Your trainer sees your logs in real time' },
             ].map((item, i) => (
-              <div key={i} className="flex items-start gap-4 px-5 py-4 border-b border-zinc-800 last:border-0">
+              <div key={i} className="flex items-start gap-4 px-5 py-4 border-b border-[var(--border)] last:border-0">
                 <span className="text-xl mt-0.5">{item.icon}</span>
                 <div>
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{item.desc}</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{item.title}</p>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-0.5">{item.desc}</p>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="text-center pb-8">
-            <p className="text-zinc-600 text-xs">
+            <p className="text-[var(--text-tertiary)] text-xs">
               Are you a trainer?{' '}
-              <button onClick={() => navigate('/become-trainer')} className="text-emerald-400">
+              <button onClick={() => navigate('/become-trainer')} className="text-[var(--text-cta)]">
                 Set up your profile →
               </button>
             </p>
@@ -263,7 +264,7 @@ export default function MyTrainer() {
   const lastMsgTime     = conversation ? timeAgo(conversation.last_message_at) : null;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] pb-28">
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
       <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
 
       {/* TOP BAR */}
@@ -271,7 +272,8 @@ export default function MyTrainer() {
         <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
         <button
           onClick={() => navigate('/client/chat')}
-          className="bg-[var(--text-primary)] text-white text-[13px] font-semibold px-4 h-9 rounded-xl flex items-center"
+          className="text-[13px] font-semibold px-4 h-9 rounded-xl flex items-center border"
+          style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)' }}
         >
           Message →
         </button>
@@ -294,7 +296,7 @@ export default function MyTrainer() {
         <div className="relative mx-5">
           <div
             className="absolute z-10 flex items-center justify-center rounded-full"
-            style={{ top: -8, left: -8, width: 64, height: 64, background: 'var(--success)', border: '3px solid white' }}
+            style={{ top: -8, left: -8, width: 64, height: 64, background: 'var(--success)', border: '3px solid var(--bg-primary)' }}
           >
             {trainer?.profile_photo_url ? (
               <img
@@ -414,7 +416,8 @@ export default function MyTrainer() {
               <div className="flex gap-2 mt-3.5">
                 <button
                   onClick={() => navigate('/workout')}
-                  className="flex-1 h-10 bg-[var(--text-primary)] text-white text-[13px] font-semibold rounded-xl whitespace-nowrap"
+                  className="flex-1 h-10 text-[13px] font-semibold rounded-xl whitespace-nowrap border"
+                  style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)', color: 'var(--cta-text)' }}
                 >
                   View Full Plan →
                 </button>
@@ -491,13 +494,13 @@ export default function MyTrainer() {
                   </div>
 
                   {unreadCount > 0 && (
-                    <div className="w-5 h-5 rounded-full bg-[var(--text-primary)] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-[11px] font-bold flex items-center justify-center shrink-0">
                       {unreadCount}
                     </div>
                   )}
                 </div>
 
-                <div className="h-px bg-[var(--bg-pill)] my-3" />
+                <div className="h-px bg-[var(--border)] my-3" />
 
                 <div className="flex gap-1.5 flex-wrap">
                   {[
@@ -511,8 +514,8 @@ export default function MyTrainer() {
                       className="h-7 px-3 rounded-full text-[12px] whitespace-nowrap"
                       style={{
                         background: c.dark ? "var(--text-primary)" : 'transparent',
-                        color:      c.dark ? "var(--bg-card)" : "var(--text-secondary)",
-                        border:     c.dark ? 'none' : '0.5px solid rgba(0,0,0,0.10)',
+                        color:      c.dark ? "var(--bg-primary)" : "var(--text-secondary)",
+                        border:     c.dark ? 'none' : '1px solid var(--border)',
                       }}
                     >
                       {c.label}

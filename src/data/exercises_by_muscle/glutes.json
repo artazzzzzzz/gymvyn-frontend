@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Band Hip Abduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Hip Adduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Hip Abduction Machine",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Hip Adduction Machine",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Hip Abduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Hip Adduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Standing Rear Kick",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Quadruped Hip Extension",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Rear Decline Bridge",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Single-Leg Hip Thrust",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Adductor stretch",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sumo Squat",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  }
+]

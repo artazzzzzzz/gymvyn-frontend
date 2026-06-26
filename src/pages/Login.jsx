@@ -177,8 +177,8 @@ export default function Login() {
 
         {/* Brand lockup */}
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-[var(--bg-card)] rounded-[10px] flex items-center justify-center shrink-0">
-            <span className="text-[17px] font-black text-[var(--text-primary)] tracking-tight">FF</span>
+          <div className="w-11 h-11 bg-[var(--text-primary)] rounded-[10px] flex items-center justify-center shrink-0">
+            <span className="text-[17px] font-black text-[var(--bg-primary)] tracking-tight">GV</span>
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-[20px] font-bold text-[var(--text-primary)]">Gymvyn</span>
@@ -198,25 +198,8 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Social proof */}
-        <div className="flex items-center gap-2 mt-7">
-          <div className="flex">
-            {[
-              { bg: 'var(--success-bg)', c: 'var(--success)', i: 'AK' },
-              { bg: 'var(--accent-bg)', c: '#0C447C', i: 'SR' },
-              { bg: 'var(--warning-bg)', c: 'var(--warning)', i: 'RV' },
-            ].map((a, idx) => (
-              <div
-                key={idx}
-                className="w-6 h-6 rounded-full border-[2px] border-[var(--bg-primary)] flex items-center justify-center text-[8px] font-bold -ml-1.5 first:ml-0"
-                style={{ backgroundColor: a.bg, color: a.c, zIndex: 3 - idx }}
-              >
-                {a.i}
-              </div>
-            ))}
-          </div>
-          <p className="text-[12px] text-[var(--text-secondary)] ml-1">Join 12,000+ members</p>
-        </div>
+        {/* Tagline */}
+        <p className="text-[13px] text-[var(--text-tertiary)] mt-7 tracking-wide">Personalised fitness, powered by AI.</p>
       </div>
 
       {/* ── CARD ZONE (bottom) ── */}

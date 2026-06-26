@@ -1,0 +1,2510 @@
+[
+  {
+    "name": "45 Degree Bycicle Twisting Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "45 Degree Hyperextension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "45 Degree Side Bend",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Air Twisting Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Arnold Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Back Extension",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Band Bent Over Hip Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Bent-over Rear Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Bent-over Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Decline Sit-ups",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band High Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Hip Abduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Hip Adduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Kneeling One Arm Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band One Arm Forward Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band One Arm Twisting Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band One Leg Kickback Bent Position",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Overhead Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Pull Through",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Pull-Apart",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Seated Leg Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Side Bend",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Side Triceps Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Hip Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Lift",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Rear Delt Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Straight Back Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Triceps Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Twist",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Twist (Up-down)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band-Assisted Pull Up",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Barbell Back Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Bent-Over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Bent-over Row Overgrip",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Clean And Press",
+    "muscle_group": "Quads",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Close Grip Bench Press",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Drag Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Front Chest Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Lunge",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Prone Incline Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Rear Delt Raise",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Reverse Wrist Curl (over-grip)",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Seated Behind Head Military Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Standing Back Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Straight Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Underhand Bent-over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Upright Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Upright Row (wide-grip)",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Battle Ropes",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Battling Ropes",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bench Dip",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bench Dips",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bench Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bench Pull-ups",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bent Knee Lying Twist",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Burpee",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Burpees",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cable Bar Lateral Pulldown (reverse-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Bar Lateral Pulldown (wide shoulder grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Close Grip Front Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Crossover",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Crossover Reverse Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Kneeling Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Lying Fly, Flat Bench Cable Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Lying Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Forward Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Lateral Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Twisting Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Overhead Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Overhead Triceps Extension (rope attachment)",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Pullover",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Pushdown (rope attachment)",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Rear Delt Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Rear Delt Row (with rope)",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Rope High Pulley Overhead Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated High Row (V-bar)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated Row (normal grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated Row (parallel grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated Row (wide-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing Fly, Crossover fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing Inner Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing Lift",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing One Arm Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Straight Arm Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Straight Back Seated High Row (reverse-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Straight Back Seated Row (V-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Triceps Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Twist (up-down)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cambered Bar Lying Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cardio Exercises",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cardio Exercises Machines",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Chest Dip",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chest Dips",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chin Up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chin-ups  Pull-Ups",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chin-ups (narrow parallel grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Classic Barbell Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Clean and Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Close Feet Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Close Grip Chin-up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Close Grip Push-ups",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Close-Grip Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Commando Pull Up",
+    "muscle_group": "Back",
+    "difficulty": "Advanced",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Concentration Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Conventional Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Crunch (on bench)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Decline Barbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Decline Dumbbell Bench Press (45 degree)",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Decline Dumbbell Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Deep Push-ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Donkey Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Drag Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Alternate Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Alternate Seated Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Alternate Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Arnold Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Bar Grip Sumo Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Behind Back Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Bench Seated Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Bent-over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Close Grip Press",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Concentration Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Cross Body Hammer Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Decline Fly (45 degree)",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Fly On Exercise Ball",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Flyes",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Front Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Goblet Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Hammer Grip Incline Bench Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Fly On Exercise Ball",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Hammer Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Hammer Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Rear Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Iron Cross",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Kickback",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lunge",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Alternate Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Femoral",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Hammer Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Rear Delt Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell One Arm Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell One Arm Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell One Arm Zottman Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Over Bench Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Palm Rotational Bent Over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Preacher Curl Over Exercise Ball",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Pronate-grip Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Prone Incline Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Rear Delt Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Rear Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Reverse Grip Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Romanian Deadlift",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Kickback",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Neutral Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Side Bend",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Single Leg Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Single Leg Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Standing Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Stiff Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Upright Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Elliptical",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "EZ Barbell Anti Gravity Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "EZ Barbell Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "EZ Barbell Lying Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Front Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Goblet Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Hack Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Hammer Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Hammer Grip Pull-up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hammer Strength Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Hanging Knee Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Leg Hip Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Straight Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "High Row to Neck",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Hip Abduction Machine",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Hip Adduction Machine",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Incline Barbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Incline Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Incline Dumbbell Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Incline Leg Hip Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Incline Push-Ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Inverted Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Inverted Row Between Chairs",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Inverted Row With Straps",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jump Rope",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jump Step-up",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jumping Jack",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jumping Jacks",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Kettlebell Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Kettlebell"
+  },
+  {
+    "name": "Kettlebell Romanian Deadlift",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Kettlebell"
+  },
+  {
+    "name": "Kneeling Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Landmine 180",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Landmine Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Leg Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lever Back Extension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever High Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Horizontal Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Incline Hammer Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Kneeling Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Leg Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Lying Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Lying Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Military Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Pec Deck Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Reverse Hyperextension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Reverse T-Bar Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Dips",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Hip Abduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Hip Adduction",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Leg Raise Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Reverse Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Standing Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Standing Hip Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Standing Rear Kick",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever T-bar Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Triceps Extension (neutral grip)",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lunge",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Lying Cable Tricep Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Lying Floor Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lying Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lying Straight Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lying Supine Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Lying Tricep Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Machine Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Military Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Old School Reverse Extensions",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Otis-ups",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Overhead Cable Rope Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Overhead Tricep Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Pec Deck Machine",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Plank",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Prone Rear Delt Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Pull Up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Pull-up (shoulder grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Pull-up (wide back grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Pull-up (wide front grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Push Up",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Push-ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Quadruped Hip Extension",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Rear Decline Bridge",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Resistance Band Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Resistance Band Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Resistance Band Pushdown",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Reverse Grip Machine Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Reverse Grip Pull-up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Reverse Hyperextension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Reverse-Grip Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Ring High Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Running",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Russian Twist",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Scapula Dips",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Seated Cable Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Seated Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Seated Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Seated Dumbbell Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Seated Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Seated Rear Delt Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Side Bridge - Side Plank",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Single Dumbbell Stiff Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Single Leg Romanian Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Single-Leg Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Single-Leg Hip Thrust",
+    "muscle_group": "Glutes",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Single-Leg Squat to Bench",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sissy Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Advanced",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sit Up",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sit-up On Exercise Ball",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sit-ups",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sled 45 Degree Calf Press",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Sled 45 Degree Leg Wide Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Sled Hack Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Chair Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Deadlift - Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Machine Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Smith Machine"
+  },
+  {
+    "name": "Smith Machine Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Smith Machine"
+  },
+  {
+    "name": "Smith Machine Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Smith Machine"
+  },
+  {
+    "name": "Smith Seated Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Spell Caster",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Standing Ab Wheel Rollout",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Advanced",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Standing Cable Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Standing Cable Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Standing Calf Raise",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Standing Leg Curl",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Standing One-Arm Cable Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Standing One-Arm Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Stationary Bike",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Step Up",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Stigv-Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Straight Arm Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Stretching - Above Head Chest Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Adductor stretch",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - All Fours Squad Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Back Pec Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Band Warm-up Shoulder Stretch",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Stretching - Boat Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Bridge Pose Setu Bandhasana",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Butterfly Yoga Pose",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Calf Stretch with Rope",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Calf Stretch with Strap",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Ceiling Look Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Chin-to-chest Stretch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Circles Knee Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Crossover Kneeling Hip Flexor Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Dynamic Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Dynamic Chest Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Elbows Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Feet and Ankles Rotation Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Feet and Ankles Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Flexion Leg Sit-up",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Front Toe Touch",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hamstring Stretch",
+    "muscle_group": "Hamstrings",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Circles Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Extension Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Flexor and Quad Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Flexor Stretch Rear foot elevated",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Iron Cross Stretch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Knee Raise",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Kneeling Back Rotation Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Kneeling Lat Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Kneeling Triceps Extension",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Middle Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Neck Side Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Peroneals Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Plyo Side Lunge Stretch",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Quadriceps lying stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Quadriceps stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Rear Deltoid Stretch",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Reverse Dip",
+    "muscle_group": "Triceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Runners Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Calf Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Lower Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Shoulder Flexor Depresor Retractor",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Twist (straight arm)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Wide Angle Pose Sequence",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Side Wrist Pull Stretch",
+    "muscle_group": "Forearms",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Single Leg Stretch (bent knee)",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Single Straight Leg Stretch",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Sitting Bent Over Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Slopes Towards Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Spinal Stretch On Exercise Ball",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Spine Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Spine Stretch Forward",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Stairs Calf Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Back Rotation Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Bench Calf Stretch",
+    "muscle_group": "Calves",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Lateral Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Reach Up Back Rotation Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Side Bend (bent arm)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Wheel Rollout",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Wrist Circles",
+    "muscle_group": "Forearms",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sumo Squat",
+    "muscle_group": "Glutes",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "T-Bar Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Toe Touch Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Treadmill Run",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Treadmill Running",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Triceps Dips",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Twisting Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "V-Up",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Vertical Leg Raise (on parallel bars)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Walk Wave Machine",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Weighted Leg Extension Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Weighted Sissy Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Weighted Standing Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Wide Grip Push-ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  }
+]

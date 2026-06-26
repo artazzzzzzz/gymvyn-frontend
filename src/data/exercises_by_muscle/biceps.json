@@ -1,0 +1,182 @@
+[
+  {
+    "name": "Barbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Drag Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Prone Incline Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Cable One Arm Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing Inner Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Concentration Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Drag Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Alternate Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Alternate Seated Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Concentration Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Cross Body Hammer Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Hammer Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell One Arm Zottman Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Preacher Curl Over Exercise Ball",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Prone Incline Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "EZ Barbell Biceps Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Hammer Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Incline Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Lever Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lying Supine Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Preacher Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Resistance Band Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Seated Dumbbell Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Standing Cable Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Standing One-Arm Curl",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Stretching - Butterfly Yoga Pose",
+    "muscle_group": "Biceps",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  }
+]

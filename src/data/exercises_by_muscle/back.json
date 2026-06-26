@@ -1,0 +1,560 @@
+[
+  {
+    "name": "45 Degree Hyperextension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Back Extension",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Band Bent-over Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Kneeling One Arm Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band One Arm Twisting Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band One Leg Kickback Bent Position",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Pull Through",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Pull-Apart",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Straight Back Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band-Assisted Pull Up",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Barbell Bent-Over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Bent-over Row Overgrip",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Rear Delt Raise",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Straight Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Underhand Bent-over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Bench Pull-ups",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cable Bar Lateral Pulldown (reverse-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Bar Lateral Pulldown (wide shoulder grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Close Grip Front Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Lateral Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Twisting Seated Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated High Row (V-bar)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated Row (normal grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated Row (parallel grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Seated Row (wide-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Straight Arm Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Straight Back Seated High Row (reverse-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Straight Back Seated Row (V-grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cambered Bar Lying Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chin Up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chin-ups  Pull-Ups",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chin-ups (narrow parallel grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Close Grip Chin-up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Commando Pull Up",
+    "muscle_group": "Back",
+    "difficulty": "Advanced",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Conventional Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Bent-over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Hammer Grip Incline Bench Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Rear Delt Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Palm Rotational Bent Over Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Reverse Grip Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Stiff Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Hammer Grip Pull-up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "High Row to Neck",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Inverted Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Inverted Row Between Chairs",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Inverted Row With Straps",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Kettlebell Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Kettlebell"
+  },
+  {
+    "name": "Kneeling Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Landmine Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Lever Back Extension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever High Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Reverse Hyperextension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Reverse T-Bar Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Shrug",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever T-bar Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Pull Up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Pull-up (shoulder grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Pull-up (wide back grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Pull-up (wide front grip)",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Reverse Grip Machine Lat Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Reverse Grip Pull-up",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Reverse Hyperextension",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Ring High Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Scapula Dips",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Seated Cable Row",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Single Dumbbell Stiff Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Single Leg Romanian Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Smith Deadlift - Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stigv-Leg Deadlift",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Straight Arm Pulldown",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Stretching - Dynamic Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Elbows Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Kneeling Lat Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Middle Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Neck Side Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Lower Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Wide Angle Pose Sequence",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Sitting Bent Over Back Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Slopes Towards Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Spine Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Spine Stretch Forward",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Standing Back Rotation Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Lateral Stretch",
+    "muscle_group": "Back",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "T-Bar Row",
+    "muscle_group": "Back",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  }
+]

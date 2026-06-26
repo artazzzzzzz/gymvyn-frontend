@@ -1,0 +1,278 @@
+[
+  {
+    "name": "Band Bent Over Hip Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Seated Leg Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Hip Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Barbell Back Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Clean And Press",
+    "muscle_group": "Quads",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Front Chest Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Lunge",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Classic Barbell Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Close Feet Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Dumbbell Bar Grip Sumo Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Front Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Goblet Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lunge",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Single Leg Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Front Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Goblet Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Hack Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Leg Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Horizontal Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Leg Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Standing Hip Extension",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lunge",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Single-Leg Squat to Bench",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sissy Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Advanced",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sled 45 Degree Leg Wide Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Sled Hack Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Chair Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Leg Press",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Smith Machine Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Smith Machine"
+  },
+  {
+    "name": "Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Step Up",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Stretching - All Fours Squad Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Boat Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Ceiling Look Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Crossover Kneeling Hip Flexor Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Circles Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Extension Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Flexor and Quad Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Hip Flexor Stretch Rear foot elevated",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Knee Raise",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Quadriceps lying stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Quadriceps stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Runners Stretch",
+    "muscle_group": "Quads",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Weighted Sissy Squat",
+    "muscle_group": "Quads",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  }
+]

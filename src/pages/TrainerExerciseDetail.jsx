@@ -216,6 +216,9 @@ export default function TrainerExerciseDetail() {
                 src={metadata.video_url}
                 autoPlay
                 controls
+                playsInline
+                muted
+                preload="metadata"
                 className="w-full h-full object-contain"
               />
             ) : (

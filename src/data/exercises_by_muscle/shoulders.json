@@ -1,0 +1,272 @@
+[
+  {
+    "name": "Arnold Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Band Bent-over Rear Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band One Arm Forward Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Rear Delt Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Barbell Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Seated Behind Head Military Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Upright Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Upright Row (wide-grip)",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Cable Crossover Reverse Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Forward Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable One Arm Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Rear Delt Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Rear Delt Row (with rope)",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Clean and Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Alternate Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Arnold Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Bench Seated Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Hammer Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Rear Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Iron Cross",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell One Arm Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Rear Delt Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Rear Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Front Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Upright Row",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "EZ Barbell Anti Gravity Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Lever Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Military Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Reverse Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Military Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Prone Rear Delt Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Resistance Band Lateral Raise",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Seated Dumbbell Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Seated Rear Delt Fly",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Smith Machine Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Smith Machine"
+  },
+  {
+    "name": "Smith Seated Shoulder Press",
+    "muscle_group": "Shoulders",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Band Warm-up Shoulder Stretch",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Stretching - Rear Deltoid Stretch",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Shoulder Flexor Depresor Retractor",
+    "muscle_group": "Shoulders",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  }
+]

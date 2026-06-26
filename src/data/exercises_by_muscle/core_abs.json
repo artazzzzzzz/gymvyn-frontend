@@ -1,0 +1,290 @@
+[
+  {
+    "name": "45 Degree Bycicle Twisting Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "45 Degree Side Bend",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Air Twisting Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Band Decline Sit-ups",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Side Bend",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Standing Lift",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Twist",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Band Twist (Up-down)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Bench Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Bent Knee Lying Twist",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cable Kneeling Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing Lift",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Twist (up-down)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Crunch (on bench)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Dumbbell Side Bend",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Hanging Knee Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Leg Hip Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Hanging Straight Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Incline Leg Hip Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Landmine 180",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lever Seated Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Seated Leg Raise Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lying Floor Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lying Straight Leg Raise",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Otis-ups",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Plank",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Russian Twist",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Side Bridge - Side Plank",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sit Up",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sit-up On Exercise Ball",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Sit-ups",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Spell Caster",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Standing Ab Wheel Rollout",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Advanced",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Standing Cable Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Stretching - Chin-to-chest Stretch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Iron Cross Stretch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Seated Twist (straight arm)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Spinal Stretch On Exercise Ball",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Standing Side Bend (bent arm)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Toe Touch Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Twisting Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "V-Up",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Vertical Leg Raise (on parallel bars)",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Weighted Leg Extension Crunch",
+    "muscle_group": "Core/Abs",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  }
+]

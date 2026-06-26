@@ -40,8 +40,8 @@ function PillGroup({ options, value, onChange }) {
               padding: '7px 14px',
               borderRadius: 20,
               border: active ? '1.5px solid var(--text-primary)' : '1.5px solid var(--border)',
-              background: active ? 'var(--text-primary)' : 'white',
-              color: active ? 'white' : 'var(--text-secondary)',
+              background: active ? 'var(--text-primary)' : 'var(--bg-card)',
+              color: active ? 'var(--bg-primary)' : 'var(--text-secondary)',
               fontSize: 13,
               fontWeight: active ? 600 : 500,
               cursor: 'pointer',
@@ -69,7 +69,7 @@ function SectionHeader({ emoji, title }) {
 
 function StatInput({ label, value, onChange, placeholder }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid var(--bg-pill)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
       <span style={{ fontSize: 14, color: 'var(--text-primary)' }}>{label}</span>
       <input
         type="number"
@@ -79,13 +79,13 @@ function StatInput({ label, value, onChange, placeholder }) {
         style={{
           width: 80,
           textAlign: 'right',
-          border: '1.5px solid var(--border)',
+          border: '1px solid var(--border)',
           borderRadius: 8,
           padding: '5px 10px',
           fontSize: 14,
           fontWeight: 600,
           color: 'var(--text-primary)',
-          background: 'var(--bg-pill)',
+          background: 'var(--bg-elevated)',
           outline: 'none',
         }}
       />
@@ -224,8 +224,8 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
       }}>
         {/* Header */}
         <div style={{
-          background: 'white',
-          borderBottom: '1px solid var(--bg-pill)',
+          background: 'var(--bg-card)',
+          borderBottom: '1px solid var(--border)',
           padding: '0 20px',
           height: 56,
           display: 'flex',
@@ -249,13 +249,13 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
               {/* Section 1: Diet Goal */}
-              <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                 <SectionHeader emoji="🎯" title="Diet Goal" />
                 <PillGroup options={DIET_GOALS} value={dietGoal} onChange={setDietGoal} />
               </div>
 
               {/* Section 2: Activity Level */}
-              <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                 <SectionHeader emoji="⚡" title="Activity Level" />
                 <PillGroup options={ACTIVITY_LEVELS} value={activityLevel} onChange={setActivityLevel} />
                 {activitySub && (
@@ -264,7 +264,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               </div>
 
               {/* Section 3: Your Stats */}
-              <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                 <SectionHeader emoji="📊" title="Your Stats" />
                 <StatInput label="Weight" value={weight} onChange={setWeight} placeholder="72" />
                 <StatInput label="Height (cm)" value={height} onChange={setHeight} placeholder="175" />
@@ -281,8 +281,8 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                           padding: '5px 16px',
                           borderRadius: 20,
                           border: gender === g ? '1.5px solid var(--text-primary)' : '1.5px solid var(--border)',
-                          background: gender === g ? 'var(--text-primary)' : 'white',
-                          color: gender === g ? 'white' : 'var(--text-secondary)',
+                          background: gender === g ? 'var(--text-primary)' : 'var(--bg-card)',
+                          color: gender === g ? 'var(--bg-primary)' : 'var(--text-secondary)',
                           fontSize: 13,
                           fontWeight: gender === g ? 600 : 500,
                           cursor: 'pointer',
@@ -298,7 +298,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
 
               {/* Section 4: Calculated Macros */}
               {calculated ? (
-                <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                   <SectionHeader emoji="✨" title="Recommended for you" />
                   <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>
                     {calculated.calories.toLocaleString()}
@@ -324,14 +324,14 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                   </p>
                 </div>
               ) : (
-                <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                   <SectionHeader emoji="✨" title="Recommended for you" />
                   <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Fill in your stats above to see your personalised targets.</p>
                 </div>
               )}
 
               {/* Section 5: Override */}
-              <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                 <SectionHeader emoji="⚙️" title="Override" />
                 {/* Auto / Custom toggle */}
                 <div style={{ display: 'flex', background: 'var(--bg-pill)', borderRadius: 12, padding: 3, marginBottom: 16 }}>
@@ -344,7 +344,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                         padding: '8px 0',
                         borderRadius: 10,
                         border: 'none',
-                        background: macroMode === m ? 'white' : 'transparent',
+                        background: macroMode === m ? 'var(--bg-card)' : 'transparent',
                         color: macroMode === m ? 'var(--text-primary)' : 'var(--text-tertiary)',
                         fontSize: 13,
                         fontWeight: macroMode === m ? 600 : 500,
@@ -367,7 +367,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                       { label: 'Carbs',       value: customCarbs,    set: setCustomCarbs,    unit: 'g'    },
                       { label: 'Fat',         value: customFat,      set: setCustomFat,      unit: 'g'    },
                     ].map(({ label, value, set, unit }) => (
-                      <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid var(--bg-pill)' }}>
+                      <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
                         <span style={{ fontSize: 14, color: 'var(--text-primary)' }}>{label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <input
@@ -377,13 +377,13 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                             style={{
                               width: 70,
                               textAlign: 'right',
-                              border: '1.5px solid var(--border)',
+                              border: '1px solid var(--border)',
                               borderRadius: 8,
                               padding: '5px 8px',
                               fontSize: 14,
                               fontWeight: 600,
                               color: 'var(--text-primary)',
-                              background: 'var(--bg-pill)',
+                              background: 'var(--bg-elevated)',
                               outline: 'none',
                             }}
                           />
@@ -407,14 +407,14 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               </div>
 
               {/* Section 6: Water Goal */}
-              <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
                 <SectionHeader emoji="💧" title="Daily Water Goal" />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <button
                     onClick={() => setWaterGoal(g => Math.max(500, g - 250))}
                     style={{
                       width: 40, height: 40, borderRadius: 20,
-                      border: '1.5px solid var(--border)', background: 'white',
+                      border: '1px solid var(--border-strong)', background: 'var(--bg-elevated)',
                       fontSize: 20, color: 'var(--text-primary)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
@@ -429,7 +429,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                     onClick={() => setWaterGoal(g => g + 250)}
                     style={{
                       width: 40, height: 40, borderRadius: 20,
-                      border: '1.5px solid var(--border)', background: 'white',
+                      border: '1px solid var(--border-strong)', background: 'var(--bg-elevated)',
                       fontSize: 20, color: 'var(--text-primary)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
@@ -456,13 +456,12 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               width: '100%',
               padding: '15px',
               borderRadius: 14,
-              background: (saving || loading) ? 'var(--bg-input)' : 'var(--bg-card)',
-              color: (saving || loading) ? 'var(--text-muted)' : 'var(--text-primary)',
-              border: (saving || loading) ? '1px solid var(--border)' : '1px solid var(--text-primary)',
+              background: (saving || loading) ? 'var(--border)' : 'var(--text-primary)',
+              color: (saving || loading) ? 'var(--text-tertiary)' : 'var(--bg-primary)',
+              border: 'none',
               fontSize: 15,
               fontWeight: 700,
               cursor: saving ? 'default' : 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
               transition: 'background 0.15s, color 0.15s, border-color 0.15s',
             }}
           >

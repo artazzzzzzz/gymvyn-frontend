@@ -219,7 +219,7 @@ export default function Workout() {
           </div>
           <div style={{
             background: "var(--bg-card)", borderRadius: 14, padding: 16,
-            border: '1px solid var(--bg-pill)', borderTop: '3px solid var(--text-cta)',
+            border: '1px solid var(--border)', borderTop: '3px solid var(--text-cta)',
           }}>
             <p style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{trainerPlan.name}</p>
             {trainerPlan.notes && (
@@ -250,17 +250,17 @@ export default function Workout() {
                   }}
                 >
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: isToday ? 500 : 400, color: isToday ? 'white' : isDone ? "var(--text-tertiary)" : isMissed ? '#E24B4A' : "var(--text-primary)" }}>
+                    <p style={{ fontSize: 14, fontWeight: isToday ? 500 : 400, color: isToday ? 'var(--bg-primary)' : isDone ? "var(--text-tertiary)" : isMissed ? '#E24B4A' : "var(--text-primary)" }}>
                       {day.name || `Day ${i + 1}`}
                     </p>
-                    <p style={{ fontSize: 12, color: isToday ? 'rgba(255,255,255,0.6)' : "var(--text-tertiary)", marginTop: 1 }}>
+                    <p style={{ fontSize: 12, color: isToday ? 'var(--bg-primary)' : "var(--text-tertiary)", opacity: isToday ? 0.6 : 1, marginTop: 1 }}>
                       {day.exercises?.length || 0} exercises
                     </p>
                   </div>
                   {isDone    && <ChevronRight size={14} color="var(--success)" />}
                   {isMissed  && <ChevronRight size={14} color="#E24B4A" />}
                   {!isDone && !isMissed && !isToday && <ChevronRight size={16} color="var(--text-tertiary)" />}
-                  {isToday   && <span style={{ fontSize: 13, color: 'white', fontWeight: 500 }}>Start →</span>}
+                  {isToday   && <span style={{ fontSize: 13, color: 'var(--bg-primary)', fontWeight: 500 }}>Start →</span>}
                 </div>
               )
             })}
@@ -492,8 +492,8 @@ export default function Workout() {
           />
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 101,
-            background: 'white', borderRadius: '16px 16px 0 0', padding: '20px 20px 40px',
-            border: '0.5px solid rgba(0,0,0,0.1)',
+            background: 'var(--bg-card)', borderRadius: '16px 16px 0 0', padding: '20px 20px 40px',
+            border: '1px solid var(--border)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>{selectedPlan.name}</span>
@@ -508,7 +508,7 @@ export default function Workout() {
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '12px 0', borderTop: '1px solid var(--bg-pill)', cursor: 'pointer',
+                  padding: '12px 0', borderTop: '1px solid var(--border)', cursor: 'pointer',
                 }}
               >
                 <div>

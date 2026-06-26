@@ -1,0 +1,266 @@
+[
+  {
+    "name": "Band High Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Resistance Band"
+  },
+  {
+    "name": "Barbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Cable Crossover",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Lying Fly, Flat Bench Cable Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Pullover",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Cable Standing Fly, Crossover fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Chest Dip",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Chest Dips",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Close-Grip Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Decline Barbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Decline Dumbbell Bench Press (45 degree)",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Decline Dumbbell Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Deep Push-ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Dumbbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Decline Fly (45 degree)",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Fly On Exercise Ball",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Flyes",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Incline Fly On Exercise Ball",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Lying Hammer Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Hammer Strength Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Incline Barbell Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Incline Dumbbell Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Incline Push-Ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Lever Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Incline Hammer Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Lying Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Lever Pec Deck Fly",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Machine Chest Press",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Pec Deck Machine",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Push Up",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Push-ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Reverse-Grip Bench Press",
+    "muscle_group": "Chest",
+    "difficulty": "Advanced",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Standing One-Arm Cable Press",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Cable"
+  },
+  {
+    "name": "Stretching - Above Head Chest Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Back Pec Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Dynamic Chest Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Kneeling Back Rotation Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Reach Up Back Rotation Stretch",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Standing Wheel Rollout",
+    "muscle_group": "Chest",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Triceps Dips",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Wide Grip Push-ups",
+    "muscle_group": "Chest",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  }
+]

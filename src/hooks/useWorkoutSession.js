@@ -1,76 +1,142 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../utils/supabase'
 import { useAuth } from './useAuth'
 import { finishWorkout } from '../utils/api'
 
+// Web Audio beep + Android vibrate. Silent if AudioContext was never primed
+// inside a user gesture (iOS Safari requirement) — vibrate still fires.
+function fireRestEndCue(ctx) {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(200)
+    }
+  } catch { /* noop */ }
+  try {
+    if (!ctx) return
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+    const osc  = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, ctx.currentTime)
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.4,    ctx.currentTime + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22)
+    osc.connect(gain).connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.25)
+  } catch { /* noop */ }
+}
+
 export function useWorkoutSession() {
   const { user } = useAuth()
 
-  const [sessionId,     setSessionId]     = useState(null)
-  const [isActive,      setIsActive]      = useState(false)
-  const [exercises,     setExercises]     = useState([])
-  const [elapsedSeconds,setElapsedSeconds]= useState(0)
-  const [isSaving,      setIsSaving]      = useState(false)
-  const [error,         setError]         = useState(null)
+  const [sessionId,        setSessionId]        = useState(null)
+  const [isActive,         setIsActive]         = useState(false)
+  const [exercises,        setExercises]        = useState([])
+  const [restActive,       setRestActive]       = useState(false)
+  const [restTotalSeconds, setRestTotalSeconds] = useState(0)
+  const [restDuration,     setRestDuration]     = useState(90)
+  const [isSaving,         setIsSaving]         = useState(false)
+  const [error,            setError]            = useState(null)
 
-  // Rest timer
-  const [restTimer,    setRestTimer]    = useState({ active: false, secondsLeft: 0, totalSeconds: 0 })
-  const [restDuration, setRestDuration] = useState(90)
+  // Tick state drives ~4Hz re-renders so derived elapsed/remaining values update.
+  // It is NOT the source of truth — Date.now() against the stored start timestamp is.
+  const [, setTick] = useState(0)
+  const forceTick = useCallback(() => setTick(t => (t + 1) & 0xffff), [])
 
-  const startedAtRef      = useRef(null)
-  const elapsedIntervalRef = useRef(null)
-  const restIntervalRef    = useRef(null)
+  // Source-of-truth refs (immune to setInterval throttling when tab is backgrounded)
+  const workoutStartedAtRef = useRef(null)   // ms epoch
+  const restStartedAtRef    = useRef(null)   // ms epoch
+  const restTotalSecondsRef = useRef(0)
+  const beepFiredRef        = useRef(false)
+  const tickIntervalRef     = useRef(null)
+  const audioCtxRef         = useRef(null)
 
-  // ── Elapsed counter (starts/stops with isActive) ──────────────────────────
-
+  // ── Tick driver: re-render while any timer is live ────────────────────────
   useEffect(() => {
-    if (!isActive) return
-    elapsedIntervalRef.current = setInterval(() => {
-      setElapsedSeconds(s => s + 1)
-    }, 1000)
-    return () => clearInterval(elapsedIntervalRef.current)
-  }, [isActive])
+    if (!isActive && !restActive) return
+    tickIntervalRef.current = setInterval(forceTick, 250)
+    return () => clearInterval(tickIntervalRef.current)
+  }, [isActive, restActive, forceTick])
 
-  // ── Cleanup on unmount ─────────────────────────────────────────────────────
-
+  // ── visibilitychange: force an immediate re-render on return so the displayed
+  //    elapsed/remaining snaps to wall-clock time without waiting for the tick ──
   useEffect(() => {
-    return () => {
-      clearInterval(elapsedIntervalRef.current)
-      clearInterval(restIntervalRef.current)
-    }
-  }, [])
+    function onVis() { if (!document.hidden) forceTick() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [forceTick])
 
-  // ── Rest timer (managed imperatively to support restart) ──────────────────
+  // ── Cleanup on unmount ────────────────────────────────────────────────────
+  useEffect(() => () => clearInterval(tickIntervalRef.current), [])
 
+  // ── Derive elapsed/remaining from timestamps every render ─────────────────
+  const nowMs = Date.now()
+  const elapsedSeconds = (isActive && workoutStartedAtRef.current)
+    ? Math.max(0, Math.floor((nowMs - workoutStartedAtRef.current) / 1000))
+    : 0
+
+  let restSecondsLeft = 0
+  if (restActive && restStartedAtRef.current != null) {
+    const restElapsed = Math.floor((nowMs - restStartedAtRef.current) / 1000)
+    restSecondsLeft = Math.max(0, restTotalSecondsRef.current - restElapsed)
+  }
+
+  // Fire the beep/vibrate exactly once when the rest ends. Guarded by a ref so
+  // it never re-fires across re-renders, and only inside an effect so we never
+  // dispatch side effects from render.
+  useEffect(() => {
+    if (!restActive) return
+    if (restSecondsLeft > 0) return
+    if (beepFiredRef.current) return
+    beepFiredRef.current = true
+    fireRestEndCue(audioCtxRef.current)
+    setRestActive(false)
+  }, [restActive, restSecondsLeft])
+
+  const restTimer = {
+    active:        restActive,
+    secondsLeft:   restSecondsLeft,
+    totalSeconds:  restTotalSeconds,
+  }
+
+  // ── Audio priming. Must run inside a user gesture (iOS Safari requirement). ──
+  function primeAudio() {
+    try {
+      if (!audioCtxRef.current) {
+        const Ctx = window.AudioContext || window.webkitAudioContext
+        if (!Ctx) return
+        audioCtxRef.current = new Ctx()
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume().catch(() => {})
+      }
+    } catch { /* noop */ }
+  }
+
+  // ── Rest timer controls ───────────────────────────────────────────────────
   function startRestTimer(duration) {
-    clearInterval(restIntervalRef.current)
-    setRestTimer({ active: true, secondsLeft: duration, totalSeconds: duration })
-    restIntervalRef.current = setInterval(() => {
-      setRestTimer(prev => {
-        if (prev.secondsLeft <= 1) {
-          clearInterval(restIntervalRef.current)
-          return { active: false, secondsLeft: 0, totalSeconds: prev.totalSeconds }
-        }
-        return { ...prev, secondsLeft: prev.secondsLeft - 1 }
-      })
-    }, 1000)
+    restStartedAtRef.current     = Date.now()
+    restTotalSecondsRef.current  = duration
+    beepFiredRef.current         = false
+    setRestTotalSeconds(duration)
+    setRestActive(true)
   }
 
   function skipRest() {
-    clearInterval(restIntervalRef.current)
-    setRestTimer(prev => ({ ...prev, active: false, secondsLeft: 0 }))
+    restStartedAtRef.current = null
+    beepFiredRef.current     = true   // suppress any pending beep for this rest
+    setRestActive(false)
   }
 
   // ── Session lifecycle ─────────────────────────────────────────────────────
-
   async function startSession() {
     if (!user) { setError('Not logged in'); return null }
-    const now = new Date().toISOString()
-    startedAtRef.current = now
+    primeAudio()                              // first opportunity inside a gesture
+    workoutStartedAtRef.current = Date.now()
     const localId = crypto.randomUUID()
     setSessionId(localId)
     setIsActive(true)
-    setElapsedSeconds(0)
     setExercises([])
     return localId
   }
@@ -79,14 +145,14 @@ export function useWorkoutSession() {
     if (!sessionId) return null
     setIsSaving(true)
     try {
-      const now = new Date()
-      const startedAt = startedAtRef.current ? new Date(startedAtRef.current) : now
-      const durationMinutes = Math.max(1, Math.round((now - startedAt) / 60_000))
+      const startedAtMs   = workoutStartedAtRef.current ?? Date.now()
+      const startedAtIso  = new Date(startedAtMs).toISOString()
+      const durationMinutes = Math.max(1, Math.round((Date.now() - startedAtMs) / 60_000))
 
       // Create the workout_logs row now (only on finish, never on start).
       const { data: logRow, error: insertErr } = await supabase
         .from('workout_logs')
-        .insert({ user_id: user.id, started_at: startedAtRef.current })
+        .insert({ user_id: user.id, started_at: startedAtIso })
         .select('id')
         .single()
       if (insertErr) throw insertErr
@@ -134,7 +200,7 @@ export function useWorkoutSession() {
 
       return {
         workoutId:      realId,
-        startedAt:      startedAtRef.current || startedAt.toISOString(),
+        startedAt:      startedAtIso,
         durationMinutes,
         totalSets:      setRows.length,
         totalVolume:    setRows.reduce((sum, s) => sum + s.weight_kg * s.reps_completed, 0),
@@ -165,11 +231,10 @@ export function useWorkoutSession() {
   }
 
   function cancelSession() {
+    workoutStartedAtRef.current = null
     setIsActive(false)
     setSessionId(null)
     setExercises([])
-    setElapsedSeconds(0)
-    clearInterval(elapsedIntervalRef.current)
     skipRest()
   }
 
@@ -229,6 +294,10 @@ export function useWorkoutSession() {
   }
 
   function completeSet(exerciseId, setNumber, { fallbackWeight, fallbackReps } = {}) {
+    // completeSet runs from a tap handler — a guaranteed user gesture, so we
+    // (re-)prime the AudioContext here too as a belt-and-suspenders for cases
+    // where the session was restored without going through startSession.
+    primeAudio()
     setExercises(prev => prev.map(ex => {
       if (ex.exerciseId !== exerciseId) return ex
       return {

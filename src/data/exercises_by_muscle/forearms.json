@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Barbell Reverse Wrist Curl (over-grip)",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Barbell Standing Back Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Barbell"
+  },
+  {
+    "name": "Dumbbell Behind Back Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Over Bench Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Dumbbell Seated Neutral Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Dumbbell"
+  },
+  {
+    "name": "Stretching - Side Wrist Pull Stretch",
+    "muscle_group": "Forearms",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Wrist Circles",
+    "muscle_group": "Forearms",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Weighted Standing Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Wrist Curl",
+    "muscle_group": "Forearms",
+    "difficulty": "Beginner",
+    "equipment": "Barbell"
+  }
+]

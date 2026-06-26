@@ -1,0 +1,134 @@
+[
+  {
+    "name": "Battle Ropes",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Battling Ropes",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Burpee",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Burpees",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cardio Exercises",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Cardio Exercises Machines",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Elliptical",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Jump Rope",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jump Step-up",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jumping Jack",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Jumping Jacks",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Running",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stationary Bike",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Stretching - Bridge Pose Setu Bandhasana",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Flexion Leg Sit-up",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Front Toe Touch",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Plyo Side Lunge Stretch",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Single Leg Stretch (bent knee)",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Stretching - Single Straight Leg Stretch",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Bodyweight"
+  },
+  {
+    "name": "Treadmill Run",
+    "muscle_group": "Cardio",
+    "difficulty": "Beginner",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Treadmill Running",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  },
+  {
+    "name": "Walk Wave Machine",
+    "muscle_group": "Cardio",
+    "difficulty": "Intermediate",
+    "equipment": "Machine"
+  }
+]
