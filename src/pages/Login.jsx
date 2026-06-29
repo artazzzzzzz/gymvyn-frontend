@@ -79,6 +79,7 @@ function InputField({ icon, type = 'text', placeholder, value, onChange, rightEl
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         className="flex-1 text-[15px] text-[var(--text-primary)] bg-transparent focus:outline-none placeholder-[var(--text-tertiary)]"
+        style={{ background: 'transparent' }}
       />
       {rightElement}
     </div>

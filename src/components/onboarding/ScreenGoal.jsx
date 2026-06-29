@@ -25,6 +25,9 @@ export default function ScreenGoal({ answers, onNext, onBack, updateAnswer }) {
       >←</button>
 
       <div style={{ paddingTop: 20, paddingBottom: 28 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', marginBottom: 24 }}>
+          STEP 2 OF 8
+        </div>
         <h1 style={{
           fontSize: 26, fontWeight: 800, lineHeight: 1.15,
           color: 'var(--text-primary)', margin: '0 0 8px',

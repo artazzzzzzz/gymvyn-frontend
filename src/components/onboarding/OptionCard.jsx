@@ -1,4 +1,4 @@
-export default function OptionCard({ emoji, label, sub, selected, onSelect, multi = false }) {
+export default function OptionCard({ label, sub, selected, onSelect, multi = false }) {
   return (
     <button
       onClick={onSelect}
@@ -36,9 +36,6 @@ export default function OptionCard({ emoji, label, sub, selected, onSelect, mult
           </svg>
         )}
       </div>
-
-      {/* Emoji */}
-      <span style={{ fontSize: 24, flexShrink: 0, lineHeight: 1 }}>{emoji}</span>
 
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>

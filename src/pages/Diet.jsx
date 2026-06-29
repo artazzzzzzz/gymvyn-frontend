@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ChevronLeft, ChevronRight, Settings, Pencil, Scan,
-  Search, Mic, BookOpen, X, Droplets, Info,
+  Search, Mic, BookOpen, X, Droplets, Info, Camera,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 
 import DietSettingsSheet from '../components/DietSettingsSheet'
 import FoodLoggerSheet from '../components/FoodLoggerSheet'
+import VoiceDietRecorder from '../components/VoiceDietRecorder'
+import VoiceDietConfirmSheet from '../components/VoiceDietConfirmSheet'
+import EditFoodLogSheet from '../components/EditFoodLogSheet'
+import FoodPhotoCapture from '../components/FoodPhotoCapture'
 import { useAssignedDietPlan } from '../hooks/useAssignedDietPlan'
 import AssignedDietPlanView from '../components/diet/AssignedDietPlanView'
 import {
@@ -60,7 +64,7 @@ function ToastContainer({ toasts, onRemove }) {
     <div style={{ position: 'fixed', top: 16, left: 0, right: 0, zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '0 16px', pointerEvents: 'none' }}>
       {toasts.map(t => (
         <div key={t.id} style={{ pointerEvents: 'auto', width: '100%', maxWidth: 360, backgroundColor: "var(--text-primary)", borderRadius: 16, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', borderLeft: '3px solid var(--success)' }}>
-          <span style={{ color: 'var(--success)', fontSize: 15, flexShrink: 0 }}>✓</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12"/></svg>
           <span style={{ color: "var(--bg-card)", fontSize: 13, flex: 1, lineHeight: 1.4 }}>{t.message}</span>
           <button onClick={() => onRemove(t.id)} style={{ color: "var(--text-secondary)", background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, display: 'flex' }}>
             <X size={14} />
@@ -108,6 +112,12 @@ export default function Diet() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [addMealType, setAddMealType] = useState('breakfast')
   const [addMode, setAddMode] = useState('search')
+
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false)
+  const [voiceParseResult, setVoiceParseResult] = useState(null)
+
+  const [showPhotoCapture, setShowPhotoCapture] = useState(false)
+  const [editingLog, setEditingLog] = useState(null)
 
   const [plan, setPlan] = useState(null)
 
@@ -419,6 +429,32 @@ export default function Diet() {
 
       {/* ── QUICK LOG STRIP ── */}
       <div style={{ display: 'flex', overflowX: 'auto', padding: '12px 16px', gap: 8, scrollbarWidth: 'none' }}>
+        {/* AI Voice button */}
+        <button onClick={() => setShowVoiceRecorder(true)}
+          style={{
+            backgroundColor: 'var(--text-primary)', border: 'none', borderRadius: 12,
+            paddingLeft: 14, paddingRight: 14, paddingTop: 8, paddingBottom: 8,
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 13, color: 'var(--bg-card)', whiteSpace: 'nowrap',
+            cursor: 'pointer', flexShrink: 0,
+          }}>
+          <Mic size={15} />
+          AI Voice
+        </button>
+
+        {/* AI Camera button */}
+        <button onClick={() => setShowPhotoCapture(true)}
+          style={{
+            backgroundColor: 'var(--text-primary)', border: 'none', borderRadius: 12,
+            paddingLeft: 14, paddingRight: 14, paddingTop: 8, paddingBottom: 8,
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 13, color: 'var(--bg-card)', whiteSpace: 'nowrap',
+            cursor: 'pointer', flexShrink: 0,
+          }}>
+          <Camera size={15} />
+          AI Snap
+        </button>
+
         {[
           { label: 'Search', Icon: Search,   mode: 'search'  },
           { label: 'Scan',   Icon: Scan,     mode: 'camera'  },
@@ -463,9 +499,10 @@ export default function Diet() {
             ) : (
               <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 14, marginLeft: 16, marginRight: 16, overflow: 'hidden' }}>
                 {items.map((log, idx) => (
-                  <div key={log.id} style={{
+                  <div key={log.id} onClick={() => setEditingLog(log)} style={{
                     padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     borderBottom: idx < items.length - 1 ? '1px solid var(--border)' : 'none',
+                    cursor: 'pointer',
                   }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{log.food_name}</div>
@@ -475,7 +512,7 @@ export default function Diet() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{Math.round(log.calories || 0)} kcal</span>
-                      <button onClick={() => handleDeleteLog(log.id)}
+                      <button onClick={e => { e.stopPropagation(); handleDeleteLog(log.id); }}
                         style={{ fontSize: 18, color: "var(--text-tertiary)", marginLeft: 12, background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1, padding: 0 }}>
                         ×
                       </button>
@@ -583,6 +620,45 @@ export default function Diet() {
         onClose={() => setShowAddModal(false)}
         onLogged={handleLogged}
       />
+
+      {showVoiceRecorder && (
+        <VoiceDietRecorder
+          onParsed={(result) => { setVoiceParseResult(result); setShowVoiceRecorder(false); }}
+          onClose={() => setShowVoiceRecorder(false)}
+        />
+      )}
+
+      {showPhotoCapture && (
+        <FoodPhotoCapture
+          onParsed={(result) => { setVoiceParseResult(result); setShowPhotoCapture(false); }}
+          onClose={() => setShowPhotoCapture(false)}
+        />
+      )}
+
+      {voiceParseResult && (
+        <VoiceDietConfirmSheet
+          parseResult={voiceParseResult}
+          logDate={dateYMD}
+          onSaved={(count) => {
+            setVoiceParseResult(null);
+            addToast(`Logged ${count} item${count !== 1 ? 's' : ''}`);
+            refreshLogs(dateYMD);
+          }}
+          onClose={() => setVoiceParseResult(null)}
+        />
+      )}
+
+      {editingLog && (
+        <EditFoodLogSheet
+          logEntry={editingLog}
+          onSaved={() => {
+            setEditingLog(null);
+            addToast('Food entry updated');
+            refreshLogs(dateYMD);
+          }}
+          onClose={() => setEditingLog(null)}
+        />
+      )}
 
     </div>
   )

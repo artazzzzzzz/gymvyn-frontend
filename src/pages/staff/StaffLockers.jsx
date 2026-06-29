@@ -139,7 +139,7 @@ function AssignSheet({ locker, gymId, onClose, onSuccess }) {
               padding: '10px 14px', backgroundColor: 'var(--success-bg)',
               borderRadius: 10, marginBottom: 16,
             }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)' }}>✓ {selectedMember.full_name}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)' }}>{selectedMember.full_name}</div>
             </div>
           )}
 
@@ -209,7 +209,10 @@ function LockerDetailSheet({ locker, onClose, onAssign, onRelease }) {
         <div style={{ width: 40, height: 4, backgroundColor: 'var(--border-strong)', borderRadius: 2, margin: '0 auto 20px' }} />
         <div style={{ padding: '0 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>🔒 {locker.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              {locker.label}
+            </div>
             <span style={{
               backgroundColor: meta.bg, color: meta.color,
               fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 20,
@@ -241,7 +244,7 @@ function LockerDetailSheet({ locker, onClose, onAssign, onRelease }) {
 
           {locker.is_paid && (
             <div style={{ marginBottom: 20, fontSize: 14, color: 'var(--text-secondary)' }}>
-              💰 Price: ₹{locker.price}/period
+              Price: ₹{locker.price}/period
             </div>
           )}
 
@@ -369,7 +372,9 @@ export default function StaffLockers() {
                     cursor: 'pointer', textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: 24, marginBottom: 6 }}>🔒</div>
+                  <div style={{ marginBottom: 6, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{locker.label}</div>
                   <span style={{
                     display: 'inline-block', backgroundColor: meta.bg, color: meta.color,

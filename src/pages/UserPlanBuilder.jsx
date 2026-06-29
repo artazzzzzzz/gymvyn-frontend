@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import ExercisePicker from '../components/ExercisePicker';
@@ -18,6 +18,7 @@ export default function UserPlanBuilder() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { planId } = useParams();
+  const location = useLocation();
   const isEditing = !!planId && planId !== 'new';
 
   const [saving, setSaving] = useState(false);
@@ -31,6 +32,15 @@ export default function UserPlanBuilder() {
   const dayNameRef = useRef(null);
 
   useEffect(() => { if (isEditing) loadPlan(); }, [isEditing]);
+
+  useEffect(() => {
+    if (location.state?.aiPlan && !isEditing) {
+      const aiPlan = location.state.aiPlan;
+      setName(aiPlan.name || '');
+      setDescription(aiPlan.description || '');
+      setDays(aiPlan.days?.length ? aiPlan.days : [newDay(1)]);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (editingDayName && dayNameRef.current) dayNameRef.current.focus();
@@ -409,7 +419,8 @@ export default function UserPlanBuilder() {
                   Set {setIdx + 1}
                 </span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="text"
                   placeholder="12"
                   value={s.reps}
                   onChange={e => updateSet(setIdx, 'reps', e.target.value)}
@@ -422,6 +433,7 @@ export default function UserPlanBuilder() {
                 <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>×</span>
                 <input
                   type="number"
+                  inputMode="decimal"
                   placeholder="60"
                   value={s.kg}
                   onChange={e => updateSet(setIdx, 'kg', e.target.value)}

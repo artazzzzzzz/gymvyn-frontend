@@ -113,7 +113,7 @@ export default function ExerciseDetail() {
             transition: 'background 0.25s',
           }}
         >
-          {added ? '✓  Added to Workout' : 'Add to Workout'}
+          {added ? 'Added to Workout' : 'Add to Workout'}
         </button>
       </div>
     </div>

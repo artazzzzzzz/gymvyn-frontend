@@ -6,28 +6,28 @@ import { supabase } from '../utils/supabase'
 const ROLES = [
   {
     key: 'consumer',
-    emoji: '🏋️',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11M4 8.5v7M9 5.5v13M15 5.5v13M20 8.5v7"/></svg>,
     title: "I'm here to train",
     sub: 'Get personalized workouts, track progress, and connect with a trainer.',
     next: '/onboarding',
   },
   {
     key: 'trainer',
-    emoji: '🎯',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
     title: "I'm a Trainer / Coach",
     sub: 'Build your client base, manage plans, and grow your fitness business.',
     next: '/become-trainer',
   },
   {
     key: 'gym_owner',
-    emoji: '🏢',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
     title: 'I own a Gym',
     sub: 'Manage members, trainers, schedules, and your gym operations.',
     next: '/gym-onboarding',
   },
   {
     key: 'staff',
-    emoji: '🪪',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 20h8M12 17v3"/></svg>,
     title: 'Staff',
     sub: 'Front desk & gym management.',
     next: '/stagv-onboarding',
@@ -122,7 +122,7 @@ export default function RoleSelect() {
                 width: 48, height: 48, borderRadius: 12,
                 backgroundColor: 'var(--bg-primary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 22, flexShrink: 0,
+                color: 'var(--text-secondary)', flexShrink: 0,
               }}>
                 {isSaving ? (
                   <div style={{
@@ -130,7 +130,7 @@ export default function RoleSelect() {
                     borderTopColor: 'transparent', borderRadius: '50%',
                     animation: 'spin 0.7s linear infinite',
                   }} />
-                ) : r.emoji}
+                ) : r.icon}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>

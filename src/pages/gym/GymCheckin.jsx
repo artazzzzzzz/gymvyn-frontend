@@ -169,9 +169,9 @@ export default function GymCheckin() {
 
         <div style={{ display: 'flex' }}>
           {[
-            { key: 'scan', label: '📷 Scan QR' },
-            { key: 'manual', label: '🔍 Manual' },
-            { key: 'history', label: '📋 History' },
+            { key: 'scan', label: 'Scan QR' },
+            { key: 'manual', label: 'Manual' },
+            { key: 'history', label: 'History' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -292,7 +292,9 @@ export default function GymCheckin() {
             <span style={{
               position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
               fontSize: 16, color: 'var(--text-tertiary)', pointerEvents: 'none',
-            }}>🔍</span>
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
             <input
               type="text"
               placeholder="Search by name or phone..."
@@ -542,7 +544,7 @@ export default function GymCheckin() {
         }}>
           <style>{`@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
           <div style={{ fontSize: 15, fontWeight: 600, color: toast.type === 'success' ? 'var(--success)' : 'var(--error)' }}>
-            {toast.type === 'success' ? '✓ ' : '⚠ '}{toast.message}
+            {toast.message}
           </div>
           {toast.subtitle && (
             <div style={{ fontSize: 12, marginTop: 4, color: toast.type === 'success' ? 'var(--success)' : 'var(--error)' }}>

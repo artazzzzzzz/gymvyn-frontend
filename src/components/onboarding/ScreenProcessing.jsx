@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../utils/supabase'
-import { calculateMacros } from '../../utils/api'
+import { calculateMacros } from '../../utils/macroCalculator'
 
 const MESSAGES = [
   'Setting up your dashboard...',
@@ -55,10 +55,10 @@ export default function ScreenProcessing({ answers, onNext }) {
     setRetrying(false)
     try {
       const days = parseInt(answers.trainingDays) || 0
-      const activity_level =
-        days <= 1 ? 'sedentary' :
-        days <= 3 ? 'light' :
-        days <= 5 ? 'moderate' : 'active'
+      const activity_level = answers.activityLevel ||
+        (days <= 1 ? 'sedentary' :
+         days <= 3 ? 'light' :
+         days <= 5 ? 'moderate' : 'active')
 
       const payload = {
         id: user.id,
@@ -73,12 +73,41 @@ export default function ScreenProcessing({ answers, onNext }) {
         age: answers.age ? parseInt(answers.age, 10) : null,
         gender: answers.gender,
         activity_level,
+        diet_goal: answers.dietGoal || 'maintenance',
       }
       await saveWithRetry(payload)
       await seedProgress(user.id, answers.currentWeight)
 
-      // Pre-compute and persist macros so the diet page loads them instantly
-      try { await calculateMacros(user.id) } catch (_) { /* non-fatal */ }
+      // Compute macros locally and persist to users + user_macros
+      try {
+        const macroResult = calculateMacros({
+          weight:        answers.currentWeight ? parseFloat(answers.currentWeight) : 70,
+          height:        answers.height ? parseFloat(answers.height) : 170,
+          age:           answers.age ? parseInt(answers.age, 10) : 25,
+          gender:        answers.gender || 'male',
+          activityLevel: activity_level,
+          dietGoal:      answers.dietGoal || 'maintenance',
+        })
+
+        await supabase.from('users').update({
+          calorie_goal: macroResult.calories,
+          protein_goal: macroResult.protein,
+          carbs_goal:   macroResult.carbs,
+          fat_goal:     macroResult.fat,
+        }).eq('id', user.id)
+
+        await supabase.from('user_macros').upsert({
+          user_id:        user.id,
+          diet_goal:      answers.dietGoal || 'maintenance',
+          activity_level,
+          macro_mode:     'auto',
+          water_goal_ml:  2500,
+          calories:       macroResult.calories,
+          protein_g:      macroResult.protein,
+          carbs_g:        macroResult.carbs,
+          fat_g:          macroResult.fat,
+        }, { onConflict: 'user_id' })
+      } catch (_) { /* non-fatal */ }
 
       onNext()
     } catch (err) {
@@ -113,7 +142,13 @@ export default function ScreenProcessing({ answers, onNext }) {
         flex: 1, alignItems: 'center', justifyContent: 'center',
         gap: 20, textAlign: 'center', padding: '0 8px',
       }}>
-        <div style={{ fontSize: 40 }}>⚠️</div>
+        <div>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
         <div>
           <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
             Something went wrong

@@ -35,17 +35,48 @@ const sampleMessages = [
 ]
 
 const suggestions = [
-  { icon: '💪', text: 'Plan my next\ncut phase' },
-  { icon: '🏋️', text: 'Fix my squat\nform' },
-  { icon: '🥗', text: 'What should I\neat today?' },
-  { icon: '📊', text: 'How much protein\ndo I need?' },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="10" width="2" height="4" rx="1"/><rect x="4" y="9" width="2" height="6" rx="1"/>
+        <line x1="6" y1="12" x2="18" y2="12"/>
+        <rect x="18" y="9" width="2" height="6" rx="1"/><rect x="20" y="10" width="2" height="4" rx="1"/>
+      </svg>
+    ),
+    text: 'Plan my next\ncut phase',
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6.5 6.5h11M6.5 17.5h11M4 8.5v7M9 5.5v13M15 5.5v13M20 8.5v7"/>
+      </svg>
+    ),
+    text: 'Fix my squat\nform',
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+      </svg>
+    ),
+    text: 'What should I\neat today?',
+  },
+  {
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+    ),
+    text: 'How much protein\ndo I need?',
+  },
 ]
 
 const quickChips = [
-  '💪 Workout advice',
-  '🥗 Nutrition help',
-  '😴 Recovery tips',
-  '📈 Check my progress',
+  'Workout advice',
+  'Nutrition help',
+  'Recovery tips',
+  'Check my progress',
 ]
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -84,7 +115,7 @@ function AiBubble({ msg }) {
               {msg.rec && (
                 <div className="mt-3 bg-[var(--bg-primary)] border border-[var(--border)] rounded-[10px] p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)] mb-1">
-                    🎯 {msg.rec.label}
+                    {msg.rec.label}
                   </p>
                   <p className="text-[13px] text-[var(--text-primary)] leading-relaxed">{msg.rec.text}</p>
                 </div>
@@ -273,7 +304,7 @@ export default function Chat() {
                   }}
                   className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 text-left flex flex-col gap-1.5 active:bg-[var(--bg-primary)] transition-colors"
                 >
-                  <span className="text-xl">{s.icon}</span>
+                  <span className="text-[var(--text-tertiary)]">{s.icon}</span>
                   <span className="text-[14px] font-medium text-[var(--text-primary)] leading-snug whitespace-pre-line">
                     {s.text}
                   </span>
@@ -325,10 +356,9 @@ export default function Chat() {
               <button
                 key={i}
                 onClick={() => {
-                  const text = c.replace(/^[^\s]+ /, '')
-                  setInputText(text)
+                  setInputText(c)
                   setHasStarted(true)
-                  sendMessage(text)
+                  sendMessage(c)
                 }}
                 className="shrink-0 h-7 px-3 rounded-full border border-black/10 text-[13px] text-[var(--text-secondary)] whitespace-nowrap"
               >

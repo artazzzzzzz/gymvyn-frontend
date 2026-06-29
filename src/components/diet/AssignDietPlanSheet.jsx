@@ -213,7 +213,7 @@ export default function AssignDietPlanSheet({ isOpen, onClose, template, onAssig
                       {r.client?.full_name || 'Unknown'}
                     </span>
                     {isSelected && (
-                      <span style={{ marginLeft: 'auto', fontSize: 14, color: 'var(--success)' }}>✓</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto' }}><polyline points="20 6 9 17 4 12"/></svg>
                     )}
                   </button>
                 );
@@ -246,7 +246,7 @@ export default function AssignDietPlanSheet({ isOpen, onClose, template, onAssig
               background: '#E8F5E9', borderRadius: 10, padding: '10px 14px',
               fontSize: 13, color: '#1D9E75', fontWeight: 500, marginBottom: 10, textAlign: 'center',
             }}>
-              ✓ {toast}
+              {toast}
             </div>
           )}
 

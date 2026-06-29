@@ -22,7 +22,11 @@ export default function ScreenWelcomeHome() {
     }}>
       {/* Celebration */}
       <div style={{ textAlign: 'center', paddingBottom: 40 }}>
-        <div style={{ fontSize: 64, marginBottom: 24, lineHeight: 1 }}>🎉</div>
+        <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'center' }}>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-cta)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
         <h1 style={{
           fontSize: 30, fontWeight: 800, lineHeight: 1.15,
           color: 'var(--text-primary)', margin: '0 0 12px',
@@ -53,8 +57,12 @@ export default function ScreenWelcomeHome() {
           width: 44, height: 44, borderRadius: 12,
           backgroundColor: 'var(--success-bg)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 22, flexShrink: 0,
-        }}>✅</div>
+          flexShrink: 0,
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
         <div>
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
             Your profile is ready

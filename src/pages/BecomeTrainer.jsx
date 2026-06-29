@@ -69,17 +69,9 @@ function FloatingInput({ label, value, onChange, type = 'text' }) {
 }
 
 // ── Step icon header ──────────────────────────────────────────
-function StepHeader({ emoji, title, subtitle }) {
+function StepHeader({ title, subtitle }) {
   return (
     <div style={{ marginBottom: 32 }}>
-      <div style={{
-        width: 72, height: 72, borderRadius: '50%',
-        background: 'var(--accent-bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: 16, fontSize: 32
-      }}>
-        {emoji}
-      </div>
       <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 6 }}>{title}</h1>
       {subtitle && <p style={{ fontSize: 14, color: "var(--text-tertiary)", lineHeight: 1.5 }}>{subtitle}</p>}
     </div>
@@ -223,9 +215,7 @@ export default function BecomeTrainer() {
         {/* ── Step 1: Basic Info ── */}
         {step === 1 && (
           <div>
-            <StepHeader
-              emoji="👋"
-              title="Let's set up your profile"
+            <StepHeader              title="Let's set up your profile"
               subtitle="Tell us the basics — clients will see this when they find you."
             />
 
@@ -284,9 +274,7 @@ export default function BecomeTrainer() {
         {/* ── Step 2: Specializations + Rate ── */}
         {step === 2 && (
           <div>
-            <StepHeader
-              emoji="🎯"
-              title="Your expertise"
+            <StepHeader              title="Your expertise"
               subtitle="Select the areas you specialise in. Pick at least one."
             />
 
@@ -366,8 +354,8 @@ export default function BecomeTrainer() {
               <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Trainer type</div>
               <div style={{ display: 'flex', gap: 10 }}>
                 {[
-                  { label: 'Independent', desc: 'Freelance / online', value: true, emoji: '🌐' },
-                  { label: 'Gym-based', desc: 'Affiliated with gym', value: false, emoji: '🏋️' }
+                  { label: 'Independent', desc: 'Freelance / online', value: true },
+                  { label: 'Gym-based', desc: 'Affiliated with gym', value: false }
                 ].map(opt => (
                   <div
                     key={opt.label}
@@ -392,9 +380,7 @@ export default function BecomeTrainer() {
         {/* ── Step 3: Profile Details ── */}
         {step === 3 && (
           <div>
-            <StepHeader
-              emoji="✨"
-              title="Make your profile shine"
+            <StepHeader              title="Make your profile shine"
               subtitle="These are optional but help clients trust you faster."
             />
 
@@ -422,7 +408,9 @@ export default function BecomeTrainer() {
                 {photoPreview
                   ? <img src={photoPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
+                      <div style={{ marginBottom: 4, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                      </div>
                       <div style={{ fontSize: 10, color: "var(--text-tertiary)" }}>Add photo</div>
                     </div>
                 }
@@ -509,9 +497,7 @@ export default function BecomeTrainer() {
         {/* ── Step 4: Review + Submit ── */}
         {step === 4 && (
           <div>
-            <StepHeader
-              emoji="🚀"
-              title="Ready to launch"
+            <StepHeader              title="Ready to launch"
               subtitle="Review your profile before going live."
             />
 
@@ -623,7 +609,7 @@ export default function BecomeTrainer() {
               cursor: loading ? 'not-allowed' : 'pointer'
             }}
           >
-            {loading ? 'Setting up…' : 'Launch Trainer Profile 🚀'}
+            {loading ? 'Setting up…' : 'Launch Trainer Profile'}
           </button>
         )}
       </div>

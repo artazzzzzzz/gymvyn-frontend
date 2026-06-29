@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import {
   X, Check, Plus, Trash2, Camera, ChevronLeft, Loader2, AlertCircle,
-  SkipForward, Info,
+  SkipForward, Info, Mic,
 } from 'lucide-react'
 import { useWorkoutSessionContext } from '../contexts/WorkoutSessionContext'
 import ExercisePicker from '../components/ExercisePicker'
@@ -13,6 +13,7 @@ import { useAuth } from '../hooks/useAuth'
 import FormCoachModal from '../components/FormCoachModal'
 import { hasFormDetection } from '../utils/formRuleMapping'
 import { useXPToast } from '../components/XPToast'
+import VoiceWorkoutRecorder from '../components/VoiceWorkoutRecorder'
 
 const MUSCLE_COLOURS = {
   chest:     'bg-red-500/15 text-red-300 ring-red-500/30',
@@ -260,140 +261,96 @@ function ExerciseBlock({ exercise, userId, onAddSet, onRemoveSet, onUpdateSet, o
 }
 
 
-// ─── Swipeable Set Row ───────────────────────────────────────────────────────
+// ─── Set Row ─────────────────────────────────────────────────────────────────
 
 function SwipeableSetRow({ set, prevData, prevText, onUpdate, onComplete, onRemove }) {
-  const [swipeX, setSwipeX]       = useState(0)
-  const [animating, setAnimating] = useState(false)
-  const touchStartX = useRef(null)
-
-  const REVEAL_W    = 72   // px width of revealed delete zone
-  const AUTO_DELETE = 160  // px threshold for auto-delete on release
-
-  function handleTouchStart(e) {
-    touchStartX.current = e.touches[0].clientX
-    setAnimating(false)
-  }
-
-  function handleTouchMove(e) {
-    if (touchStartX.current === null) return
-    const dx = e.touches[0].clientX - touchStartX.current
-    if (dx > 0) {
-      if (swipeX < 0) { setAnimating(true); setSwipeX(0) }
-      return
-    }
-    setSwipeX(Math.max(-280, dx))
-  }
-
-  function handleTouchEnd() {
-    touchStartX.current = null
-    setAnimating(true)
-    if (swipeX <= -AUTO_DELETE) {
-      onRemove()
-    } else if (swipeX <= -(REVEAL_W * 0.45)) {
-      setSwipeX(-REVEAL_W)
-    } else {
-      setSwipeX(0)
-    }
-  }
-
-  const shadowWeight = prevData?.weight_kg    ?? null
+  const shadowWeight = prevData?.weight_kg     ?? null
   const shadowReps   = prevData?.reps_completed ?? null
 
-  const completedBg  = 'var(--accent-bg)'
-  const completedFg  = 'var(--text-cta)'
-  const rowBg        = set.completed ? completedBg : 'var(--bg-card)'
-  const rowBorder    = set.completed ? `2px solid ${completedFg}` : '2px solid transparent'
+  const completedBg = 'var(--accent-bg)'
+  const completedFg = 'var(--text-cta)'
+  const rowBg       = set.completed ? completedBg : 'var(--bg-card)'
+  const rowBorder   = set.completed ? `2px solid ${completedFg}` : '2px solid transparent'
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 8 }}>
-      {/* Red delete zone revealed behind the row */}
-      <div
+    <div
+      style={{
+        display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 44px 44px',
+        gap: 6, padding: '6px 4px', alignItems: 'center', borderRadius: 8,
+        background: rowBg,
+        borderLeft: rowBorder,
+      }}
+    >
+      {/* Set number */}
+      <span style={{ fontSize: 13, fontWeight: 500, color: set.completed ? completedFg : 'var(--text-tertiary)' }}>
+        {set.setNumber}
+      </span>
+
+      {/* Previous column */}
+      <span style={{ fontSize: 12, color: 'var(--text-disabled)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {prevText ?? '—'}
+      </span>
+
+      {/* KG */}
+      {set.completed ? (
+        <span style={{ fontSize: 13, color: completedFg, textAlign: 'center', fontWeight: 500 }}>{set.weight || '—'}</span>
+      ) : (
+        <input
+          type="number" inputMode="decimal"
+          value={set.weight}
+          onChange={e => onUpdate('weight', e.target.value)}
+          placeholder={shadowWeight != null ? String(shadowWeight) : ''}
+          className="ls-set-input"
+          style={{ width: '100%', height: 36, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+        />
+      )}
+
+      {/* Reps */}
+      {set.completed ? (
+        <span style={{ fontSize: 13, color: completedFg, textAlign: 'center', fontWeight: 500 }}>{set.reps || '—'}</span>
+      ) : (
+        <input
+          type="number" inputMode="numeric"
+          value={set.reps}
+          onChange={e => onUpdate('reps', e.target.value)}
+          placeholder={shadowReps != null ? String(shadowReps) : ''}
+          className="ls-set-input"
+          style={{ width: '100%', height: 36, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+        />
+      )}
+
+      {/* Complete / undo button — 44×44 tap target */}
+      {set.completed ? (
+        <button
+          onClick={onRemove}
+          style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--accent-bg)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Undo set"
+        >
+          <Check size={15} color={completedFg} strokeWidth={3} />
+        </button>
+      ) : (
+        <button
+          onClick={() => onComplete(shadowWeight, shadowReps)}
+          style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--bg-pill)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Log set"
+        >
+          <Check size={15} color="var(--text-tertiary)" strokeWidth={2.5} />
+        </button>
+      )}
+
+      {/* Delete button — 44×44 tap target, dimmed when set is completed */}
+      <button
         onClick={onRemove}
         style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: REVEAL_W,
-          background: 'var(--error)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
+          width: 44, height: 44, borderRadius: 8, background: 'none', border: 'none',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--error)',
+          opacity: set.completed ? 0.4 : 1,
         }}
+        title="Remove set"
       >
-        <Trash2 size={16} color="white" />
-      </div>
-
-      {/* Swipeable row content */}
-      <div
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{
-          display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px',
-          gap: 6, padding: '6px 4px', alignItems: 'center', borderRadius: 8,
-          background: rowBg,
-          borderLeft: rowBorder,
-          transform: `translateX(${swipeX}px)`,
-          transition: animating ? 'transform 0.22s ease' : 'none',
-          willChange: 'transform',
-          position: 'relative', zIndex: 1,
-          touchAction: 'pan-y',
-        }}
-      >
-        {/* Set number */}
-        <span style={{ fontSize: 13, fontWeight: 500, color: set.completed ? completedFg : "var(--text-tertiary)" }}>
-          {set.setNumber}
-        </span>
-
-        {/* Previous column */}
-        <span style={{ fontSize: 12, color: 'var(--text-disabled)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {prevText ?? '—'}
-        </span>
-
-        {/* KG */}
-        {set.completed ? (
-          <span style={{ fontSize: 13, color: completedFg, textAlign: 'center', fontWeight: 500 }}>{set.weight || '—'}</span>
-        ) : (
-          <input
-            type="number" inputMode="decimal"
-            value={set.weight}
-            onChange={e => onUpdate('weight', e.target.value)}
-            placeholder={shadowWeight != null ? String(shadowWeight) : ''}
-            className="ls-set-input"
-            style={{ width: '100%', height: 36, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: "var(--text-primary)", outline: 'none', boxSizing: 'border-box' }}
-          />
-        )}
-
-        {/* Reps */}
-        {set.completed ? (
-          <span style={{ fontSize: 13, color: completedFg, textAlign: 'center', fontWeight: 500 }}>{set.reps || '—'}</span>
-        ) : (
-          <input
-            type="number" inputMode="numeric"
-            value={set.reps}
-            onChange={e => onUpdate('reps', e.target.value)}
-            placeholder={shadowReps != null ? String(shadowReps) : ''}
-            className="ls-set-input"
-            style={{ width: '100%', height: 36, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, textAlign: 'center', fontSize: 14, color: "var(--text-primary)", outline: 'none', boxSizing: 'border-box' }}
-          />
-        )}
-
-        {/* Complete / undo button */}
-        {set.completed ? (
-          <button
-            onClick={onRemove}
-            style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--accent-bg)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Undo set"
-          >
-            <Check size={15} color={completedFg} strokeWidth={3} />
-          </button>
-        ) : (
-          <button
-            onClick={() => onComplete(shadowWeight, shadowReps)}
-            style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-pill)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Log set"
-          >
-            <Check size={15} color="var(--text-tertiary)" strokeWidth={2.5} />
-          </button>
-        )}
-      </div>
+        <Trash2 size={15} />
+      </button>
     </div>
   )
 }
@@ -419,7 +376,7 @@ function ConfirmDialog({ open, onConfirm, onCancel }) {
         onClick={e => e.stopPropagation()}
       >
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--error-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-          <span style={{ fontSize: 22 }}>🛑</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--error)" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
         </div>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', textAlign: 'center', margin: '0 0 8px' }}>
           End this workout?
@@ -463,6 +420,8 @@ export default function LiveSession() {
   } = session
 
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerInitialSearch, setPickerInitialSearch] = useState('')
+  const [voiceRecorderOpen, setVoiceRecorderOpen] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [formCoachOpen, setFormCoachOpen] = useState(false)
   const [formCoachExercise, setFormCoachExercise] = useState('')
@@ -580,6 +539,11 @@ export default function LiveSession() {
   )
 
   const { showXPToast } = useXPToast()
+  function handleVoiceManualSearch(spokenName) {
+    setPickerInitialSearch(spokenName);
+    setPickerOpen(true);
+  }
+
   async function handleFinish() {
     const summary = await finishSession()
     if (summary) {
@@ -747,8 +711,8 @@ export default function LiveSession() {
           </div>
 
           {/* Set header row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 40px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
-            {['SET', 'PREVIOUS', 'KG', 'REPS', ''].map((h, i) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 44px 44px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+            {['SET', 'PREVIOUS', 'KG', 'REPS', '', ''].map((h, i) => (
               <span key={i} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: "var(--text-tertiary)", textAlign: i >= 2 ? 'center' : 'left' }}>{h}</span>
             ))}
           </div>
@@ -794,16 +758,31 @@ export default function LiveSession() {
       {/* ── Bottom actions ────────────────────────────────────── */}
       {sessionId && (
         <div style={{ margin: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <button
-            onClick={() => setPickerOpen(true)}
-            style={{
-              width: '100%', height: 48, borderRadius: 12, border: '1.5px dashed var(--border-strong)',
-              background: 'transparent', fontSize: 14, fontWeight: 500, color: "var(--text-primary)", cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}
-          >
-            <Plus size={16} /> Add Exercise
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => { setPickerInitialSearch(''); setPickerOpen(true); }}
+              style={{
+                flex: 1, height: 48, borderRadius: 12, border: '1.5px dashed var(--border-strong)',
+                background: 'transparent', fontSize: 14, fontWeight: 500, color: "var(--text-primary)", cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              <Plus size={16} /> Add Exercise
+            </button>
+            {isActive && (
+              <button
+                onClick={() => setVoiceRecorderOpen(true)}
+                style={{
+                  width: 48, height: 48, borderRadius: 12, border: '1.5px solid var(--border-strong)',
+                  background: 'var(--bg-pill)', color: 'var(--text-primary)', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}
+                title="Log exercise by voice"
+              >
+                <Mic size={18} />
+              </button>
+            )}
+          </div>
           <PrimaryButton
             onClick={handleFinish}
             disabled={isSaving || exercises.length === 0}
@@ -818,8 +797,17 @@ export default function LiveSession() {
       {pickerOpen && (
         <ExercisePicker
           onSelect={ex => { addExercise({ id: ex.id, name: ex.name, muscle_group: ex.muscle || '' }); setPickerOpen(false) }}
-          onClose={() => setPickerOpen(false)}
+          onClose={() => { setPickerOpen(false); setPickerInitialSearch('') }}
           preSelected={exercises.map(e => e.exerciseName)}
+          initialSearch={pickerInitialSearch}
+        />
+      )}
+
+      {/* ── Voice workout recorder ────────────────────────────── */}
+      {voiceRecorderOpen && isActive && (
+        <VoiceWorkoutRecorder
+          onClose={() => setVoiceRecorderOpen(false)}
+          onManualSearch={handleVoiceManualSearch}
         />
       )}
 

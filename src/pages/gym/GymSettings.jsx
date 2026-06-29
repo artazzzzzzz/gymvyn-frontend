@@ -194,7 +194,7 @@ export default function GymSettings() {
       })
       if (!res.ok) throw new Error('Save failed')
       setIsDirty(false)
-      showToastMsg('✓ Settings saved')
+      showToastMsg('Settings saved')
     } catch {
       showToastMsg('Failed to save settings', 'error')
     } finally {
@@ -213,7 +213,7 @@ export default function GymSettings() {
       const res = await fetch(`${API}/api/gyms/${gymId}/upload-logo`, { method: 'POST', body: formData })
       const data = await res.json()
       setLogoUrl(data.logo_url)
-      showToastMsg('✓ Logo updated')
+      showToastMsg('Logo updated')
     } catch {
       showToastMsg('Upload failed', 'error')
     } finally {
@@ -258,7 +258,7 @@ export default function GymSettings() {
       const data = await res.json()
       setPlans(Array.isArray(data) ? data : plans)
       setShowPlanSheet(false)
-      showToastMsg('✓ Plan saved')
+      showToastMsg('Plan saved')
     } catch {
       showToastMsg('Failed to save plan', 'error')
     }
@@ -303,7 +303,7 @@ export default function GymSettings() {
         body: JSON.stringify({ lockers_enabled: true }),
       })
       if (!res.ok) throw new Error('Failed')
-      showToastMsg('✓ Locker Management enabled')
+      showToastMsg('Locker Management enabled')
     } catch {
       setLockersEnabled(false)
       showToastMsg('Failed to enable Locker Management', 'error')

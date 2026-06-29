@@ -224,7 +224,9 @@ export default function TrainerClients() {
             background: C.card, borderRadius: 18, padding: '40px 24px',
             border: `1px solid ${C.border}`, textAlign: 'center',
           }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>👥</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: C.sub }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 4 }}>
               {clients.length === 0 ? 'No clients yet' : 'No matches'}
             </div>

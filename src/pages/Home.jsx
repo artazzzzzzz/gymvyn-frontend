@@ -5,6 +5,7 @@ import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
 import { apiFetch, getMyGym, getGymOccupancy } from '../utils/api'
 import PrimaryButton from '../components/PrimaryButton'
+import AIPlanGenerator from '../components/AIPlanGenerator'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,9 @@ export default function Home() {
   const [loading,        setLoading]        = useState(true)
   const [weekCompleted,  setWeekCompleted]  = useState(0)
   const [hasNewPlan,     setHasNewPlan]     = useState(false)
+  const [showAIBuilder,  setShowAIBuilder]  = useState(false)
+  const [todayLogs,      setTodayLogs]      = useState([])
+  const [todayMacros,    setTodayMacros]    = useState({ protein: 0, carbs: 0, fat: 0 })
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const firstName = profile?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
@@ -93,10 +97,15 @@ export default function Home() {
   const totalDays = 6
   const isActive  = (path) => location.pathname === path
 
+  const todayStr      = new Date().toISOString().split('T')[0]
+  const workedOutToday = todayLogs.some(l => l.started_at?.startsWith(todayStr) && l.notes !== 'Rest day')
+  const restedToday    = todayLogs.some(l => l.started_at?.startsWith(todayStr) && l.notes === 'Rest day')
+  const hasPlan        = !!todayWorkout
+
   // ── Profile fetch ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return
-    supabase.from('users').select('full_name, goal, training_days, role, gym_id')
+    supabase.from('users').select('full_name, goal, training_days, role, gym_id, calorie_goal, protein_goal, carbs_goal, fat_goal')
       .eq('id', user.id).maybeSingle()
       .then(({ data }) => setProfile(data))
   }, [user])
@@ -129,7 +138,7 @@ export default function Home() {
             .eq('user_id', userId).gte('started_at', weekStart.toISOString()),
           supabase.from('progress_entries').select('weight_kg, created_at')
             .eq('user_id', userId).order('created_at', { ascending: false }).limit(2),
-          supabase.from('food_logs').select('calories')
+          supabase.from('food_logs').select('calories, protein_g, carbs_g, fat_g')
             .eq('user_id', userId).eq('log_date', today),
           supabase.from('personal_records').select('id')
             .eq('user_id', userId).gte('achieved_at', monStart.toISOString()),
@@ -152,6 +161,7 @@ export default function Home() {
         }
         setTodayWorkout(workout)
         setWeekCompleted(workoutLogs?.length ?? 0)
+        setTodayLogs(workoutLogs ?? [])
 
         // Weight
         const w0 = progress?.[0]?.weight_kg ?? null
@@ -161,6 +171,11 @@ export default function Home() {
           weight:   w0,
           calories: (foodLogs ?? []).reduce((s, l) => s + (l.calories ?? 0), 0),
           prs:      prs?.length ?? 0,
+        })
+        setTodayMacros({
+          protein: Math.round((foodLogs ?? []).reduce((s, l) => s + (l.protein_g ?? 0), 0)),
+          carbs:   Math.round((foodLogs ?? []).reduce((s, l) => s + (l.carbs_g   ?? 0), 0)),
+          fat:     Math.round((foodLogs ?? []).reduce((s, l) => s + (l.fat_g     ?? 0), 0)),
         })
 
         // Recent activity
@@ -249,59 +264,239 @@ export default function Home() {
       <div style={{ margin: '0 20px' }}>
         <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 16, padding: 20 }}>
 
-          {/* A: TODAY label */}
-          <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: "var(--text-tertiary)", marginBottom: 8 }}>
-            TODAY
-          </p>
+          {/* State C — worked out today */}
+          {workedOutToday ? (
+            <>
+              <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--success)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                DONE TODAY
+              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                {todayWorkout?.name || 'Workout completed'}
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6 }}>
+                Great work — rest up or log another session
+              </p>
+              <button
+                onClick={() => navigate('/workout')}
+                style={{ marginTop: 14, fontSize: 13, fontWeight: 500, color: 'var(--text-cta)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                Start another →
+              </button>
+            </>
+          ) : restedToday ? (
+            /* State D — rest day marked */
+            <>
+              <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', marginBottom: 8 }}>
+                TODAY
+              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                Rest day
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6 }}>
+                Recovery is part of the plan. See you tomorrow.
+              </p>
+            </>
+          ) : hasPlan ? (
+            /* State B — plan exists, not yet done */
+            <>
+              <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', marginBottom: 8 }}>
+                TODAY
+              </p>
+              <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2, margin: 0 }}>
+                {todayWorkout.name}
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6 }}>
+                {todayWorkout.exercise_count ?? '—'} exercises
+                {todayWorkout.estimated_duration ? ` · ~${todayWorkout.estimated_duration} min` : ''}
+                {todayWorkout.difficulty ? ` · ${todayWorkout.difficulty}` : ''}
+              </p>
+              <div style={{ marginTop: 14 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 8 }}>
+                  Day {Math.min(weekCompleted + 1, totalDays)} of {totalDays} this week
+                </p>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {Array.from({ length: totalDays }).map((_, i) => (
+                    <div key={i} style={{
+                      width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                      background: i < weekCompleted ? 'var(--text-primary)' : 'transparent',
+                      border: i < weekCompleted ? 'none' : '1.5px solid var(--text-tertiary)',
+                    }} />
+                  ))}
+                </div>
+              </div>
+              <PrimaryButton
+                onClick={() => navigate('/workout/live', { state: { plan: todayWorkout } })}
+                style={{ marginTop: 16, borderRadius: 12 }}
+              >
+                Begin →
+              </PrimaryButton>
+              <button
+                onClick={handleSkip}
+                style={{ width: '100%', textAlign: 'center', fontSize: 13, color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 12, padding: '4px 0' }}
+              >
+                Mark as rest →
+              </button>
+            </>
+          ) : (
+            /* State A — no plan */
+            <>
+              <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', marginBottom: 8 }}>
+                TODAY
+              </p>
+              <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2, margin: 0 }}>
+                No plan yet
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6, marginBottom: 16 }}>
+                Create a structured plan or jump straight into a session.
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <PrimaryButton
+                  onClick={() => navigate('/workout/plans/new')}
+                  style={{ flex: 1, borderRadius: 12 }}
+                >
+                  Create plan
+                </PrimaryButton>
+                <button
+                  onClick={() => navigate('/workout/live')}
+                  style={{
+                    flex: 1, padding: '13px 0', borderRadius: 12, fontSize: 15, fontWeight: 600,
+                    border: '1px solid var(--border)', background: 'transparent',
+                    color: 'var(--text-primary)', cursor: 'pointer',
+                  }}
+                >
+                  Empty workout
+                </button>
+              </div>
+              <button
+                onClick={() => setShowAIBuilder(true)}
+                style={{
+                  width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 12,
+                  fontSize: 14, fontWeight: 500, border: 'none',
+                  background: 'var(--bg-pill)', color: 'var(--text-primary)', cursor: 'pointer',
+                }}
+              >
+                Build with AI →
+              </button>
+              <button
+                onClick={handleSkip}
+                style={{ width: '100%', textAlign: 'center', fontSize: 13, color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 12, padding: '4px 0' }}
+              >
+                Mark as rest →
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
-          {/* B: Workout title */}
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.2, margin: 0 }}>
-            {todayWorkout?.name || 'Push A — Chest & Shoulders'}
-          </h2>
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 2.5 — TODAY'S NUTRITION CARD
+      ═══════════════════════════════════════════════════════════ */}
+      <div style={{ margin: '12px 20px 0' }}>
+        <div
+          onClick={() => navigate('/diet')}
+          style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 16, padding: 16, cursor: 'pointer' }}
+        >
 
-          {/* C: Meta line */}
-          <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginTop: 6 }}>
-            {todayWorkout?.exercise_count || 6} exercises · ~{todayWorkout?.estimated_duration || 45} min · {todayWorkout?.difficulty || 'Intermediate'}
-          </p>
-
-          {/* D: Week progress */}
-          <div style={{ marginTop: 14 }}>
-            <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 8 }}>
-              Day {Math.min(weekCompleted + 1, totalDays)} of {totalDays} this week
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', margin: 0 }}>
+              TODAY'S NUTRITION
             </p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {Array.from({ length: totalDays }).map((_, i) => (
-                <div key={i} style={{
-                  width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                  background: i < weekCompleted ? "var(--text-primary)" : 'transparent',
-                  border: i < weekCompleted ? 'none' : '1.5px solid var(--text-tertiary)',
-                }} />
-              ))}
-            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+              {stats.calories} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)', fontSize: 12 }}>/ {profile?.calorie_goal ?? 2000} kcal</span>
+            </span>
           </div>
 
-          {/* E: Begin button */}
-          <PrimaryButton
-            onClick={() => navigate('/workout/live', { state: { plan: todayWorkout } })}
-            style={{ marginTop: 16, borderRadius: 12 }}
-          >
-            Begin →
-          </PrimaryButton>
+          {/* Progress bar */}
+          {(() => {
+            const goal = profile?.calorie_goal ?? 2000
+            const pct = Math.min(100, Math.round((stats.calories / goal) * 100))
+            return (
+              <div style={{ height: 5, background: 'var(--bg-pill)', borderRadius: 99, marginBottom: 12, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: 'var(--text-primary)', borderRadius: 99, transition: 'width 0.3s ease' }} />
+              </div>
+            )
+          })()}
 
-          {/* F: Rest link */}
-          <button
-            onClick={handleSkip}
-            style={{ width: '100%', textAlign: 'center', fontSize: 13, color: "var(--text-tertiary)", background: 'none', border: 'none', cursor: 'pointer', marginTop: 12, padding: '4px 0' }}
-          >
-            Rest →
-          </button>
+          {/* Macro pills */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            {[
+              { label: 'Protein', value: todayMacros.protein, unit: 'g', goal: profile?.protein_goal ?? 150 },
+              { label: 'Carbs',   value: todayMacros.carbs,   unit: 'g', goal: profile?.carbs_goal   ?? 200 },
+              { label: 'Fat',     value: todayMacros.fat,      unit: 'g', goal: profile?.fat_goal     ?? 65  },
+            ].map(({ label, value, unit, goal }) => {
+              const pct = Math.min(100, Math.round((value / goal) * 100))
+              const isWarn = value > goal && (label === 'Carbs' || label === 'Fat')
+              return (
+                <div key={label} style={{ flex: 1, background: isWarn ? 'rgba(220,53,69,0.12)' : 'var(--bg-pill)', borderRadius: 10, padding: '8px 10px', textAlign: 'center', overflow: 'hidden' }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: isWarn ? 'var(--error)' : 'var(--text-primary)' }}>{value}{unit}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+                  <div style={{ height: 3, background: 'var(--bg-primary)', borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, background: 'var(--text-primary)', borderRadius: 99 }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Log buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={e => { e.stopPropagation(); navigate('/diet?log=voice') }}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 13, fontWeight: 500,
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-primary)', cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', gap: 5,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="2" width="6" height="11" rx="3"/>
+                <path d="M5 10a7 7 0 0 0 14 0"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="8" y1="22" x2="16" y2="22"/>
+              </svg>
+              Voice
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); navigate('/diet?log=snap') }}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 13, fontWeight: 500,
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-primary)', cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', gap: 5,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              Snap
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); navigate('/diet?log=manual') }}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 13, fontWeight: 500,
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-primary)', cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', gap: 5,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Search
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
           SECTION 3 — STATS ROW
       ═══════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, margin: '16px 20px 0' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, margin: '16px 20px 0' }}>
 
         {/* Streak — tap to open XP profile */}
         <button
@@ -310,7 +505,10 @@ export default function Home() {
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
             <span style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>{streakDays}</span>
-            <span style={{ fontSize: 16 }}>🔥</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2c-4 5-4 9-1 12a5 5 0 0 0 9-1c0-5-3-7-8-11z"/>
+              <path d="M9 16c0 2 1.3 3 3 3"/>
+            </svg>
           </div>
           <p style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 4 }}>day streak</p>
         </button>
@@ -329,20 +527,15 @@ export default function Home() {
           )}
         </div>
 
-        {/* Calories */}
-        <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: '12px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>{stats.calories}</span>
-            <span style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 2 }}>kcal</span>
-          </div>
-          <p style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 4 }}>calories</p>
-          <p style={{ fontSize: 11, color: "var(--text-tertiary)" }}>of 2000</p>
-        </div>
-
         {/* PRs */}
         <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: '12px 10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: 14 }}>🏆</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+            </svg>
             <span style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>{stats.prs}</span>
           </div>
           <p style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 4 }}>personal</p>
@@ -356,14 +549,6 @@ export default function Home() {
       ═══════════════════════════════════════════════════════════ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, margin: '16px 20px 0' }}>
         {[
-          {
-            label: 'Log food', path: '/diet',
-            icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/>
-              </svg>
-            ),
-          },
           {
             label: 'View progress', path: '/progress',
             icon: (
@@ -544,6 +729,7 @@ export default function Home() {
         </div>
       )}
 
+      {showAIBuilder && <AIPlanGenerator onClose={() => setShowAIBuilder(false)} />}
     </div>
   )
 }

@@ -161,7 +161,9 @@ export default function MyTrainer() {
         <div className="pt-[72px] px-5 space-y-4">
           <div className="bg-[var(--bg-card)] rounded-2xl p-8 border border-[var(--border)] text-center">
             <div className="w-16 h-16 rounded-full bg-[var(--success-bg)] border border-[var(--border)] flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🏋️‍♂️</span>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6.5 6.5h11M6.5 17.5h11M4 8.5v7M9 5.5v13M15 5.5v13M20 8.5v7"/>
+              </svg>
             </div>
             <h2 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">No trainer connected yet</h2>
             <p className="text-[var(--text-tertiary)] text-sm mb-6 leading-relaxed">
@@ -213,13 +215,12 @@ export default function MyTrainer() {
               <p className="text-sm font-medium text-[var(--text-primary)]">What you get with a trainer</p>
             </div>
             {[
-              { icon: '📋', title: 'Custom workout plans',    desc: 'Tailored programs built for your goals' },
-              { icon: '🥗', title: 'Personalised diet plans', desc: 'Macros and meals designed for you' },
-              { icon: '💬', title: 'Direct messaging',        desc: 'Ask questions, get feedback anytime' },
-              { icon: '📈', title: 'Progress tracking',       desc: 'Your trainer sees your logs in real time' },
+              { title: 'Custom workout plans',    desc: 'Tailored programs built for your goals' },
+              { title: 'Personalised diet plans', desc: 'Macros and meals designed for you' },
+              { title: 'Direct messaging',        desc: 'Ask questions, get feedback anytime' },
+              { title: 'Progress tracking',       desc: 'Your trainer sees your logs in real time' },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 px-5 py-4 border-b border-[var(--border)] last:border-0">
-                <span className="text-xl mt-0.5">{item.icon}</span>
                 <div>
                   <p className="text-sm font-medium text-[var(--text-primary)]">{item.title}</p>
                   <p className="text-xs text-[var(--text-tertiary)] mt-0.5">{item.desc}</p>
@@ -284,7 +285,7 @@ export default function MyTrainer() {
         {/* Just connected banner */}
         {justConnected && (
           <div className="mx-5 mb-4 bg-[var(--success-bg)] border border-[var(--success)]/20 rounded-xl px-4 py-3 flex items-center gap-3">
-            <span className="text-xl">🎉</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             <div>
               <p className="text-[var(--success)] text-sm font-medium">Connected to {trainerName}!</p>
               <p className="text-[var(--text-tertiary)] text-xs">Your trainer will assign your first plan soon.</p>
@@ -504,9 +505,9 @@ export default function MyTrainer() {
 
                 <div className="flex gap-1.5 flex-wrap">
                   {[
-                    { label: '👍 Got it!',                   dark: false },
-                    { label: "📅 When's our next check-in?", dark: false },
-                    { label: '💬 Reply',                     dark: true  },
+                    { label: 'Got it!',                    dark: false },
+                    { label: "When's our next check-in?",  dark: false },
+                    { label: 'Reply',                      dark: true  },
                   ].map((c, i) => (
                     <button
                       key={i}

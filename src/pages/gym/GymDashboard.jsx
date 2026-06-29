@@ -344,7 +344,7 @@ export default function GymDashboard() {
         {/* 2 — Greeting */}
         <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-            {getGreeting()}, {firstName} 👋
+            {getGreeting()}, {firstName}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>{formatDate()}</p>
         </div>

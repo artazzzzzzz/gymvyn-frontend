@@ -429,7 +429,9 @@ export default function StaffPayments() {
 
       {activeTab === 'collect' && permissions.collect_payment && (
         <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>💳</div>
+          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
           <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
             Collect Payment
           </div>

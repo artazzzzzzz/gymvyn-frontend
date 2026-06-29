@@ -376,7 +376,7 @@ function HistoryTab({ name }) {
               </span>
               <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{set.weight} kg</span>
               <span style={{ fontSize: 14, color: 'var(--text-tertiary)', marginRight: 16, minWidth: 60 }}>{set.reps} reps</span>
-              <span style={{ fontSize: 15, color: set.is_pr ? 'var(--success)' : 'var(--text-tertiary)' }}>✓</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={set.is_pr ? 'var(--success)' : 'var(--text-tertiary)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
           ))}
         </div>
@@ -400,22 +400,21 @@ function HistoryTab({ name }) {
 
 // ── How To tab ────────────────────────────────────────────────────────────────
 
-function HowToTab({ name, exercise }) {
-  const inst = EXERCISE_INSTRUCTIONS[name] ?? EXERCISE_INSTRUCTIONS[exercise?.name] ?? null
+function HowToTab({ name, exercise, metadata }) {
+  const dbInstructions = metadata?.instructions
+  const dbProTip = metadata?.pro_tip
 
-  const steps = exercise?.instructions?.length
-    ? exercise.instructions
-    : inst
-      ? [inst.setup, inst.execution].filter(Boolean)
-      : []
+  const localData = EXERCISE_INSTRUCTIONS?.[exercise?.name] || {}
 
-  const tips = exercise?.tips?.length
-    ? exercise.tips
-    : inst?.tips ?? []
+  const steps = dbInstructions?.length
+    ? dbInstructions
+    : [...(localData.setup || []), ...(localData.execution || [])]
 
-  const mistakes = inst?.common_mistakes ?? []
+  const proTip = dbProTip || (localData.tips?.length ? localData.tips.join(' ') : null)
 
-  if (!steps.length && !tips.length && !mistakes.length) {
+  const mistakes = localData.common_mistakes ?? []
+
+  if (!steps.length && !proTip && !mistakes.length) {
     return (
       <div style={{ ...card, padding: 32, textAlign: 'center' }}>
         <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>No instructions available for this exercise</div>
@@ -443,18 +442,19 @@ function HowToTab({ name, exercise }) {
         </div>
       )}
 
-      {tips.length > 0 && (
+      {proTip && (
         <div style={{ background: 'var(--bg-pill)', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: 12, padding: 20, borderLeft: '3px solid var(--warning)' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--warning)', marginBottom: 10 }}>💡 Pro Tip</div>
-          {tips.map((tip, i) => (
-            <p key={i} style={{ fontSize: 13, color: 'var(--warning)', lineHeight: 1.7, margin: 0, marginTop: i > 0 ? 6 : 0 }}>{tip}</p>
-          ))}
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--warning)', marginBottom: 10 }}>Pro Tip</div>
+          <p style={{ fontSize: 13, color: 'var(--warning)', lineHeight: 1.7, margin: 0 }}>{proTip}</p>
         </div>
       )}
 
       {mistakes.length > 0 && (
         <div style={{ ...card, marginBottom: 12, padding: 20, borderLeft: '3px solid var(--error)' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--error)', marginBottom: 12 }}>⚠️ Avoid These</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--error)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Avoid These
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {mistakes.map((m, i) => (
               <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -609,7 +609,7 @@ export default function ExerciseDetailContent({ name }) {
       <div style={{ padding: '16px 16px 0' }}>
         {activeTab === 0 && <SummaryTab stats={stats} loading={statsLoading} />}
         {activeTab === 1 && <HistoryTab name={displayName} />}
-        {activeTab === 2 && <HowToTab name={displayName} exercise={displayEx} />}
+        {activeTab === 2 && <HowToTab name={displayName} exercise={displayEx} metadata={metadata} />}
         <RelatedSection
           exercise={displayEx}
           currentName={displayName}

@@ -173,10 +173,9 @@ function PlanBadge({ status }) {
 }
 
 /* ── empty state ── */
-function EmptyState({ emoji, text }) {
+function EmptyState({ text }) {
   return (
     <div style={{ ...CARD, textAlign: 'center', padding: '40px 24px' }}>
-      <div style={{ fontSize: 32, marginBottom: 10 }}>{emoji}</div>
       <div style={{ fontSize: 13, color: C.sub }}>{text}</div>
     </div>
   );
@@ -247,7 +246,7 @@ function OverviewTab({ data, clientId, onAddNote, localNotes }) {
           <MetricCard value={macros?.calories ?? '—'} unit={macros?.calories ? 'kcal' : ''} label="Calorie target"
             sub={macros ? `${macros.protein_g}g P · ${macros.carbs_g}g C` : null} />
           <MetricCard value={`${adherencePct}%`} label="Adherence (30d)"
-            sub={adherencePct >= 80 ? 'On track 🎯' : adherencePct >= 50 ? 'Needs focus' : 'Needs attention'}
+            sub={adherencePct >= 80 ? 'On track' : adherencePct >= 50 ? 'Needs focus' : 'Needs attention'}
             subColor={adherencePct >= 80 ? C.green : adherencePct >= 50 ? C.amber : C.red} />
         </div>
       </section>
@@ -468,7 +467,9 @@ function WorkoutsTab({ data, clientId }) {
         </div>
       ) : (
         <div style={{ ...CARD, textAlign: 'center', padding: '32px' }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>🏋️</div>
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center', color: C.sub }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11M4 8.5v7M9 5.5v13M15 5.5v13M20 8.5v7"/></svg>
+          </div>
           <p style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 4 }}>No active workout plan</p>
           <button
             onClick={() => navigate(`/trainer/assign-plan?clientId=${clientId}&type=workout`)}
@@ -600,7 +601,7 @@ function WorkoutsTab({ data, clientId }) {
         <section>
           <p style={SL}>Recent sessions</p>
           {(data?.workoutLogs || []).length === 0 ? (
-            <EmptyState emoji="🏋️" text="No workouts logged yet" />
+            <EmptyState text="No workouts logged yet" />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[...(data?.workoutLogs || [])]
@@ -707,7 +708,7 @@ function WorkoutsTab({ data, clientId }) {
 /* ────────────────────────────────────────────
    DIET TAB
 ──────────────────────────────────────────── */
-const MEAL_ICONS = { breakfast: '☀️', lunch: '🍽️', snack: '🍎', dinner: '🌙', other: '🥄' };
+const MEAL_LABELS = { breakfast: 'AM', lunch: 'PM', snack: 'SN', dinner: 'DIN', other: '—' };
 
 function DietTab({ data, clientId }) {
   const navigate = useNavigate();
@@ -1044,13 +1045,13 @@ function DietTab({ data, clientId }) {
                   <div style={{ borderTop: `0.5px solid rgba(0,0,0,0.06)`, marginTop: 8, paddingTop: 4 }}>
                     {entry.items.map((item, i) => {
                       const mType = (item.meal_type || '').toLowerCase();
-                      const icon = MEAL_ICONS[mType] || MEAL_ICONS.other;
+                      const icon = MEAL_LABELS[mType] || MEAL_LABELS.other;
                       return (
                         <div key={i} style={{
                           display: 'flex', alignItems: 'center', gap: 10,
                           minHeight: 40, borderTop: i > 0 ? `0.5px solid rgba(0,0,0,0.06)` : 'none',
                         }}>
-                          <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-tertiary)', flexShrink: 0, minWidth: 24, textAlign: 'center' }}>{icon}</span>
                           <span style={{ flex: 1, fontSize: 13, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {item.food_name || item.name || 'Food item'}
                           </span>
@@ -1066,7 +1067,7 @@ function DietTab({ data, clientId }) {
             );
           })}
           {last3.every(d => !byDate[d]) && (
-            <EmptyState emoji="🥗" text="No food logs this week" />
+            <EmptyState text="No food logs this week" />
           )}
         </div>
       </section>

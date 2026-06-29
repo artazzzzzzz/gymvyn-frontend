@@ -176,7 +176,9 @@ export default function StaffSchedule() {
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-tertiary)', fontSize: 13 }}>Loading...</div>
         ) : dayClasses.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>📅</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>No classes today</div>
             <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>No classes scheduled for this day</div>
           </div>
@@ -208,17 +210,17 @@ export default function StaffSchedule() {
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   {cls.start_time && (
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                      🕐 {formatTime(cls.start_time)}{cls.end_time ? ` – ${formatTime(cls.end_time)}` : ''}
+                      {formatTime(cls.start_time)}{cls.end_time ? ` – ${formatTime(cls.end_time)}` : ''}
                     </div>
                   )}
                   {cls.capacity && (
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                      👥 {cls.enrolled || 0}/{cls.capacity} enrolled
+                      {cls.enrolled || 0}/{cls.capacity} enrolled
                     </div>
                   )}
                   {cls.location && (
                     <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                      📍 {cls.location}
+                      {cls.location}
                     </div>
                   )}
                 </div>

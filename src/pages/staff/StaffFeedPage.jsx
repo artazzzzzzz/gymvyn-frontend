@@ -131,7 +131,9 @@ export default function StaffFeedPage() {
           <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>Gym Feed</span>
         </div>
         <div style={{ paddingTop: 88, textAlign: 'center', padding: '88px 24px 0' }}>
-          <p style={{ fontSize: 32, marginBottom: 12 }}>🔒</p>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
           <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
             Access restricted
           </p>
@@ -194,7 +196,7 @@ export default function StaffFeedPage() {
             {pinnedPosts.length > 0 && (
               <>
                 <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                  📌 Pinned
+                  Pinned
                 </p>
                 {pinnedPosts.map(post => (
                   <div key={post.id} style={{ marginBottom: 12 }}>

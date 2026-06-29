@@ -465,7 +465,7 @@ function PRsTab({ userId }) {
             },
             body: JSON.stringify({
               post_type: 'achievement',
-              content:   `🏆 hit a new PR: ${form.exercise.trim()} — ${weight}kg x ${reps} reps`,
+              content:   `PR: ${form.exercise.trim()} — ${weight}kg x ${reps} reps`,
             }),
           }).catch(() => {})
         }
@@ -1085,7 +1085,13 @@ export default function Progress() {
             })}
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border)]">
-            <span className="text-[14px] font-semibold text-[var(--text-primary)]">🔥 {streakCurrent ?? 0} day streak</span>
+            <span className="text-[14px] font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2c-4 5-4 9-1 12a5 5 0 0 0 9-1c0-5-3-7-8-11z"/>
+                <path d="M9 16c0 2 1.3 3 3 3"/>
+              </svg>
+              {streakCurrent ?? 0} day streak
+            </span>
             <span className="text-[12px] text-[var(--text-tertiary)]">Best: {streakBest ?? 0} days</span>
           </div>
         </div>

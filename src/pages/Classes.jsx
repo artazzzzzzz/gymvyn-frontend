@@ -137,7 +137,7 @@ function ActionButton({ state, waitlistPosition, busy, onBook, onCancel }) {
         background: 'var(--success-bg)', padding: '6px 12px', borderRadius: 999,
         whiteSpace: 'nowrap', opacity: 0.9,
       }}>
-        Booked ✓
+        Booked
       </span>
     )
   }

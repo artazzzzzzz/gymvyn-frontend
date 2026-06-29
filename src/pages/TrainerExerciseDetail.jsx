@@ -429,7 +429,7 @@ export default function TrainerExerciseDetail() {
                                 Set {set.index}
                               </span>
                               <span className={`text-sm ${set.is_pr ? 'text-[var(--success)] font-semibold' : 'text-[var(--text-primary)] font-medium'}`}>
-                                {set.weight} kg · {set.reps} reps {set.is_pr ? '🏆' : '✓'}
+                                {set.weight} kg · {set.reps} reps
                               </span>
                             </div>
                           ))}

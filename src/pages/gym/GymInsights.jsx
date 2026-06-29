@@ -284,8 +284,8 @@ export default function GymInsights() {
             <OccupancyBarChart data={stats?.occupancy?.weekly_chart} />
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               {[
-                { label: `🕕 ${stats?.occupancy?.peak_hour || '—'} Peak hour` },
-                { label: `📅 ${stats?.occupancy?.peak_day || '—'} Peak day` },
+                { label: `${stats?.occupancy?.peak_hour || '—'} Peak hour` },
+                { label: `${stats?.occupancy?.peak_day || '—'} Peak day` },
               ].map((pill, i) => (
                 <span key={i} style={{
                   backgroundColor: 'var(--bg-primary)', borderRadius: 8, padding: '8px 12px',
@@ -467,7 +467,7 @@ export default function GymInsights() {
 
                   <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                     {[
-                      { label: `👥 ${trainer.client_count} clients` },
+                      { label: `${trainer.client_count} clients` },
                       { label: `⏱ ${trainer.avg_sessions_per_client || 0} sessions/client` },
                     ].map((pill, j) => (
                       <span key={j} style={{

@@ -76,7 +76,7 @@ function InputField({ icon, type = 'text', placeholder, value, onChange, rightEl
     <div className={`flex items-center gap-3 bg-[var(--bg-elevated)] rounded-2xl px-4 h-14 transition-all duration-150 ${
       active ? 'border border-[var(--text-primary)]' : 'border border-[var(--border-strong)]'
     }`}>
-      <span className="shrink-0 transition-colors" style={{ color: active ? "var(--text-primary)" : "var(--text-tertiary)" }}>
+      <span style={{ color: 'var(--text-tertiary)', background: 'transparent', border: 'none', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
         {icon}
       </span>
       <input
@@ -87,6 +87,7 @@ function InputField({ icon, type = 'text', placeholder, value, onChange, rightEl
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         className="flex-1 text-[15px] text-[var(--text-primary)] bg-transparent focus:outline-none placeholder-[var(--text-tertiary)]"
+        style={{ background: 'transparent' }}
       />
       {rightElement}
     </div>
@@ -241,18 +242,6 @@ export default function Signup() {
           </p>
         </div>
 
-        {/* Feature pills */}
-        <div className="flex gap-2 mt-6 flex-wrap">
-          {['🤖 AI Coach', '📊 Progress tracking', '🏋️ 431 exercises'].map((pill, i) => (
-            <span
-              key={i}
-              className="text-[11px] font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-full px-3 py-1.5"
-              style={{ backgroundColor: 'var(--bg-pill)' }}
-            >
-              {pill}
-            </span>
-          ))}
-        </div>
       </div>
 
       {/* ── CARD ZONE ── */}

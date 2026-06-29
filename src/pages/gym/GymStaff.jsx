@@ -197,7 +197,7 @@ function AddStaffSheet({ gymId, onClose, onAdded }) {
         )}
         {resolvedUser && (
           <p style={{ fontSize: 13, color: 'var(--success)', marginTop: 6, fontWeight: 600 }}>
-            Found: {resolvedUser.fullName} ✓
+            Found: {resolvedUser.fullName}
           </p>
         )}
         {lookupError && (
@@ -587,7 +587,9 @@ export default function GymStaff() {
             backgroundColor: 'var(--bg-card)', borderRadius: 16,
             border: '1px solid var(--border)',
           }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>🪪</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0"/><path d="M8 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg>
+            </div>
             <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
               No staff added yet
             </div>

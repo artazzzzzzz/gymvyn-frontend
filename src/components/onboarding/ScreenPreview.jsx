@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { EXERCISE_DATABASE } from '../../data/exerciseDatabase'
 import { supabase } from '../../utils/supabase'
 import { GOAL_LABELS, EXPERIENCE_LABELS } from './onboardingConfig'
+import { calculateMacros } from '../../utils/macroCalculator'
 
 const GOAL_MUSCLES = {
   muscle:       ['Chest', 'Back', 'Shoulders'],
@@ -40,6 +41,15 @@ export default function ScreenPreview({ answers, onNext, onBack }) {
   const goal = goals?.[0] ?? ''
   const [exercises] = useState(() => pickSampleExercises(goal, experience))
   const [thumbnails, setThumbnails] = useState({})
+
+  const macroResult = calculateMacros({
+    weight:        answers.currentWeight ? parseFloat(answers.currentWeight) : 70,
+    height:        answers.height ? parseFloat(answers.height) : 170,
+    age:           answers.age ? parseInt(answers.age, 10) : 25,
+    gender:        answers.gender || 'male',
+    activityLevel: answers.activityLevel || 'moderate',
+    dietGoal:      answers.dietGoal || 'maintenance',
+  })
 
   useEffect(() => {
     if (!exercises.length) return
@@ -109,6 +119,40 @@ export default function ScreenPreview({ answers, onNext, onBack }) {
         ))}
       </div>
 
+      {/* Macro targets card */}
+      <div style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', margin: '0 0 12px' }}>
+          YOUR DAILY TARGETS
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
+          <div>
+            <span style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)' }}>{macroResult.calories}</span>
+            <span style={{ fontSize: 13, color: 'var(--text-tertiary)', marginLeft: 4 }}>kcal/day</span>
+          </div>
+          <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+            {answers.dietGoal ? answers.dietGoal.replace('_', ' ') : 'maintenance'} · {answers.activityLevel ? answers.activityLevel.replace('_', ' ') : 'moderate'}
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          {[
+            { label: 'Protein', value: macroResult.protein, unit: 'g' },
+            { label: 'Carbs',   value: macroResult.carbs,   unit: 'g' },
+            { label: 'Fat',     value: macroResult.fat,      unit: 'g' },
+          ].map(({ label, value, unit }) => (
+            <div key={label} style={{ background: 'var(--bg-pill)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{value}{unit}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Sample workout card */}
       <div style={{
         backgroundColor: 'var(--bg-card)',
@@ -147,9 +191,13 @@ export default function ScreenPreview({ answers, onNext, onBack }) {
                   width: 40, height: 40, borderRadius: 8,
                   backgroundColor: 'var(--bg-elevated)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, fontSize: 18,
+                  flexShrink: 0, color: 'var(--text-tertiary)',
                 }}>
-                  {['💪', '🏋️', '🔥'][i % 3]}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="10" width="2" height="4" rx="1"/><rect x="4" y="9" width="2" height="6" rx="1"/>
+                    <line x1="6" y1="12" x2="18" y2="12"/>
+                    <rect x="18" y="9" width="2" height="6" rx="1"/><rect x="20" y="10" width="2" height="4" rx="1"/>
+                  </svg>
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -172,7 +220,9 @@ export default function ScreenPreview({ answers, onNext, onBack }) {
           backgroundColor: 'var(--bg-elevated)',
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <span style={{ fontSize: 16 }}>📊</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
           <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
             You'll log ~{monthlyCount} exercises in your first month
           </span>

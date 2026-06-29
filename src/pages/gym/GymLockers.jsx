@@ -602,7 +602,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
                     background: 'var(--success-bg)', color: 'var(--success)',
                     fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                   }}>
-                    ✓ Paid · {a.payment.payment_method === 'cash' ? 'Cash' : 'UPI'}
+                    Paid · {a.payment.payment_method === 'cash' ? 'Cash' : 'UPI'}
                   </span>
                 </div>
               ) : (

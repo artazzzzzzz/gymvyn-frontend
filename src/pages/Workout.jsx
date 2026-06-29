@@ -8,6 +8,7 @@ import {
   Layers, Dumbbell, ChevronRight, ArrowRight,
 } from 'lucide-react'
 import PrimaryButton from '../components/PrimaryButton'
+import AIPlanGenerator from '../components/AIPlanGenerator'
 import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ export default function Workout() {
   const [recentLogs,   setRecentLogs]   = useState([])
   const [weekLogs,     setWeekLogs]     = useState([])
   const [selectedPlan, setSelectedPlan] = useState(null)
+  const [showAIBuilder, setShowAIBuilder] = useState(false)
   const [workoutLogs,  setWorkoutLogs]  = useState([])
 
   // ── Existing fetch logic ──────────────────────────────────────────────────
@@ -182,6 +184,18 @@ export default function Workout() {
   const lastSessionSub = lastLog
     ? `Last session: ${formatDate(lastLog.completed_at || lastLog.started_at)} · ${computeSets(lastLog.exercises)} sets · ${lastLog.duration_minutes ? lastLog.duration_minutes + ' min' : '—'}`
     : 'No sessions yet'
+
+  async function handleDeletePlan(planId) {
+    if (!window.confirm('Delete this plan? This cannot be undone.')) return
+    try {
+      await apiFetch(`/api/user-plans/${planId}`, { method: 'DELETE' })
+      setUserPlans(prev => prev.filter(p => p.id !== planId))
+      setSelectedPlan(null)
+    } catch (err) {
+      console.error('Delete plan failed:', err)
+      alert('Failed to delete plan. Please try again.')
+    }
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', overflowX: 'hidden', paddingBottom: 128 }}>
@@ -290,16 +304,28 @@ export default function Workout() {
           <p style={{ fontSize: 12, color: "var(--text-tertiary)", textAlign: 'center', marginTop: 4, lineHeight: 1.5 }}>
             Create a plan to stay consistent with your training.
           </p>
-          <button
-            onClick={() => navigate('/workout/plans/new')}
-            style={{
-              marginTop: 12, border: '1px solid var(--text-primary)', borderRadius: 10,
-              padding: '8px 16px', fontSize: 13, fontWeight: 500, color: "var(--text-primary)",
-              background: 'none', cursor: 'pointer',
-            }}
-          >
-            Create plan
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <button
+              onClick={() => navigate('/workout/plans/new')}
+              style={{
+                border: '1px solid var(--text-primary)', borderRadius: 10,
+                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: "var(--text-primary)",
+                background: 'none', cursor: 'pointer',
+              }}
+            >
+              Create plan
+            </button>
+            <button
+              onClick={() => setShowAIBuilder(true)}
+              style={{
+                border: 'none', borderRadius: 10,
+                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: "var(--text-primary)",
+                background: 'var(--bg-pill)', cursor: 'pointer',
+              }}
+            >
+              Build with AI →
+            </button>
+          </div>
         </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
@@ -495,9 +521,26 @@ export default function Workout() {
             background: 'var(--bg-card)', borderRadius: '16px 16px 0 0', padding: '20px 20px 40px',
             border: '1px solid var(--border)',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>{selectedPlan.name}</span>
-              <button onClick={() => setSelectedPlan(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: "var(--text-tertiary)", fontSize: 20, lineHeight: 1 }}>×</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", flex: 1 }}>{selectedPlan.name}</span>
+              <button
+                onClick={() => { navigate(`/workout/plans/${selectedPlan.id}/edit`); setSelectedPlan(null) }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex', padding: 4 }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button
+                onClick={() => handleDeletePlan(selectedPlan.id)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', display: 'flex', padding: 4 }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </button>
+              <button onClick={() => setSelectedPlan(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: "var(--text-tertiary)", fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
             </div>
             {(selectedPlan.plan_data?.days || []).map((day, i) => (
               <div
@@ -521,6 +564,8 @@ export default function Workout() {
           </div>
         </>
       )}
+
+      {showAIBuilder && <AIPlanGenerator onClose={() => setShowAIBuilder(false)} />}
     </div>
   )
 }

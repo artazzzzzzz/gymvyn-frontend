@@ -1,18 +1,42 @@
+const DumbbellIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="10" width="2" height="4" rx="1"/>
+    <rect x="4" y="9" width="2" height="6" rx="1"/>
+    <line x1="6" y1="12" x2="18" y2="12"/>
+    <rect x="18" y="9" width="2" height="6" rx="1"/>
+    <rect x="20" y="10" width="2" height="4" rx="1"/>
+  </svg>
+)
+
+const TrendUpIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+    <polyline points="17 6 23 6 23 12"/>
+  </svg>
+)
+
+const BuildingIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <path d="M3 9h18M9 21V9"/>
+  </svg>
+)
+
 const FEATURES = [
   {
-    emoji: '💪',
+    icon: <DumbbellIcon />,
     title: 'Log every workout',
     sub: 'Sets, reps, weight — every session, perfectly tracked.',
     accent: 'var(--muscle-chest)',
   },
   {
-    emoji: '📈',
+    icon: <TrendUpIcon />,
     title: 'Watch yourself improve',
     sub: 'Body stats, PRs and progress charts in one place.',
     accent: 'var(--muscle-back)',
   },
   {
-    emoji: '🏋️',
+    icon: <BuildingIcon />,
     title: 'Your gym, in your pocket',
     sub: 'Classes, trainers and gym features built in.',
     accent: 'var(--muscle-legs)',
@@ -80,9 +104,9 @@ export default function ScreenWelcome({ onNext }) {
               borderLeft: `3px solid ${f.accent}`,
             }}>
               <span style={{
-                fontSize: 26, lineHeight: 1, flexShrink: 0,
+                color: 'var(--text-secondary)', flexShrink: 0,
                 marginTop: 1,
-              }}>{f.emoji}</span>
+              }}>{f.icon}</span>
               <div>
                 <div style={{
                   fontSize: 16, fontWeight: 700,

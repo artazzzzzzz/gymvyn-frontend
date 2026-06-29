@@ -10,6 +10,7 @@ import ScreenBodyStats from '../components/onboarding/ScreenBodyStats'
 import ScreenPreview from '../components/onboarding/ScreenPreview'
 import ScreenProcessing from '../components/onboarding/ScreenProcessing'
 import ScreenWelcomeHome from '../components/onboarding/ScreenWelcomeHome'
+import ScreenDietGoal from '../components/onboarding/ScreenDietGoal'
 
 const INITIAL_ANSWERS = {
   goals: [],       // multi-select; first item saved as `goal` in DB
@@ -21,6 +22,8 @@ const INITIAL_ANSWERS = {
   targetWeight: '',
   age: '',
   gender: '',
+  dietGoal: '',
+  activityLevel: '',
 }
 
 const SCREEN_MAP = {
@@ -31,6 +34,7 @@ const SCREEN_MAP = {
   priorities:  ScreenPriorities,
   stats:       ScreenBodyStats,
   preview:     ScreenPreview,
+  diet_goal:   ScreenDietGoal,
   processing:  ScreenProcessing,
   welcomehome: ScreenWelcomeHome,
 }

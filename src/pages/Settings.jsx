@@ -215,7 +215,7 @@ export default function Settings() {
       setUser(updated)
       setIsDirty(false)
       setActiveEditRow(null)
-      showToastMsg('✓ Settings saved', 'success')
+      showToastMsg('Settings saved', 'success')
     } catch {
       showToastMsg('Failed to save settings', 'error')
     } finally {
@@ -252,7 +252,7 @@ export default function Settings() {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed') }
       setShowPasswordSheet(false)
       setPasswordForm({ current: '', newPass: '', confirm: '' })
-      showToastMsg('✓ Password updated', 'success')
+      showToastMsg('Password updated', 'success')
     } catch (err) {
       setPasswordError(err.message || 'Update failed')
     } finally {
@@ -271,12 +271,20 @@ export default function Settings() {
     if (deleteConfirm !== 'DELETE') return
     setDeleting(true)
     try {
-      await fetch(`${API}/api/users/${userId}`, { method: 'DELETE' })
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.message || 'Deletion failed')
+      }
       await supabase.auth.signOut()
       localStorage.clear()
       navigate('/')
-    } catch {
-      showToastMsg('Deletion failed', 'error')
+    } catch (err) {
+      showToastMsg(err.message || 'Deletion failed', 'error')
       setDeleting(false)
     }
   }
@@ -778,7 +786,7 @@ export default function Settings() {
               borderRadius: '0 10px 10px 0', padding: 12, marginTop: 14,
             }}>
               <div style={{ fontSize: 13, color: 'var(--warning)' }}>
-                ⚠ This will deactivate your account. Your workout history, progress, and data will be preserved but you won't be able to log in.
+                ⚠ This will permanently delete your account and all data. Workouts, diet logs, progress — everything. This cannot be undone.
               </div>
             </div>
 

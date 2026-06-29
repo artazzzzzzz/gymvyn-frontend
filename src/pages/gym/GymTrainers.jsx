@@ -223,7 +223,9 @@ export default function GymTrainers() {
         {/* EMPTY STATE */}
         {!loading && !error && trainers.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>👥</div>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
             <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
               No trainers yet
             </div>
@@ -311,7 +313,7 @@ export default function GymTrainers() {
               {/* ROW 2: Stats pills */}
               <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                 {[
-                  { label: `👥 ${trainer.client_count ?? 0} clients` },
+                  { label: `${trainer.client_count ?? 0} clients` },
                   { label: `⏱ ${trainer.experience_years ?? 0} yrs exp` },
                 ].map((pill, i) => (
                   <span key={i} style={{
@@ -378,7 +380,7 @@ export default function GymTrainers() {
                 borderRadius: 8, padding: 4, marginBottom: 20,
               }}>
                 {[
-                  { key: 'phone', label: '📱 Phone' },
+                  { key: 'phone', label: 'Phone' },
                   { key: 'email', label: '✉ Email' },
                   { key: 'manual', label: '✏ Manual' },
                 ].map(tab => (

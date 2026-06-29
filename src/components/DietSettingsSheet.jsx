@@ -56,10 +56,9 @@ function PillGroup({ options, value, onChange }) {
   )
 }
 
-function SectionHeader({ emoji, title }) {
+function SectionHeader({ title }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-      <span style={{ fontSize: 15 }}>{emoji}</span>
+    <div style={{ marginBottom: 12 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
         {title}
       </span>
@@ -250,13 +249,13 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
 
               {/* Section 1: Diet Goal */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                <SectionHeader emoji="🎯" title="Diet Goal" />
+                <SectionHeader title="Diet Goal" />
                 <PillGroup options={DIET_GOALS} value={dietGoal} onChange={setDietGoal} />
               </div>
 
               {/* Section 2: Activity Level */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                <SectionHeader emoji="⚡" title="Activity Level" />
+                <SectionHeader title="Activity Level" />
                 <PillGroup options={ACTIVITY_LEVELS} value={activityLevel} onChange={setActivityLevel} />
                 {activitySub && (
                   <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 10, marginLeft: 2 }}>{activitySub}</p>
@@ -265,7 +264,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
 
               {/* Section 3: Your Stats */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                <SectionHeader emoji="📊" title="Your Stats" />
+                <SectionHeader title="Your Stats" />
                 <StatInput label="Weight" value={weight} onChange={setWeight} placeholder="72" />
                 <StatInput label="Height (cm)" value={height} onChange={setHeight} placeholder="175" />
                 <StatInput label="Age" value={age} onChange={setAge} placeholder="25" />
@@ -299,7 +298,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
               {/* Section 4: Calculated Macros */}
               {calculated ? (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                  <SectionHeader emoji="✨" title="Recommended for you" />
+                  <SectionHeader title="Recommended for you" />
                   <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>
                     {calculated.calories.toLocaleString()}
                     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-tertiary)', marginLeft: 6 }}>kcal/day</span>
@@ -325,14 +324,14 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
                 </div>
               ) : (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                  <SectionHeader emoji="✨" title="Recommended for you" />
+                  <SectionHeader title="Recommended for you" />
                   <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Fill in your stats above to see your personalised targets.</p>
                 </div>
               )}
 
               {/* Section 5: Override */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                <SectionHeader emoji="⚙️" title="Override" />
+                <SectionHeader title="Override" />
                 {/* Auto / Custom toggle */}
                 <div style={{ display: 'flex', background: 'var(--bg-pill)', borderRadius: 12, padding: 3, marginBottom: 16 }}>
                   {['auto', 'custom'].map(m => (
@@ -408,7 +407,7 @@ export default function DietSettingsSheet({ onClose, onSave, userId }) {
 
               {/* Section 6: Water Goal */}
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16 }}>
-                <SectionHeader emoji="💧" title="Daily Water Goal" />
+                <SectionHeader title="Daily Water Goal" />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <button
                     onClick={() => setWaterGoal(g => Math.max(500, g - 250))}

@@ -218,7 +218,9 @@ export default function StaffAnnouncements() {
           <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>Loading...</div>
         ) : announcements.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>📢</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 7.65v8.7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7.65a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><polyline points="22 7 12 14 2 7"/></svg>
+            </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>No announcements</div>
             <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Post an announcement to inform your gym members</div>
           </div>

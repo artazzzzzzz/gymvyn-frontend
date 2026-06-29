@@ -50,8 +50,8 @@ const IconChevronRight = () => (
   </svg>
 )
 
-export default function ExercisePicker({ onSelect, onClose }) {
-  const [search, setSearch] = useState('')
+export default function ExercisePicker({ onSelect, onClose, initialSearch = '' }) {
+  const [search, setSearch] = useState(initialSearch)
   const [activeMuscle, setActiveMuscle] = useState('All')
   const [detailName, setDetailName] = useState(null)
   const [thumbnailMap, setThumbnailMap] = useState({})
@@ -193,7 +193,11 @@ export default function ExercisePicker({ onSelect, onClose }) {
               textAlign: 'center', padding: '48px 24px',
               color: C.sub, fontSize: 14,
             }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+              <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
               No exercises found
             </div>
           ) : (

@@ -548,7 +548,7 @@ export default function GymOnboarding() {
               <button
                 onClick={handleSubmit} disabled={submitting}
                 style={{ ...btnPrimary(submitting) }}
-              >{submitting ? 'Launching...' : '🚀 Launch My Gym'}</button>
+              >{submitting ? 'Launching...' : 'Launch My Gym'}</button>
               <button onClick={goBack} style={{ width: '100%', height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)', border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
                 Back
               </button>
@@ -568,11 +568,13 @@ export default function GymOnboarding() {
             <div style={{
               width: 80, height: 80, borderRadius: '50%', backgroundColor: 'var(--success-bg)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 40, marginBottom: 20,
+              marginBottom: 20,
               animation: 'popIn 0.4s ease forwards',
-            }}>✓</div>
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
 
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Your gym is live! 🎉</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Your gym is live!</h1>
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 8px' }}>{gymName}</p>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 32px', lineHeight: 1.5 }}>
               Gymvyn members in {city} can now discover and join your gym.

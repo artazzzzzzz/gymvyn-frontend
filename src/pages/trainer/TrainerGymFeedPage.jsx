@@ -178,7 +178,7 @@ export default function TrainerGymFeedPage() {
             {pinnedPosts.length > 0 && (
               <>
                 <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                  📌 Pinned
+                  Pinned
                 </p>
                 {pinnedPosts.map(post => (
                   <div key={post.id} style={{ marginBottom: 12 }}>

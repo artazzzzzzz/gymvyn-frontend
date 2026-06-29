@@ -51,7 +51,9 @@ export default function ClientChatPage() {
   if (!conversation) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-8 text-center">
-        <p className="text-4xl mb-4">💬</p>
+        <div className="mb-4 flex justify-center text-[var(--text-tertiary)]">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
         <h2 className="text-lg font-semibold mb-2">No conversation yet</h2>
         <p className="text-[var(--text-secondary)] text-sm mb-6">
           Connect with a trainer to start messaging
