@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import AssignedDietPlanView from '../components/diet/AssignedDietPlanView';
+import AIPlanGenerator from '../components/AIPlanGenerator';
+import AIDietPlanGenerator from '../components/AIDietPlanGenerator';
 import { supabase } from '../utils/supabase';
 import {
   BarChart, Bar, XAxis, YAxis, ReferenceLine, Tooltip, ResponsiveContainer,
@@ -202,24 +204,29 @@ function SectionHeading({ label, action, onAction }) {
 ──────────────────────────────────────────── */
 function OverviewTab({ data, clientId, onAddNote, localNotes }) {
   const navigate = useNavigate();
-  const { client, macros, workoutLogs, progressEntries } = data;
+  const { client, macros, workoutLogs } = data;
 
   const completedWorkouts = workoutLogs?.filter(w => w.completed_at) || [];
-  const currentWeight = progressEntries?.slice(-1)[0]?.weight
-    || progressEntries?.slice(-1)[0]?.current_weight
-    || client?.current_weight;
-  const startWeight = progressEntries?.slice(0, 1)[0]?.weight
-    || progressEntries?.slice(0, 1)[0]?.current_weight
-    || client?.weight;
-  const weightLost = startWeight && currentWeight
-    ? (parseFloat(startWeight) - parseFloat(currentWeight)).toFixed(1)
+
+  // startingWeightEntry/latestWeightEntry are queried server-side ordered by
+  // logged_at (not created_at) and unaffected by the 10-row cap on the
+  // general progressEntries list, so they reliably reflect the true first
+  // and most recent weigh-ins. weight_kg is numeric-as-string from Postgres —
+  // always parse before use.
+  const startWeight = data?.startingWeightEntry?.weight_kg != null
+    ? parseFloat(data.startingWeightEntry.weight_kg)
+    : (client?.current_weight != null ? parseFloat(client.current_weight) : null);
+  const currentWeight = data?.latestWeightEntry?.weight_kg != null
+    ? parseFloat(data.latestWeightEntry.weight_kg)
+    : (client?.current_weight != null ? parseFloat(client.current_weight) : null);
+  const weightLost = startWeight != null && currentWeight != null
+    ? +(startWeight - currentWeight).toFixed(1)
     : null;
 
-  const targetWeight = client?.target_weight;
-  const weightLossPct = startWeight && targetWeight && currentWeight
+  const targetWeight = client?.target_weight != null ? parseFloat(client.target_weight) : null;
+  const weightLossPct = startWeight != null && targetWeight != null && currentWeight != null && startWeight !== targetWeight
     ? Math.min(100, Math.max(0, Math.round(
-        ((parseFloat(startWeight) - parseFloat(currentWeight)) /
-         (parseFloat(startWeight) - parseFloat(targetWeight))) * 100
+        ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100
       )))
     : 0;
 
@@ -236,7 +243,7 @@ function OverviewTab({ data, clientId, onAddNote, localNotes }) {
   const allNotes = [...(data.notes || []), ...localNotes];
 
   return (
-    <div style={{ padding: '16px 16px 36px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <section>
         <p style={SL}>At a glance</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -349,6 +356,9 @@ function WorkoutsTab({ data, clientId }) {
   const [pickerDayIdx, setPickerDayIdx] = useState(0);
   const [exSearch, setExSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showAIBuilder, setShowAIBuilder] = useState(false);
+  const [showAIDietBuilder, setShowAIDietBuilder] = useState(false);
+  const clientName = data?.client?.full_name;
 
   // Monday-based week
   const today = new Date();
@@ -477,6 +487,42 @@ function WorkoutsTab({ data, clientId }) {
             Assign plan
           </button>
         </div>
+      )}
+
+      {/* ── build AI plan for client ── */}
+      <button
+        onClick={() => setShowAIBuilder(true)}
+        style={{
+          width: '100%', height: 48, borderRadius: 10,
+          border: `1.5px solid ${C.border}`, background: 'transparent',
+          fontSize: 14, fontWeight: 600, color: C.text, cursor: 'pointer',
+        }}>
+        Build AI Plan for {clientName || 'Client'}
+      </button>
+      {showAIBuilder && (
+        <AIPlanGenerator
+          onClose={() => setShowAIBuilder(false)}
+          clientUserId={clientId}
+          clientName={clientName}
+        />
+      )}
+
+      {/* ── build AI diet plan for client ── */}
+      <button
+        onClick={() => setShowAIDietBuilder(true)}
+        style={{
+          width: '100%', height: 48, borderRadius: 10,
+          border: `1.5px solid ${C.border}`, background: 'transparent',
+          fontSize: 14, fontWeight: 600, color: C.text, cursor: 'pointer',
+        }}>
+        Build AI Diet Plan for {clientName || 'Client'}
+      </button>
+      {showAIDietBuilder && (
+        <AIDietPlanGenerator
+          onClose={() => setShowAIDietBuilder(false)}
+          clientUserId={clientId}
+          clientName={clientName}
+        />
       )}
 
       {/* ── weekly adherence strip ── */}
@@ -848,7 +894,7 @@ function DietTab({ data, clientId }) {
   };
 
   return (
-    <div style={{ padding: '16px 16px 36px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── assigned diet plan (new API) ── */}
       {assignedDietPlan !== undefined && (
@@ -1188,7 +1234,7 @@ function ProgressTab({ data, clientId }) {
   const PERIODS = ['1M', '3M', '6M', 'All time'];
 
   return (
-    <div style={{ padding: '16px 16px 36px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── time filter pills ── */}
       <div style={{ display: 'flex', gap: 8 }}>
@@ -1449,7 +1495,7 @@ function PlansTab({ data, clientId }) {
   const planDays = viewingPlan?.plan_data?.days || viewingPlan?.days || [];
 
   return (
-    <div style={{ padding: '16px 16px 36px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── type toggle ── */}
       <div style={{ display: 'flex', gap: 8 }}>

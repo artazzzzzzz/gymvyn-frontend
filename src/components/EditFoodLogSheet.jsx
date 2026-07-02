@@ -139,7 +139,8 @@ export default function EditFoodLogSheet({ logEntry, onSaved, onClose }) {
           </div>
           <div style={{ flex: 2 }}>
             <label style={labelStyle}>Serving Unit</label>
-            <input value={servingUnit} onChange={e => setServingUnit(e.target.value)} style={inputStyle} />
+            <input value={servingUnit} onChange={e => setServingUnit(e.target.value)}
+              style={{ ...inputStyle, border: '1.5px solid var(--border)', background: 'var(--bg-secondary)' }} />
           </div>
         </div>
 

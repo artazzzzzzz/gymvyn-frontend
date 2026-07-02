@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
-import { apiFetch, getMyGym, getGymOccupancy } from '../utils/api'
+import { apiFetch, getMyGym, getGymOccupancy, getMacros, calculateMacros } from '../utils/api'
 import PrimaryButton from '../components/PrimaryButton'
 import AIPlanGenerator from '../components/AIPlanGenerator'
 
@@ -74,6 +74,7 @@ export default function Home() {
 
   // ── Existing state ────────────────────────────────────────────────────────
   const [profile, setProfile] = useState(null)
+  const [macroGoals, setMacroGoals] = useState(null)
   const { current: streakDays } = useStreak(user?.id)
 
   // ── New state ─────────────────────────────────────────────────────────────
@@ -105,9 +106,46 @@ export default function Home() {
   // ── Profile fetch ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return
-    supabase.from('users').select('full_name, goal, training_days, role, gym_id, calorie_goal, protein_goal, carbs_goal, fat_goal')
+    supabase.from('users').select('full_name, goal, training_days, role, gym_id')
       .eq('id', user.id).maybeSingle()
       .then(({ data }) => setProfile(data))
+  }, [user])
+
+  // ── Macro goals fetch (same source of truth as Diet page) ──────────────────
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function loadMacroGoals() {
+      let macrosData = null
+      try {
+        const { data: savedMacros } = await supabase
+          .from('user_macros')
+          .select('calories, protein_g, carbs_g, fat_g')
+          .eq('user_id', user.id)
+          .maybeSingle()
+        if (savedMacros?.calories) macrosData = savedMacros
+      } catch (_) { /* fall through */ }
+
+      if (!macrosData) {
+        try {
+          const r = await getMacros(user.id)
+          macrosData = r?.macros ?? null
+          if (!macrosData) {
+            const calc = await calculateMacros(user.id)
+            macrosData = calc?.macros ?? null
+          }
+        } catch (_) {
+          try {
+            const calc = await calculateMacros(user.id)
+            macrosData = calc?.macros ?? null
+          } catch (_) { /* ignore */ }
+        }
+      }
+
+      if (!cancelled) setMacroGoals(macrosData)
+    }
+    loadMacroGoals()
+    return () => { cancelled = true }
   }, [user])
 
   // ── Main data fetch ───────────────────────────────────────────────────────
@@ -220,13 +258,19 @@ export default function Home() {
 
   async function handleSkip() {
     if (!user) return
-    await supabase.from('workout_logs').insert({
+    const startedAt = new Date().toISOString()
+    const { error } = await supabase.from('workout_logs').insert({
       user_id: user.id,
-      started_at: new Date().toISOString(),
+      started_at: startedAt,
       notes: 'Rest day',
       duration_minutes: 0,
       exercises: [],
-    }).catch(console.error)
+    })
+    if (error) {
+      console.error('[Home] handleSkip error:', error)
+      return
+    }
+    setTodayLogs(logs => [...logs, { started_at: startedAt, notes: 'Rest day', exercises: [] }])
   }
 
   const hasTrainer = trainerData?.status === 'active'
@@ -404,13 +448,13 @@ export default function Home() {
               TODAY'S NUTRITION
             </p>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {stats.calories} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)', fontSize: 12 }}>/ {profile?.calorie_goal ?? 2000} kcal</span>
+              {stats.calories} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)', fontSize: 12 }}>/ {macroGoals?.calories ?? 2000} kcal</span>
             </span>
           </div>
 
           {/* Progress bar */}
           {(() => {
-            const goal = profile?.calorie_goal ?? 2000
+            const goal = macroGoals?.calories ?? 2000
             const pct = Math.min(100, Math.round((stats.calories / goal) * 100))
             return (
               <div style={{ height: 5, background: 'var(--bg-pill)', borderRadius: 99, marginBottom: 12, overflow: 'hidden' }}>
@@ -422,9 +466,9 @@ export default function Home() {
           {/* Macro pills */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             {[
-              { label: 'Protein', value: todayMacros.protein, unit: 'g', goal: profile?.protein_goal ?? 150 },
-              { label: 'Carbs',   value: todayMacros.carbs,   unit: 'g', goal: profile?.carbs_goal   ?? 200 },
-              { label: 'Fat',     value: todayMacros.fat,      unit: 'g', goal: profile?.fat_goal     ?? 65  },
+              { label: 'Protein', value: todayMacros.protein, unit: 'g', goal: macroGoals?.protein_g ?? 150 },
+              { label: 'Carbs',   value: todayMacros.carbs,   unit: 'g', goal: macroGoals?.carbs_g   ?? 200 },
+              { label: 'Fat',     value: todayMacros.fat,      unit: 'g', goal: macroGoals?.fat_g     ?? 65  },
             ].map(({ label, value, unit, goal }) => {
               const pct = Math.min(100, Math.round((value / goal) * 100))
               const isWarn = value > goal && (label === 'Carbs' || label === 'Fat')

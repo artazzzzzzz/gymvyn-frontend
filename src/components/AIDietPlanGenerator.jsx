@@ -12,19 +12,12 @@ const GOALS = [
   { value: 'general fitness', label: 'General Fitness' },
 ]
 
-const EXPERIENCE = [
-  { value: 'beginner', label: 'Beginner' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' },
-]
+const DAYS = [3, 5, 7, 14]
 
-const DAYS = [3, 4, 5, 6]
-
-export default function AIPlanGenerator({ onClose, clientUserId, clientName }) {
+export default function AIDietPlanGenerator({ clientUserId, clientName, onClose, onGenerated }) {
   const navigate = useNavigate()
   const [goal, setGoal] = useState('build muscle')
-  const [experience, setExperience] = useState('intermediate')
-  const [trainingDays, setTrainingDays] = useState(4)
+  const [days, setDays] = useState(7)
   const [preferences, setPreferences] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -57,20 +50,23 @@ export default function AIPlanGenerator({ onClose, clientUserId, clientName }) {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
-      const res = await fetch(`${BASE_URL}/api/ai/workout/generate-plan`, {
+      const res = await fetch(`${BASE_URL}/api/ai/diet/generate-plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          goal, experience, trainingDays, preferences,
-          ...(clientUserId ? { client_user_id: clientUserId } : {}),
+          client_user_id: clientUserId,
+          goal,
+          dietary_preferences: preferences,
+          days,
         }),
       })
-      if (!res.ok) throw new Error(`API error ${res.status}`)
-      const data = await res.json()
-      navigate('/workout/plans/new', { state: { aiPlan: data.plan, targetUserId: clientUserId } })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.message || data?.error || `API error ${res.status}`)
+      navigate(`/trainer/client/${clientUserId}/ai-diet-plan/${data.plan.id}`, { state: { plan: data.plan } })
+      onGenerated?.(data.plan)
       onClose()
     } catch (err) {
       setError(err.message || 'Failed to generate plan. Try again.')
@@ -95,9 +91,9 @@ export default function AIPlanGenerator({ onClose, clientUserId, clientName }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-              {clientUserId ? `AI Plan Builder for ${clientName || 'Client'}` : 'AI Plan Builder'}
+              {clientUserId ? `AI Diet Plan Builder for ${clientName || 'Client'}` : 'AI Diet Plan Builder'}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 2 }}>Answer 3 questions. Get a full plan.</div>
+            <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 2 }}>Answer a few questions. Get a full meal plan.</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}>
             <X size={20} />
@@ -116,21 +112,10 @@ export default function AIPlanGenerator({ onClose, clientUserId, clientName }) {
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          <span style={sectionLabel}>Experience</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {EXPERIENCE.map(e => (
-              <button key={e.value} style={pillStyle(experience === e.value)} onClick={() => setExperience(e.value)}>
-                {e.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 24 }}>
-          <span style={sectionLabel}>Days per week</span>
+          <span style={sectionLabel}>Number of days</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {DAYS.map(d => (
-              <button key={d} style={pillStyle(trainingDays === d)} onClick={() => setTrainingDays(d)}>
+              <button key={d} style={pillStyle(days === d)} onClick={() => setDays(d)}>
                 {d} days
               </button>
             ))}
@@ -138,11 +123,11 @@ export default function AIPlanGenerator({ onClose, clientUserId, clientName }) {
         </div>
 
         <div style={{ marginBottom: 28 }}>
-          <span style={sectionLabel}>Anything else? (optional)</span>
+          <span style={sectionLabel}>Dietary preferences / restrictions (optional)</span>
           <textarea
             value={preferences}
             onChange={e => setPreferences(e.target.value)}
-            placeholder="e.g. no barbell, focus on hypertrophy, bad knees..."
+            placeholder="e.g. vegetarian, no dairy, allergic to peanuts..."
             rows={2}
             style={{
               width: '100%', boxSizing: 'border-box',
@@ -168,7 +153,7 @@ export default function AIPlanGenerator({ onClose, clientUserId, clientName }) {
             border: 'none', cursor: loading ? 'default' : 'pointer',
           }}
         >
-          {loading ? 'Building your plan…' : 'Generate Plan →'}
+          {loading ? 'Building meal plan…' : 'Generate Diet Plan →'}
         </button>
       </div>
     </>

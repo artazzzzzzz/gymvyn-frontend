@@ -60,6 +60,7 @@ import ClientChatPage from './pages/ClientChatPage'
 import TrainerSettings from './pages/TrainerSettings'
 import TrainerDietBuilder from './pages/TrainerDietBuilder'
 import DirectDietPlanPage from './pages/trainer/DirectDietPlanPage'
+import TrainerAIDietPlanEditor from './pages/TrainerAIDietPlanEditor'
 import TrainerEarnings from './pages/trainer/TrainerEarnings'
 import UserPlanBuilder from './pages/UserPlanBuilder'
 import Settings from './pages/Settings'
@@ -209,6 +210,7 @@ export default function App() {
           <Route path="/trainer/diet-templates/new"              element={<ProtectedRoute><TrainerDietBuilder /></ProtectedRoute>} />
           <Route path="/trainer/diet-templates/:templateId/edit" element={<ProtectedRoute><TrainerDietBuilder /></ProtectedRoute>} />
           <Route path="/trainer/client/:clientId/diet-plan/new"  element={<ProtectedRoute><DirectDietPlanPage /></ProtectedRoute>} />
+          <Route path="/trainer/client/:clientId/ai-diet-plan/:planId" element={<ProtectedRoute><TrainerAIDietPlanEditor /></ProtectedRoute>} />
         </Routes>
         </XPToastProvider>
         </WorkoutSessionProvider>

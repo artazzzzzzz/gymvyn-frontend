@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
+import { CitySearchInput } from '../components/CitySearchInput';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -19,6 +20,12 @@ const SPECS = [
   'Yoga / mobility', 'Pre / postnatal'
 ];
 
+const PRICING_MODELS = [
+  { key: 'hourly', label: 'Hourly', unit: 'per hour', unitShort: 'hr', step: 100, defaultRate: 800 },
+  { key: 'monthly', label: 'Monthly', unit: 'per month', unitShort: 'mo', step: 500, defaultRate: 6000 },
+  { key: 'session', label: 'Per session', unit: 'per session', unitShort: 'session', step: 100, defaultRate: 500 },
+];
+
 const parseExperience = (str) => {
   if (!str) return 0;
   if (str.includes('Less')) return 0;
@@ -30,7 +37,7 @@ const parseExperience = (str) => {
 };
 
 // ── Floating label input ──────────────────────────────────────
-function FloatingInput({ label, value, onChange, type = 'text' }) {
+function FloatingInput({ label, value, onChange, type = 'text', maxLength }) {
   const [focused, setFocused] = useState(false);
   const raised = focused || value;
   return (
@@ -52,6 +59,7 @@ function FloatingInput({ label, value, onChange, type = 'text' }) {
         onChange={e => onChange(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        maxLength={maxLength}
         style={{
           width: '100%',
           border: 'none',
@@ -87,13 +95,28 @@ export default function BecomeTrainer() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // Full name is collected at signup and stored on the users table — read-only
+  // here, never re-collected.
+  const [fullName, setFullName] = useState('');
+
+  useEffect(() => {
+    if (!user?.id) return;
+    apiFetch(`/api/users/${user.id}`)
+      .then(data => setFullName(data?.full_name || ''))
+      .catch(err => console.error('Load user failed:', err));
+  }, [user?.id]);
+
   // Step 1
-  const [step1, setStep1] = useState({ full_name: '', phone: '', city: '', experience: '' });
-  const step1Valid = step1.full_name.trim() && step1.phone.trim() && step1.city.trim() && step1.experience;
+  const [step1, setStep1] = useState({ phone: '', city: '', experience: '' });
+  const step1Valid = step1.phone.trim().length === 10 && step1.city.trim() && step1.experience;
 
   // Step 2
   const [specializations, setSpecializations] = useState([]);
-  const [hourlyRate, setHourlyRate] = useState(800);
+  const [pricingModels, setPricingModels] = useState([]);
+  const [pricingSkipped, setPricingSkipped] = useState(false);
+  const [rates, setRates] = useState(
+    Object.fromEntries(PRICING_MODELS.map(m => [m.key, m.defaultRate]))
+  );
   const [isIndependent, setIsIndependent] = useState(true);
   const step2Valid = specializations.length > 0;
 
@@ -110,8 +133,20 @@ export default function BecomeTrainer() {
       prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
     );
 
-  const adjustRate = (delta) =>
-    setHourlyRate(r => Math.min(5000, Math.max(0, r + delta)));
+  const togglePricingModel = (key) => {
+    setPricingSkipped(false);
+    setPricingModels(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
+
+  const adjustRate = (key, delta) =>
+    setRates(r => ({ ...r, [key]: Math.min(50000, Math.max(0, r[key] + delta)) }));
+
+  const skipPricing = () => {
+    setPricingModels([]);
+    setPricingSkipped(true);
+  };
 
   const handlePhoto = (e) => {
     const file = e.target.files[0];
@@ -145,12 +180,15 @@ export default function BecomeTrainer() {
       const payload = {
         userId: user.id,
         user_id: user.id,
-        full_name: step1.full_name,
+        full_name: fullName,
         phone: step1.phone,
         city: step1.city,
         experience_years: parseExperience(step1.experience),
         specializations,
-        hourly_rate: hourlyRate,
+        pricing_models: pricingModels,
+        hourly_rate: pricingModels.includes('hourly') ? rates.hourly : null,
+        monthly_rate: pricingModels.includes('monthly') ? rates.monthly : null,
+        session_rate: pricingModels.includes('session') ? rates.session : null,
         is_independent: isIndependent,
         bio,
         instagram_handle: instagram,
@@ -189,9 +227,9 @@ export default function BecomeTrainer() {
 
   // Review checklist
   const checks = [
-    { label: 'Basic info complete', done: !!step1.full_name },
+    { label: 'Basic info complete', done: !!(step1.phone && step1.city && step1.experience) },
     { label: 'Specializations selected', done: specializations.length > 0 },
-    { label: 'Rate set', done: hourlyRate > 0 },
+    { label: 'Pricing set', done: pricingModels.some(m => rates[m] > 0), optional: true },
     { label: 'Profile photo added', done: !!photo, optional: true },
     { label: 'Bio written', done: bio.length > 20, optional: true },
   ];
@@ -219,22 +257,28 @@ export default function BecomeTrainer() {
               subtitle="Tell us the basics — clients will see this when they find you."
             />
 
-            <FloatingInput
-              label="Full name"
-              value={step1.full_name}
-              onChange={v => setStep1(f => ({ ...f, full_name: v }))}
-            />
+            {/* Full name — collected at signup, shown here read-only for context */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Full name</div>
+              <div style={{ fontSize: 16, color: "var(--text-primary)", padding: '4px 0' }}>{fullName || '—'}</div>
+            </div>
+
             <FloatingInput
               label="Phone number"
               value={step1.phone}
-              onChange={v => setStep1(f => ({ ...f, phone: v }))}
+              onChange={v => setStep1(f => ({ ...f, phone: v.replace(/\D/g, '').slice(0, 10) }))}
               type="tel"
+              maxLength={10}
             />
-            <FloatingInput
-              label="City"
-              value={step1.city}
-              onChange={v => setStep1(f => ({ ...f, city: v }))}
-            />
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>City</div>
+              <CitySearchInput
+                value={step1.city}
+                onChange={v => setStep1(f => ({ ...f, city: v }))}
+                placeholder="Search city…"
+              />
+            </div>
 
             {/* Experience dropdown */}
             <div style={{ position: 'relative', marginBottom: 24 }}>
@@ -301,52 +345,115 @@ export default function BecomeTrainer() {
               })}
             </div>
 
-            {/* Hourly rate stepper */}
+            {/* Pricing models + rates */}
             <div style={{ marginBottom: 32 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>Hourly rate</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                <button
-                  onClick={() => adjustRate(-100)}
-                  style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    border: '1px solid var(--border)',
-                    background: 'transparent', fontSize: 20,
-                    cursor: 'pointer', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center'
-                  }}
-                >−</button>
-                <div style={{ textAlign: 'center', flex: 1 }}>
-                  <span style={{ fontSize: 32, fontWeight: 500 }}>₹{hourlyRate}</span>
-                  <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>per hour</div>
-                </div>
-                <button
-                  onClick={() => adjustRate(100)}
-                  style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    border: '1px solid var(--border)',
-                    background: 'transparent', fontSize: 20,
-                    cursor: 'pointer', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center'
-                  }}
-                >+</button>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Pricing</div>
+              <div style={{ fontSize: 13, color: "var(--text-tertiary)", marginBottom: 16, lineHeight: 1.5 }}>
+                Choose how you charge — pick as many as apply, or skip and set this later.
               </div>
-              {/* Fine-tune buttons */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 12 }}>
-                {[-500, -100, +100, +500].map(d => (
+
+              {pricingSkipped ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  gap: 12, padding: '14px 16px', borderRadius: 10,
+                  background: 'var(--bg-pill)', border: '1px solid var(--border)'
+                }}>
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                    Pricing skipped — you can add rates anytime from Trainer Settings.
+                  </span>
                   <button
-                    key={d}
-                    onClick={() => adjustRate(d)}
+                    onClick={() => setPricingSkipped(false)}
                     style={{
-                      padding: '4px 10px', borderRadius: 6,
-                      border: '1px solid var(--border)',
-                      background: 'transparent', fontSize: 12,
-                      color: "var(--text-secondary)", cursor: 'pointer'
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 13, fontWeight: 600, color: 'var(--text-cta)',
+                      whiteSpace: 'nowrap'
                     }}
                   >
-                    {d > 0 ? `+${d}` : d}
+                    Add now
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <>
+                  {/* Model checkboxes */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: pricingModels.length ? 20 : 12 }}>
+                    {PRICING_MODELS.map(model => {
+                      const active = pricingModels.includes(model.key);
+                      return (
+                        <button
+                          key={model.key}
+                          onClick={() => togglePricingModel(model.key)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            height: 40, padding: '0 14px',
+                            borderRadius: 8, fontSize: 13, fontWeight: 500,
+                            border: active ? '1.5px solid var(--text-cta)' : '1px solid var(--border)',
+                            background: 'var(--bg-card)',
+                            color: active ? 'var(--text-cta)' : "var(--text-secondary)",
+                            cursor: 'pointer', transition: 'all 0.15s'
+                          }}
+                        >
+                          <span style={{
+                            width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                            border: active ? 'none' : '1.5px solid var(--border-strong)',
+                            background: active ? 'var(--text-cta)' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}>
+                            {active && (
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bg-card)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
+                          </span>
+                          {model.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Rate stepper per selected model */}
+                  {PRICING_MODELS.filter(m => pricingModels.includes(m.key)).map(model => (
+                    <div key={model.key} style={{ marginBottom: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                        <button
+                          onClick={() => adjustRate(model.key, -model.step)}
+                          style={{
+                            width: 40, height: 40, borderRadius: '50%',
+                            border: '1px solid var(--border)',
+                            background: 'transparent', fontSize: 20,
+                            cursor: 'pointer', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center'
+                          }}
+                        >−</button>
+                        <div style={{ textAlign: 'center', flex: 1 }}>
+                          <span style={{ fontSize: 32, fontWeight: 500 }}>₹{rates[model.key]}</span>
+                          <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 2 }}>{model.unit}</div>
+                        </div>
+                        <button
+                          onClick={() => adjustRate(model.key, model.step)}
+                          style={{
+                            width: 40, height: 40, borderRadius: '50%',
+                            border: '1px solid var(--border)',
+                            background: 'transparent', fontSize: 20,
+                            cursor: 'pointer', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center'
+                          }}
+                        >+</button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={skipPricing}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontSize: 13, fontWeight: 500, color: "var(--text-tertiary)",
+                      textDecoration: 'underline', padding: 0
+                    }}
+                  >
+                    Skip for now
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Trainer type */}
@@ -536,10 +643,17 @@ export default function BecomeTrainer() {
             <div style={{ background: 'var(--bg-primary)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
               <div style={{ fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)", textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Summary</div>
               {[
-                { label: 'Name', value: step1.full_name || '—' },
+                { label: 'Name', value: fullName || '—' },
                 { label: 'City', value: step1.city || '—' },
                 { label: 'Experience', value: step1.experience || '—' },
-                { label: 'Rate', value: `₹${hourlyRate}/hr` },
+                {
+                  label: 'Pricing',
+                  value: pricingModels.length
+                    ? pricingModels
+                        .map(m => `₹${rates[m]}/${PRICING_MODELS.find(p => p.key === m).unitShort}`)
+                        .join(', ')
+                    : 'Not set — add later in Settings'
+                },
                 { label: 'Type', value: isIndependent ? 'Independent' : 'Gym-based' },
                 { label: 'Specializations', value: specializations.length ? specializations.slice(0, 3).join(', ') + (specializations.length > 3 ? ` +${specializations.length - 3}` : '') : '—' },
               ].map((row, i, arr) => (

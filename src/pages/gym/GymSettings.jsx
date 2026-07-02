@@ -8,6 +8,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../utils/supabase'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { CitySearchInput } from '../../components/CitySearchInput'
 
 const GYM_TYPES = ['Commercial', 'Boutique', 'CrossFit', 'Yoga Studio', 'Other']
 
@@ -449,7 +450,29 @@ export default function GymSettings() {
           <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
             {[
               { key: 'name', label: 'Gym Name', placeholder: 'e.g. FitZone Fitness', type: 'text' },
-              { key: 'city', label: 'City', placeholder: 'e.g. Bhopal', type: 'text' },
+            ].map(field => (
+              <div key={field.key} style={inputRowStyle}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', width: 100, flexShrink: 0 }}>{field.label}</span>
+                <input
+                  type={field.type} placeholder={field.placeholder} value={profile[field.key]}
+                  onChange={e => markDirty(setProfile)(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: 'var(--text-primary)', backgroundColor: 'transparent', textAlign: 'right' }}
+                />
+              </div>
+            ))}
+
+            <div style={inputRowStyle}>
+              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', width: 100, flexShrink: 0 }}>City</span>
+              <CitySearchInput
+                variant="compact"
+                align="right"
+                placeholder="e.g. Bhopal"
+                value={profile.city}
+                onChange={v => markDirty(setProfile)(prev => ({ ...prev, city: v }))}
+              />
+            </div>
+
+            {[
               { key: 'address', label: 'Address', placeholder: 'Full address', type: 'text' },
               { key: 'phone', label: 'Phone', placeholder: '+91 98765 43210', type: 'tel' },
             ].map(field => (

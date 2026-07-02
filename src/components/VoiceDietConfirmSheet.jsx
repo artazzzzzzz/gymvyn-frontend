@@ -17,10 +17,10 @@ function recomputeCalories(item) {
 
 function guessMealTypeNow() {
   const h = new Date().getHours();
-  if (h >= 5  && h < 11) return 'breakfast';
-  if (h >= 11 && h < 16) return 'lunch';
+  if (h >= 6  && h < 12) return 'breakfast';
+  if (h >= 12 && h < 16) return 'lunch';
   if (h >= 16 && h < 19) return 'snack';
-  if (h >= 19 && h < 23) return 'dinner';
+  if (h >= 19 && h < 24) return 'dinner';
   return 'snack';
 }
 
@@ -129,10 +129,16 @@ export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, o
     border: '1px solid var(--border)',
     borderRadius: 8,
     color: 'var(--text-primary)',
-    fontSize: 13,
-    padding: '4px 8px',
+    fontSize: 14,
+    padding: '8px 10px',
     width: '100%',
     boxSizing: 'border-box',
+  };
+
+  const unitInputStyle = {
+    ...inputStyle,
+    border: '1.5px solid var(--border)',
+    background: 'var(--bg-secondary)',
   };
 
   return (
@@ -140,9 +146,11 @@ export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, o
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200 }} />
 
       <div style={{
-        position: 'fixed', inset: 0, zIndex: 201,
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
         backgroundColor: 'var(--bg-primary)',
+        borderRadius: '20px 20px 0 0',
         display: 'flex', flexDirection: 'column',
+        maxHeight: '88vh',
         overflowY: 'auto',
         animation: 'slideUpSheet 0.25s ease',
       }}>
@@ -152,6 +160,9 @@ export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, o
           padding: '16px 16px 0', zIndex: 1,
           borderBottom: '1px solid var(--border)', paddingBottom: 12,
         }}>
+          {/* Drag handle */}
+          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'var(--border)', margin: '0 auto 12px' }} />
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>Confirm your meal</div>
@@ -224,7 +235,7 @@ export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, o
                   <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Unit</div>
                   <input value={item.unit}
                     onChange={e => updateItem(item._id, 'unit', e.target.value)}
-                    style={inputStyle} />
+                    style={unitInputStyle} />
                 </div>
               </div>
 

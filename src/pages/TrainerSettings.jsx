@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import { supabase } from '../utils/supabase';
 import { TrainerCodeCard } from '../components/TrainerCodeCard';
+import { CitySearchInput } from '../components/CitySearchInput';
 import { useTheme } from '../contexts/ThemeContext';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -492,11 +493,15 @@ export default function TrainerSettings() {
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>City</div>
-              <input
-                type="text"
-                value={editForm.city || ''}
-                onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))}
-                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              <CitySearchInput
+                variant="compact"
+                placeholder="Search city…"
+                value={editForm.city}
+                onChange={v => setEditForm(f => ({ ...f, city: v }))}
+                style={{
+                  height: 40, borderRadius: 8, border: '0.5px solid var(--border)',
+                  padding: '0 12px', fontSize: 13, boxSizing: 'border-box', display: 'flex', alignItems: 'center',
+                }}
               />
             </div>
             <div style={{ flex: 1 }}>

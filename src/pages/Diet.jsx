@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ChevronLeft, ChevronRight, Settings, Pencil, Scan,
+  ChevronLeft, ChevronRight, Settings, Pencil,
   Search, Mic, BookOpen, X, Droplets, Info, Camera,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
@@ -457,8 +457,6 @@ export default function Diet() {
 
         {[
           { label: 'Search', Icon: Search,   mode: 'search'  },
-          { label: 'Scan',   Icon: Scan,     mode: 'camera'  },
-          { label: 'Voice',  Icon: Mic,      mode: 'voice'   },
           { label: 'Manual', Icon: Pencil,   mode: 'manual'  },
           { label: 'Saved',  Icon: BookOpen, mode: 'mymeals' },
         ].map(({ label, Icon, mode }) => (

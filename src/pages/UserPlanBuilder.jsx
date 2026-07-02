@@ -20,6 +20,8 @@ export default function UserPlanBuilder() {
   const { planId } = useParams();
   const location = useLocation();
   const isEditing = !!planId && planId !== 'new';
+  const targetUserId = location.state?.targetUserId || user.id;
+  const isForClient = targetUserId !== user.id;
 
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
@@ -48,7 +50,7 @@ export default function UserPlanBuilder() {
 
   const loadPlan = async () => {
     try {
-      const all = await apiFetch(`/api/user-plans/${user.id}`);
+      const all = await apiFetch(`/api/user-plans/${targetUserId}`);
       const p = all.find(x => x.id === planId);
       if (!p) return;
       setName(p.name);
@@ -123,7 +125,7 @@ export default function UserPlanBuilder() {
     if (!hasEx) return;
     setSaving(true);
     try {
-      const payload = { userId: user.id, name: name.trim(), description: description.trim(), planData: { days } };
+      const payload = { userId: targetUserId, name: name.trim(), description: description.trim(), planData: { days } };
       if (isEditing) {
         await apiFetch(`/api/user-plans/${planId}`, {
           method: 'PATCH',
@@ -132,7 +134,7 @@ export default function UserPlanBuilder() {
       } else {
         await apiFetch('/api/user-plans', { method: 'POST', body: JSON.stringify(payload) });
       }
-      navigate('/workout');
+      navigate(isForClient ? `/trainer/client/${targetUserId}` : '/workout');
     } catch (err) { alert('Failed to save'); } finally { setSaving(false); }
   };
 

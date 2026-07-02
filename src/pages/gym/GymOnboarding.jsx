@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { CitySearchInput } from '../../components/CitySearchInput'
 
 const GYM_TYPES = ['Commercial', 'Boutique', 'CrossFit', 'Yoga Studio', 'Boxing', 'Other']
 
@@ -261,7 +262,7 @@ export default function GymOnboarding() {
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <input type="text" placeholder="City*" value={city} onChange={e => setCity(e.target.value)} style={inputStyle} />
+              <CitySearchInput value={city} onChange={setCity} placeholder="Search city…" />
             </div>
 
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 10 }}>Gym Type*</div>
