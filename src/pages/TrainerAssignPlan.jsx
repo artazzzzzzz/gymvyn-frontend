@@ -110,23 +110,27 @@ export default function TrainerAssignPlan() {
   const handleAssign = async () => {
     try {
       setAssigning(true);
-      const res = await fetch(`${API}/api/trainer/assign-plan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trainer_id: user.id,
-          client_id: selectedClient.client_id,
-          template_id: selectedTemplate?.id || null,
-          type: planType,
-          name: selectedTemplate?.name || 'Custom Plan',
-          plan_data: selectedTemplate?.template_data || {},
-          starts_at: startDate.toISOString(),
-          ends_at: endDate.toISOString(),
-          notes: message,
-          replacing: replacingPlanId || null
-        })
-      });
-      if (res.ok) setSuccess(true);
+      let ok = true;
+      try {
+        await apiFetch('/api/trainer/assign-plan', {
+          method: 'POST',
+          body: JSON.stringify({
+            trainer_id: user.id,
+            client_id: selectedClient.client_id,
+            template_id: selectedTemplate?.id || null,
+            type: planType,
+            name: selectedTemplate?.name || 'Custom Plan',
+            plan_data: selectedTemplate?.template_data || {},
+            starts_at: startDate.toISOString(),
+            ends_at: endDate.toISOString(),
+            notes: message,
+            replacing: replacingPlanId || null
+          })
+        });
+      } catch {
+        ok = false;
+      }
+      if (ok) setSuccess(true);
     } catch (e) {
       console.error('Assign plan error:', e);
     } finally {

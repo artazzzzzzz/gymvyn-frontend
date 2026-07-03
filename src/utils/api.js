@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 // Normalize the backend URL so a misconfigured env var (missing scheme, trailing
 // slash) cannot cause every API call to land on the Vercel SPA host and 405.
 function normalizeApiBase(raw) {
@@ -10,8 +12,14 @@ function normalizeApiBase(raw) {
 const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_URL);
 
 export async function apiFetch(path, options = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
     ...options,
   });
   if (!res.ok) throw new Error(`API error ${res.status}`);
@@ -407,8 +415,6 @@ export const finishWorkout = (data) =>
   apiFetch('/api/workout/finish', { method: 'POST', body: JSON.stringify(data) });
 
 // ── XP / Gamification ────────────────────────────────────────────────────────
-
-import { supabase } from './supabase';
 
 async function xpFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();

@@ -143,9 +143,8 @@ export default function TrainerSettings() {
   const toggleAccepting = async () => {
     const newVal = !profile.is_accepting_clients;
     setProfile(p => ({ ...p, is_accepting_clients: newVal }));
-    await fetch(`${API}/api/trainer/profile/${userId}`, {
+    await apiFetch(`/api/trainer/profile/${userId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_accepting_clients: newVal })
     });
   };
@@ -181,9 +180,8 @@ export default function TrainerSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await fetch(`${API}/api/trainer/profile/${userId}`, {
+      await apiFetch(`/api/trainer/profile/${userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
       });
       setProfile(p => ({ ...p, ...editForm }));
