@@ -174,6 +174,7 @@ const IconWallet = () => (
 )
 
 const GYM_OWNER_BASE_ITEMS = [
+  { id: 'chat',         label: 'Chat',             sub: 'Message staff, trainers & members', path: '/gym/chat',  icon: <IconChat /> },
   { id: 'feed',         label: 'Gym Feed',         sub: 'Posts, tips & achievements',  path: '/gym/feed',         icon: <IconFeed /> },
   { id: 'reports',      label: 'Reports',          sub: 'Revenue & analytics reports', path: '/gym/reports',      icon: <IconBarChart2 /> },
   { id: 'insights',     label: 'Insights',         sub: 'Analytics & occupancy',       path: '/gym/insights',     icon: <IconBarChart /> },

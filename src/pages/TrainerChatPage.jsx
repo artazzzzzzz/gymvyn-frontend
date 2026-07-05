@@ -44,6 +44,11 @@ const IcoMore = () => (
     <circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" />
   </svg>
 );
+const IcoPlus = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
 const IcoClip = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.gray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
@@ -143,6 +148,12 @@ export default function TrainerChatPage() {
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
 
+  /* ── new conversation contact picker ── */
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [contacts, setContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [startingContact, setStartingContact] = useState(false);
+
   /* ── polling logic (preserved) ── */
   useEffect(() => {
     if (!user?.id) return;
@@ -224,6 +235,47 @@ export default function TrainerChatPage() {
       console.error('Send message error:', err);
     } finally {
       setSending(false);
+    }
+  };
+
+  const openPicker = async () => {
+    setPickerOpen(true);
+    setContactsLoading(true);
+    try {
+      const data = await apiFetch('/api/chat/contacts');
+      setContacts(data || []);
+    } catch (err) {
+      console.error('Load contacts error:', err);
+      setContacts([]);
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  const startConversationWith = async (contact) => {
+    if (startingContact) return;
+    setStartingContact(true);
+    try {
+      // POST /api/chat/start get-or-creates: a repeat call with the same
+      // targetUserId returns the same conversationId, so this never
+      // creates a duplicate conversation.
+      const { conversationId } = await apiFetch('/api/chat/start', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId: contact.id }),
+      });
+      const data = await apiFetch('/api/chat/conversations');
+      setConversations(data || []);
+      const found = (data || []).find(c => c.id === conversationId);
+      setActiveConvo(found || {
+        id: conversationId,
+        other_user: { id: contact.id, full_name: contact.full_name, role: contact.role },
+        unread: 0,
+      });
+      setPickerOpen(false);
+    } catch (err) {
+      console.error('Start conversation error:', err);
+    } finally {
+      setStartingContact(false);
     }
   };
 
@@ -309,13 +361,25 @@ export default function TrainerChatPage() {
               </button>
               <span style={{ fontSize: 20, fontWeight: 700, color: C.text }}>Messages</span>
             </div>
-            {totalUnread > 0 && (
-              <span style={{
-                minWidth: 24, height: 24, borderRadius: 12, background: C.red, color: "var(--bg-card)",
-                fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '0 6px',
-              }}>{totalUnread}</span>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={openPicker}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%', background: C.grayBg,
+                  border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', color: C.text,
+                }}
+              >
+                <IcoPlus />
+              </button>
+              {totalUnread > 0 && (
+                <span style={{
+                  minWidth: 24, height: 24, borderRadius: 12, background: C.red, color: "var(--bg-card)",
+                  fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 6px',
+                }}>{totalUnread}</span>
+              )}
+            </div>
           </div>
 
           {/* Search */}
@@ -585,6 +649,55 @@ export default function TrainerChatPage() {
           }
         }
       `}</style>
+
+      {/* ═══ NEW CONVERSATION PICKER ═══ */}
+      {pickerOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={() => setPickerOpen(false)}
+        >
+          <div
+            style={{ width: '100%', maxWidth: 420, maxHeight: '70vh', background: C.card, borderRadius: '16px 16px 0 0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${C.border}` }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>New Conversation</span>
+              <button
+                onClick={() => setPickerOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.gray, fontSize: 20, lineHeight: 1, padding: 0 }}
+              >×</button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {contactsLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                  <div style={{ width: 24, height: 24, border: `2px solid ${C.blue}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                </div>
+              ) : contacts.length === 0 ? (
+                <p style={{ textAlign: 'center', color: C.sub, fontSize: 13, padding: '32px 0' }}>No contacts available</p>
+              ) : (
+                contacts.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => startConversationWith(c)}
+                    disabled={startingContact}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer',
+                      textAlign: 'left', fontFamily: 'inherit', opacity: startingContact ? 0.6 : 1,
+                    }}
+                  >
+                    <AvaCircle name={c.full_name} size={36} radius={11} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{c.full_name}</div>
+                      <div style={{ fontSize: 11, color: C.sub, textTransform: 'capitalize' }}>{c.role}</div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 
-export default function ChatWindow({ conversationId, otherPersonName, onBack }) {
+export default function ChatWindow({ conversationId, otherPersonName, onBack, headerRight }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -127,6 +127,7 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
           <p className="font-semibold text-sm">{otherPersonName || 'Chat'}</p>
           <p className="text-[10px] text-[var(--success)]">Online</p>
         </div>
+        {headerRight && <div className="ml-auto">{headerRight}</div>}
       </div>
 
       {/* Messages */}

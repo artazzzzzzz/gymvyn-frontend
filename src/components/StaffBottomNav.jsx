@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Home, ScanLine, Users, CreditCard, MoreHorizontal,
-  Calendar, Lock, Package, Megaphone, Settings, LogOut, X, LayoutList,
+  Calendar, Lock, Package, Megaphone, Settings, LogOut, X, LayoutList, MessageCircle,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 
@@ -14,6 +14,13 @@ const ALL_PERM_TABS = [
     path: '/staff/checkin',
     Icon: ScanLine,
     enabled: (p) => !!p?.checkin,
+  },
+  {
+    id: 'chat',
+    label: 'Chat',
+    path: '/staff/chat',
+    Icon: MessageCircle,
+    enabled: () => true,
   },
   {
     id: 'members',

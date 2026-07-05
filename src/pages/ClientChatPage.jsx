@@ -11,6 +11,11 @@ export default function ClientChatPage() {
   const [trainerName, setTrainerName] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [contacts, setContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [starting, setStarting] = useState(false);
+
   useEffect(() => {
     if (!user?.id) return;
     loadConversation();
@@ -42,6 +47,91 @@ export default function ClientChatPage() {
     }
   };
 
+  const openPicker = async () => {
+    setPickerOpen(true);
+    setContactsLoading(true);
+    try {
+      const data = await apiFetch('/api/chat/contacts');
+      setContacts(data || []);
+    } catch (err) {
+      console.error('Load contacts error:', err);
+      setContacts([]);
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  const startConversationWith = async (contact) => {
+    if (starting) return;
+    setStarting(true);
+    try {
+      // POST /api/chat/start get-or-creates: a repeat call with the same
+      // targetUserId returns the same conversationId, so this never
+      // creates a duplicate conversation.
+      const { conversationId } = await apiFetch('/api/chat/start', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId: contact.id }),
+      });
+      setConversation(conversationId ? { id: conversationId } : null);
+      setTrainerName(contact.full_name || 'Chat');
+      setPickerOpen(false);
+    } catch (err) {
+      console.error('Start conversation error:', err);
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const ContactPicker = () => (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
+      onClick={() => setPickerOpen(false)}
+    >
+      <div
+        className="w-full sm:w-96 max-h-[70vh] bg-[var(--bg-primary)] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+          <span className="font-semibold text-sm text-[var(--text-primary)]">New Conversation</span>
+          <button
+            onClick={() => setPickerOpen(false)}
+            className="text-[var(--text-tertiary)] text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {contactsLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : contacts.length === 0 ? (
+            <p className="text-center text-sm text-[var(--text-secondary)] py-10">No contacts available</p>
+          ) : (
+            contacts.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => startConversationWith(c)}
+                disabled={starting}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[var(--bg-hover)] disabled:opacity-50"
+              >
+                <div className="w-9 h-9 rounded-full bg-[var(--success-bg)] flex items-center justify-center flex-shrink-0">
+                  <span className="text-[var(--success)] font-bold text-sm">
+                    {(c.full_name || '?')[0].toUpperCase()}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">{c.full_name}</p>
+                  <p className="text-xs text-[var(--text-tertiary)] capitalize">{c.role}</p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
@@ -66,6 +156,13 @@ export default function ClientChatPage() {
         >
           Find a Trainer
         </button>
+        <button
+          onClick={openPicker}
+          className="mt-4 text-sm text-[var(--text-secondary)] underline"
+        >
+          New Conversation
+        </button>
+        {pickerOpen && <ContactPicker />}
       </div>
     );
   }
@@ -76,7 +173,18 @@ export default function ClientChatPage() {
         conversationId={conversation.id}
         otherPersonName={trainerName}
         onBack={() => navigate('/my-trainer')}
+        headerRight={(
+          <button
+            onClick={openPicker}
+            className="w-8 h-8 rounded-full bg-[var(--bg-hover)] flex items-center justify-center text-[var(--text-primary)]"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        )}
       />
+      {pickerOpen && <ContactPicker />}
     </div>
   );
 }

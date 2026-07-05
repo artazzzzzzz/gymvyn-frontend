@@ -42,6 +42,7 @@ import GymStaff from './pages/gym/GymStaff'
 import GymReports from './pages/gym/GymReports'
 import GymEquipment from './pages/gym/GymEquipment'
 import GymTrainerPayouts from './pages/gym/GymTrainerPayouts'
+import GymChatPage from './pages/gym/GymChatPage'
 import GymComingSoon from './pages/GymComingSoon'
 import ExerciseLibrary from './pages/ExerciseLibrary'
 import ExerciseDetail from './pages/ExerciseDetail'
@@ -86,6 +87,7 @@ import StaffLockers from './pages/staff/StaffLockers'
 import StaffSupplements from './pages/staff/StaffSupplements'
 import StaffAnnouncements from './pages/staff/StaffAnnouncements'
 import StaffFeedPage from './pages/staff/StaffFeedPage'
+import StaffChatPage from './pages/staff/StaffChatPage'
 
 export default function App() {
   return (
@@ -172,6 +174,7 @@ export default function App() {
           <Route path="/gym/trainer-payouts" element={<GymOwnerRoute><GymTrainerPayouts /></GymOwnerRoute>} />
           <Route path="/gym/profile"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
           <Route path="/gym/feed"         element={<GymOwnerRoute><GymFeedOwnerPage /></GymOwnerRoute>} />
+          <Route path="/gym/chat"         element={<GymOwnerRoute><GymChatPage /></GymOwnerRoute>} />
 
           {/* Trainer routes — shared nav via TrainerLayout */}
           <Route path="/become-trainer" element={<AuthRoute><BecomeTrainer /></AuthRoute>} />
@@ -202,6 +205,7 @@ export default function App() {
             <Route path="/staff/supplements"    element={<StaffSupplements />} />
             <Route path="/staff/announcements"  element={<StaffAnnouncements />} />
             <Route path="/staff/feed"           element={<StaffFeedPage />} />
+            <Route path="/staff/chat"           element={<StaffChatPage />} />
           </Route>
 
           {/* Full-screen trainer editors — no nav */}
