@@ -20,19 +20,21 @@ export default function ClientChatPage() {
     try {
       // Get client's trainer info
       const trainerInfo = await apiFetch(`/api/trainer/my-trainer/${user.id}`);
-      if (!trainerInfo?.trainer_id) {
+      if (!trainerInfo?.trainer?.id) {
         setLoading(false);
         return;
       }
 
       setTrainerName(trainerInfo.trainer?.full_name || 'Your Trainer');
 
-      // Get their conversation
-      const convos = await apiFetch(`/api/trainer/conversations/${user.id}`);
-      const convo = (convos || []).find(
-        c => c.trainer_id === trainerInfo.trainer_id
-      );
-      setConversation(convo || null);
+      // Get-or-create the conversation. This is permission-checked server
+      // side (can_message) — it will only succeed while the trainer_clients
+      // link is active.
+      const { conversationId } = await apiFetch('/api/chat/start', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId: trainerInfo.trainer.id }),
+      });
+      setConversation(conversationId ? { id: conversationId } : null);
     } catch (err) {
       console.error('Load client chat error:', err);
     } finally {

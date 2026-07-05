@@ -95,19 +95,8 @@ function formatTime(iso) {
 }
 
 /* ─── Message bubble ─── */
-function BubbleMsg({ msg, showTime }) {
-  if (msg.sender_type === 'system' || msg.is_system) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0' }}>
-        <span style={{
-          fontSize: 11, color: C.sub, background: C.grayBg,
-          borderRadius: 9999, padding: '3px 12px',
-        }}>{msg.content || msg.text}</span>
-      </div>
-    );
-  }
-
-  const isT = msg.sender_type === 'trainer' || msg.from === 'trainer';
+function BubbleMsg({ msg, showTime, currentUserId }) {
+  const isT = msg.sender_id === currentUserId;
   const bg = isT ? "var(--text-primary)" : 'var(--bg-pill)';
   const col = isT ? "var(--bg-card)" : C.text;
   const rad = isT ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
@@ -169,11 +158,11 @@ export default function TrainerChatPage() {
     }
   }, [preselectedConvoId, conversations]);
 
-  /* load messages when convo opens */
+  /* load messages when convo opens — GET /api/chat/messages/:id also
+     resets this user's unread counter server-side */
   useEffect(() => {
     if (!activeConvo) return;
     loadMessages(activeConvo.id);
-    markRead(activeConvo.id);
   }, [activeConvo?.id]);
 
   /* auto-scroll on new messages */
@@ -181,10 +170,12 @@ export default function TrainerChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  /* ── API helpers (original preserved) ── */
+  /* ── API helpers (migrated to /api/chat/*, the schema-correct,
+     participant-checked backend — /api/trainer/conversations|messages/*
+     no longer exist server-side) ── */
   const loadConversations = async () => {
     try {
-      const data = await apiFetch(`/api/trainer/conversations/${user.id}`);
+      const data = await apiFetch('/api/chat/conversations');
       setConversations(data || []);
       if (data?.length > 0 && !activeConvo && preselectedConvoId) {
         const found = data.find(c => c.id === preselectedConvoId);
@@ -200,7 +191,7 @@ export default function TrainerChatPage() {
   const loadMessages = async (convoId) => {
     setMessagesLoading(true);
     try {
-      const data = await apiFetch(`/api/trainer/messages/${convoId}`);
+      const data = await apiFetch(`/api/chat/messages/${convoId}`);
       setMessages(data || []);
     } catch (err) {
       console.error('Load messages error:', err);
@@ -208,12 +199,6 @@ export default function TrainerChatPage() {
     } finally {
       setMessagesLoading(false);
     }
-  };
-
-  const markRead = async (convoId) => {
-    try {
-      await apiFetch(`/api/trainer/conversations/${convoId}/read`, { method: 'POST' });
-    } catch (_) {}
   };
 
   const sendMessage = async () => {
@@ -224,15 +209,15 @@ export default function TrainerChatPage() {
     /* optimistic */
     const optimistic = {
       id: `opt-${Date.now()}`,
-      sender_type: 'trainer',
+      sender_id: user.id,
       content: text,
       created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, optimistic]);
     try {
-      await apiFetch('/api/trainer/messages', {
+      await apiFetch('/api/chat/message', {
         method: 'POST',
-        body: JSON.stringify({ conversationId: activeConvo.id, senderId: user.id, content: text }),
+        body: JSON.stringify({ conversationId: activeConvo.id, content: text }),
       });
       await loadMessages(activeConvo.id);
     } catch (err) {
@@ -245,7 +230,7 @@ export default function TrainerChatPage() {
   /* ── preserved helpers ── */
   const getOtherPersonName = (convo) => {
     if (!convo) return '';
-    return convo.client?.full_name || 'Client';
+    return convo.other_user?.full_name || 'Client';
   };
 
   const formatLastTime = (iso) => {
@@ -259,29 +244,29 @@ export default function TrainerChatPage() {
     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const totalUnread = conversations.reduce((s, c) => s + (c.trainer_unread || 0), 0);
+  const totalUnread = conversations.reduce((s, c) => s + (c.unread || 0), 0);
 
   /* ── filter + search ── */
   const FILTER_LABELS = ['All', `Unread (${totalUnread})`, 'Clients', 'Needs reply'];
   const filteredConvos = conversations.filter(c => {
     const name = getOtherPersonName(c).toLowerCase();
     if (search && !name.includes(search.toLowerCase())) return false;
-    if (filter === `Unread (${totalUnread})` && !(c.trainer_unread > 0)) return false;
+    if (filter === `Unread (${totalUnread})` && !(c.unread > 0)) return false;
     return true;
   });
 
-  /* ── message grouping helpers ── */
+  /* ── message grouping helpers (messages have no sender_type/is_system in
+     the real schema, so grouping is purely by sender_id) ── */
   const showTimestamp = (msgs, i) => {
-    if (!msgs[i] || msgs[i].sender_type === 'system' || msgs[i].is_system) return false;
-    const next = msgs.slice(i + 1).find(m => !m.is_system && m.sender_type !== 'system');
-    return !next || next.sender_type !== msgs[i].sender_type;
+    if (!msgs[i]) return false;
+    const next = msgs[i + 1];
+    return !next || next.sender_id !== msgs[i].sender_id;
   };
   const msgMarginTop = (msgs, i) => {
     if (i === 0) return 0;
     const prev = msgs[i - 1];
     const cur = msgs[i];
-    if (prev.is_system || cur.is_system || prev.sender_type === 'system' || cur.sender_type === 'system') return 14;
-    return prev.sender_type === cur.sender_type ? 6 : 16;
+    return prev.sender_id === cur.sender_id ? 6 : 16;
   };
 
   /* ── loading ── */
@@ -385,7 +370,7 @@ export default function TrainerChatPage() {
           ) : (
             filteredConvos.map((convo, i) => {
               const name = getOtherPersonName(convo);
-              const unread = convo.trainer_unread || 0;
+              const unread = convo.unread || 0;
               const isActive = activeConvo?.id === convo.id;
 
               return (
@@ -494,7 +479,7 @@ export default function TrainerChatPage() {
               </div>
 
               <button
-                onClick={() => navigate(`/trainer/client/${activeConvo.client_id || activeConvo.client?.id}`)}
+                onClick={() => navigate(`/trainer/client/${activeConvo.other_user?.id}`)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.text, padding: 4 }}
               >
                 <IcoMore />
@@ -530,7 +515,7 @@ export default function TrainerChatPage() {
 
                 {messages.map((msg, i) => (
                   <div key={msg.id} style={{ marginTop: msgMarginTop(messages, i) }}>
-                    <BubbleMsg msg={msg} showTime={showTimestamp(messages, i)} />
+                    <BubbleMsg msg={msg} showTime={showTimestamp(messages, i)} currentUserId={user.id} />
                   </div>
                 ))}
                 <div ref={bottomRef} />

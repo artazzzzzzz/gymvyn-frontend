@@ -13,7 +13,6 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
   useEffect(() => {
     if (!conversationId || !user?.id) return;
     loadMessages();
-    markRead();
     const cleanup = subscribeRealtime();
     return cleanup;
   }, [conversationId, user?.id]);
@@ -25,23 +24,14 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
 
   const loadMessages = async () => {
     try {
-      const data = await apiFetch(`/api/trainer/messages/${conversationId}?limit=50`);
+      // GET /api/chat/messages/:id also resets this user's unread counter
+      // server-side, so there's no separate mark-read call.
+      const data = await apiFetch(`/api/chat/messages/${conversationId}`);
       setMessages(data || []);
     } catch (err) {
       console.error('Load messages error:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const markRead = async () => {
-    try {
-      await apiFetch('/api/trainer/messages/read', {
-        method: 'POST',
-        body: JSON.stringify({ conversationId, userId: user.id })
-      });
-    } catch (err) {
-      // non-critical
     }
   };
 
@@ -62,7 +52,6 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
       conversation_id: conversationId,
       sender_id: user.id,
       content,
-      message_type: 'text',
       created_at: new Date().toISOString(),
       sender: { full_name: user.full_name || 'You' }
     };
@@ -71,14 +60,9 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack }) 
     setSending(true);
 
     try {
-      const saved = await apiFetch('/api/trainer/messages', {
+      const saved = await apiFetch('/api/chat/message', {
         method: 'POST',
-        body: JSON.stringify({
-          conversationId,
-          senderId: user.id,
-          content,
-          messageType: 'text'
-        })
+        body: JSON.stringify({ conversationId, content })
       });
       // Replace optimistic with real
       setMessages(prev => prev.map(m => m.id === optimistic.id ? { ...saved, sender: optimistic.sender } : m));
