@@ -22,8 +22,9 @@ export async function apiFetch(path, options = {}) {
     },
     ...options,
   });
-  if (!res.ok) throw new Error(`API error ${res.status}`);
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `API error ${res.status}`);
+  return data;
 }
 
 // ── Gym owner ────────────────────────────────────────────────────────────────
@@ -40,7 +41,10 @@ export async function createGym({ userId, gymName, address, city, state, pincode
 }
 
 export async function getGymByUserId(userId) {
-  const res = await fetch(`${BASE_URL}/api/gyms/${userId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gyms/${userId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch gym (${res.status})`);
   return data;
@@ -49,7 +53,10 @@ export async function getGymByUserId(userId) {
 // ── Gym member management ────────────────────────────────────────────────────
 
 export async function getGymMembers(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-members?gymId=${encodeURIComponent(gymId)}`)
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-members?gymId=${encodeURIComponent(gymId)}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  })
   const data = await res.json().catch(() => null)
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch members (${res.status})`)
   return Array.isArray(data) ? data : (data?.members ?? [])
@@ -113,9 +120,22 @@ export async function assignTrainer(memberId, trainerId) {
 
 // ── Gym payments ─────────────────────────────────────────────────────────────
 
+export async function getGymRevenue(gymId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym/revenue?gym_id=${encodeURIComponent(gymId)}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.message) || `Failed to fetch revenue (${res.status})`);
+  return data;
+}
+
 export async function getGymPayments(gymId, status) {
   const qs = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-  const res = await fetch(`${BASE_URL}/api/gym-payments/${gymId}${qs}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-payments/${gymId}${qs}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch payments (${res.status})`);
   return data || [];
@@ -153,7 +173,10 @@ export async function recordPayment({ gymId, userId, membershipId, amount, dueDa
 // ── Class schedule ───────────────────────────────────────────────────────────
 
 export async function getGymSchedule(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-schedule/${gymId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${gymId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch schedule (${res.status})`);
   return data || [];
@@ -163,9 +186,13 @@ export async function addGymClass({
   gymId, className, description, trainerId,
   dayOfWeek, startTime, endTime, capacity,
 }) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-schedule`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({
       gym_id: gymId,
       class_name: className,
@@ -183,7 +210,11 @@ export async function addGymClass({
 }
 
 export async function deleteGymClass(classId) {
-  const res = await fetch(`${BASE_URL}/api/gym-schedule/${classId}`, { method: 'DELETE' });
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${classId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to delete class (${res.status})`);
   return data;
@@ -191,7 +222,10 @@ export async function deleteGymClass(classId) {
 
 // Member-facing: classes for a single day. Returns { date, classes: [...] }.
 export async function getClassesByDate(gymId, date) {
-  const res = await fetch(`${BASE_URL}/api/gym-schedule/${gymId}?date=${encodeURIComponent(date)}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${gymId}?date=${encodeURIComponent(date)}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch classes (${res.status})`);
   return data || { date, classes: [] };
@@ -200,16 +234,23 @@ export async function getClassesByDate(gymId, date) {
 // ── Announcements ────────────────────────────────────────────────────────────
 
 export async function getGymAnnouncements(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-announcements/${gymId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-announcements/${gymId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch announcements (${res.status})`);
   return data || [];
 }
 
 export async function postAnnouncement({ gymId, postedBy, title, body, priority }) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-announcements`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({
       gym_id: gymId,
       posted_by: postedBy,
@@ -224,7 +265,11 @@ export async function postAnnouncement({ gymId, postedBy, title, body, priority 
 }
 
 export async function deleteAnnouncement(announcementId) {
-  const res = await fetch(`${BASE_URL}/api/gym-announcements/${announcementId}`, { method: 'DELETE' });
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-announcements/${announcementId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to delete announcement (${res.status})`);
   return data;
@@ -264,8 +309,11 @@ export async function uploadGymLogo(gymId, file) {
 
 // ── QR check-in ──────────────────────────────────────────────────────────────
 
-export async function getGymQR(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-qr/${gymId}`);
+export async function getGymQR(gymId, userId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-qr/${gymId}?user_id=${userId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && (data.error || data.message)) || `Failed to fetch QR (${res.status})`);
   return data;
@@ -283,9 +331,13 @@ export async function checkInMember(userId, gymId, method = 'manual') {
 }
 
 export async function checkOutMember(userId, gymId) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/checkout`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({ userId, gymId }),
   });
   const data = await res.json().catch(() => ({}));
@@ -294,18 +346,27 @@ export async function checkOutMember(userId, gymId) {
 }
 
 export async function getGymOccupancy(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-occupancy/${gymId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-occupancy/${gymId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && (data.error || data.message)) || `Failed to fetch occupancy (${res.status})`);
   return data;
 }
 
+export const getGymInsights = (gymId) => apiFetch(`/api/gym/${gymId}/insights`);
+
 // ── Churn insights — legacy rule-based (kept for compatibility) ──────────────
 
 export async function runChurnAnalysis(gymId) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-churn/score/${gymId}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || data.message || `Failed to run analysis (${res.status})`);
@@ -315,21 +376,31 @@ export async function runChurnAnalysis(gymId) {
 // ── ML-powered churn (XGBoost) ───────────────────────────────────────────────
 
 export async function getMlStatus() {
-  const res = await fetch(`${BASE_URL}/api/ml/status`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/ml/status`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to fetch ML status`);
   return data;
 }
 
 export async function scoreGym(gymId) {
-  const res = await fetch(`${BASE_URL}/api/ml/score/${gymId}`, { method: 'POST' });
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/ml/score/${gymId}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to score gym`);
   return data;
 }
 
 export async function getChurnScores(gymId) {
-  const res = await fetch(`${BASE_URL}/api/ml/scores/${gymId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/ml/scores/${gymId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to fetch churn scores`);
   return data;
@@ -338,16 +409,23 @@ export async function getChurnScores(gymId) {
 // ── Consumer side: My Gym ────────────────────────────────────────────────────
 
 export async function getMyGym(userId) {
-  const res = await fetch(`${BASE_URL}/api/my-gym/${userId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/my-gym/${userId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch gym (${res.status})`);
   return data || { linked: false };
 }
 
 export async function joinGym(userId, joinCode) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-join`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({ user_id: userId, join_code: joinCode }),
   });
   const data = await res.json().catch(() => ({}));
@@ -355,12 +433,23 @@ export async function joinGym(userId, joinCode) {
   return data;
 }
 
+// Soft-unlink: keeps history (logs, progress, assigned plans), sets the
+// membership row to inactive. Self-only — acts on the caller's own token.
+export const unlinkGym = () => apiFetch('/api/my-gym/unlink', { method: 'PATCH' });
+
+export const unlinkTrainer = () => apiFetch('/api/trainer/unlink', { method: 'PATCH' });
+
 // ── Diet & Macros ────────────────────────────────────────────────────────────
 
 async function dietRequest(path, { method = 'GET', body } = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
