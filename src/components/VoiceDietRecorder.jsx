@@ -12,11 +12,6 @@ async function postAudioToAPI(blob) {
   const form = new FormData();
   form.append('audio', blob, 'recording.' + (blob.type.includes('mp4') ? 'm4a' : 'webm'));
 
-  console.log('[voice-recorder] uploading audio:', {
-    size: blob.size,
-    type: blob.type,
-  });
-
   const res = await fetch(`${BASE_URL}/api/ai/voice/diet`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAvatarColor } from '../../utils/avatarColor'
+import { supabase } from '../../utils/supabase'
 
 const BASE = import.meta.env.VITE_API_URL
 
@@ -150,9 +151,13 @@ function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
 
     setLoading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/api/gym-members/${memberId}/renew`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({
           plan_type: plan.key,
           amount: plan.price,
@@ -265,7 +270,11 @@ function RemoveConfirm({ member, memberId, isOpen, onClose, onRemoved }) {
   async function handleRemove() {
     setLoading(true)
     try {
-      const res = await fetch(`${BASE}/api/gym-members/${memberId}`, { method: 'DELETE' })
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${BASE}/api/gym-members/${memberId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       if (!res.ok) throw new Error('Failed to remove member')
       onRemoved()
     } catch (err) {
@@ -410,7 +419,10 @@ export default function GymMemberDetail() {
     let cancelled = false
     setLoading(true)
 
-    fetch(`${BASE}/api/gym-members/${memberId}`)
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => fetch(`${BASE}/api/gym-members/${memberId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      }))
       .then(r => r.json())
       .then(data => { if (!cancelled) setMember(data?.member || data) })
       .catch(err => console.error('GymMemberDetail load error:', err))
@@ -608,7 +620,7 @@ export default function GymMemberDetail() {
                 Renew
               </button>
               <button
-                onClick={() => console.log('Change plan stub')}
+                onClick={() => {}}
                 style={{
                   flex: 1, height: 44, background: 'var(--bg-pill)', color: 'var(--text-primary)',
                   border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer',

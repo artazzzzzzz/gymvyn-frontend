@@ -275,7 +275,7 @@ function SwipeableSetRow({ set, prevData, prevText, onUpdate, onComplete, onRemo
   return (
     <div
       style={{
-        display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 44px 44px',
+        display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr) 68px 64px 44px 44px',
         gap: 6, padding: '6px 4px', alignItems: 'center', borderRadius: 8,
         background: rowBg,
         borderLeft: rowBorder,
@@ -493,7 +493,6 @@ export default function LiveSession() {
     if (!target) return
     const lastCompleted = [...target.sets].reverse().find(s => s.completed)
     if (!lastCompleted) {
-      console.log('[handleFormScore] no completed set yet — score not saved:', score)
       return
     }
     updateSetFormScore(formCoachTargetExerciseId, lastCompleted.setNumber, score)
@@ -711,9 +710,9 @@ export default function LiveSession() {
           </div>
 
           {/* Set header row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 68px 64px 44px 44px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr) 68px 64px 44px 44px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
             {['SET', 'PREVIOUS', 'KG', 'REPS', '', ''].map((h, i) => (
-              <span key={i} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: "var(--text-tertiary)", textAlign: i >= 2 ? 'center' : 'left' }}>{h}</span>
+              <span key={i} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: "var(--text-tertiary)", textAlign: i >= 2 ? 'center' : 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h}</span>
             ))}
           </div>
 

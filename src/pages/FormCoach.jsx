@@ -698,7 +698,6 @@ export default function FormCoach() {
           onClose={() => setModalExercise(null)}
           onFormScore={(score) => {
             setFormScore(score)
-            console.log('[FormCoach] avg form score:', score)
           }}
         />
       )}

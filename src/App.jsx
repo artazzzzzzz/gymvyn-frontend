@@ -97,9 +97,6 @@ export default function App() {
         <WorkoutSessionProvider>
         <XPToastProvider>
         <Routes>
-          {/* DEV PREVIEW — remove before shipping */}
-          <Route path="/preview-exercise" element={<ExerciseDetail />} />
-
           {/* Public */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login"        element={<PublicRoute><Login /></PublicRoute>} />

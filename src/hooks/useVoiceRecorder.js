@@ -69,7 +69,6 @@ export function useVoiceRecorder() {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     let silenceStart = null;
     let hasSpeech = false; // silence timer only activates after first speech detected
-    let lastLogTime = 0;
 
     function tick() {
       analyser.getByteTimeDomainData(dataArray);
@@ -81,13 +80,7 @@ export function useVoiceRecorder() {
       const rms = Math.sqrt(sum / dataArray.length);
       setAudioLevel(Math.min(rms * 4, 1));
 
-      // Throttled log — once per second
       const now = Date.now();
-      if (now - lastLogTime >= 1000) {
-        console.log('[voice-recorder] audioLevel rms:', rms.toFixed(4), 'hasSpeech:', hasSpeech);
-        lastLogTime = now;
-      }
-
       if (rms >= SILENCE_THRESHOLD) {
         hasSpeech = true;
         silenceStart = null;
@@ -120,11 +113,6 @@ export function useVoiceRecorder() {
       clearTimeout(maxTimer);
       cleanup();
       setStatus('processing');
-      console.log('[voice-recorder] recording stopped:', {
-        chunkCount: chunksRef.current.length,
-        totalSize: chunksRef.current.reduce((sum, c) => sum + c.size, 0),
-        mimeType: mimeTypeRef.current,
-      });
       const b = new Blob(chunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
       setBlob(b);
     };
