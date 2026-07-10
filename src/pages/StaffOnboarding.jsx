@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
-const API = import.meta.env.VITE_API_URL || 'https://fitforge-backend-production.up.railway.app'
+if (!import.meta.env.VITE_API_URL) throw new Error('VITE_API_URL is not set')
+const API = import.meta.env.VITE_API_URL
 
 export default function StaffOnboarding() {
   const { user, markOnboardingComplete } = useAuth()

@@ -153,7 +153,7 @@ export default function Workout() {
         .from('workout_logs')
         .select('*')
         .eq('user_id', user.id)
-        .order('completed_at', { ascending: false })
+        .order('started_at', { ascending: false })
         .limit(5)
       setWorkoutLogs(data || [])
     }
@@ -179,8 +179,8 @@ export default function Workout() {
     ? Math.round(((trainerDayIndex + 1) / (trainerPlan.plan_data?.days?.length || 1)) * 100)
     : 0
 
-  // Last session subtitle
-  const lastLog = workoutLogs[0]
+  // Last session subtitle (skip rest-day placeholder rows — they aren't sessions)
+  const lastLog = workoutLogs.find(w => w.notes !== 'Rest day')
   const lastSessionSub = lastLog
     ? `Last session: ${formatDate(lastLog.completed_at || lastLog.started_at)} · ${computeSets(lastLog.exercises)} sets · ${lastLog.duration_minutes ? lastLog.duration_minutes + ' min' : '—'}`
     : 'No sessions yet'
@@ -428,8 +428,29 @@ export default function Workout() {
         </div>
       ) : (
         workoutLogs.map(workout => {
+          const date = formatDate(workout.completed_at || workout.started_at)
+
+          // Rest days aren't workouts — reuse Home.jsx's rest-day treatment
+          // (plain label, no fake sets/volume/duration stats) instead of the
+          // full workout card.
+          if (workout.notes === 'Rest day') {
+            return (
+              <div
+                key={workout.id}
+                style={{
+                  background: "var(--bg-card)", borderRadius: 14,
+                  margin: '0 16px 10px', padding: 16,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-tertiary)" }}>Rest day</span>
+                  <span style={{ fontSize: 13, color: "var(--text-tertiary)", flexShrink: 0, marginLeft: 8 }}>{date}</span>
+                </div>
+              </div>
+            )
+          }
+
           const name    = workout.notes || 'Workout'
-          const date    = formatDate(workout.completed_at || workout.started_at)
           const sets    = computeSets(workout.exercises)
           const vol     = formatVolume(workout.exercises)
           const dur     = formatDuration(workout.duration_minutes)

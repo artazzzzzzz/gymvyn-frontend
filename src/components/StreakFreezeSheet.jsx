@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Snowflake } from 'lucide-react'
 import { useStreakFreeze } from '../utils/api'
+import { XP_CONSTANTS } from '../utils/xpCalculator'
 import PrimaryButton from './PrimaryButton'
+
+const { MONTHLY_FREEZES } = XP_CONSTANTS
 
 export default function StreakFreezeSheet({ isOpen, onClose, freezesRemaining = 0, currentStreak = 0, lastActiveDate = null, onUsed }) {
   const [submitting, setSubmitting] = useState(false)
@@ -85,18 +88,18 @@ export default function StreakFreezeSheet({ isOpen, onClose, freezesRemaining = 
             Streak freezes
           </h2>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 6, lineHeight: 1.4 }}>
-            Protect your streak on rest days. You get 6 each month.
+            Protect your streak on rest days. You get {MONTHLY_FREEZES} each month.
           </p>
 
-          {/* 6 snowflake circles */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-            {Array.from({ length: 6 }).map((_, i) => {
+          {/* One circle per monthly freeze */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 24 }}>
+            {Array.from({ length: MONTHLY_FREEZES }).map((_, i) => {
               const used = i >= freezesRemaining
               return (
                 <div
                   key={i}
                   style={{
-                    width: 36, height: 36, borderRadius: 18,
+                    width: 32, height: 32, borderRadius: 16,
                     background: used ? 'var(--bg-input)' : 'var(--accent-bg)',
                     border: `1px solid ${used ? 'var(--border)' : 'var(--accent)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',

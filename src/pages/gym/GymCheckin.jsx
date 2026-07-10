@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
-import { formatRelative } from '../../utils/dateHelpers'
+import { formatRelative, istDateStr } from '../../utils/dateHelpers'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { supabase } from '../../utils/supabase'
 
 export default function GymCheckin() {
   const gymId = useOwnerGymId()
@@ -14,25 +15,53 @@ export default function GymCheckin() {
   const [scanStatus, setScanStatus] = useState('idle')
   const [manualCode, setManualCode] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState([])
+  const [rawSearchResults, setRawSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(istDateStr())
   const [historyData, setHistoryData] = useState({ total: 0, checkins: [] })
   const [historyLoading, setHistoryLoading] = useState(false)
   const [toast, setToast] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
   const searchTimeoutRef = useRef(null)
   const occupancyIntervalRef = useRef(null)
+  const isMountedRef = useRef(true)
+  const headerRef = useRef(null)
+  const [headerHeight, setHeaderHeight] = useState(0)
+
+  // Measure the sticky header (title row + tab bar) so the toast can be
+  // pinned just below it instead of overlapping it with a guessed offset.
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const update = () => setHeaderHeight(el.offsetHeight)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => { isMountedRef.current = false }
+  }, [])
 
   // ─── Occupancy polling ───────────────────────────────────────────────────
+  // isMountedRef guards the state update (not the in-flight request itself)
+  // so a fetch that resolves after this effect instance has been torn down
+  // — e.g. a fast unmount, or React StrictMode's dev-only double-invoke of
+  // this effect — can never apply a stale response to a gone/superseded
+  // component.
   const fetchOccupancy = useCallback(async () => {
     if (!gymId) return
     try {
-      const res = await fetch(`${API}/api/gym-occupancy/${gymId}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gym-occupancy/${gymId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
-      setOccupancy(data)
+      if (isMountedRef.current) setOccupancy(data)
     } catch (err) {
-      console.error('Occupancy fetch failed:', err)
+      if (isMountedRef.current) console.error('Occupancy fetch failed:', err)
     }
   }, [gymId])
 
@@ -51,17 +80,20 @@ export default function GymCheckin() {
   // ─── Check-in ────────────────────────────────────────────────────────────
   const handleCheckIn = async (memberId, userId, memberName, memberSince, membershipType) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/checkin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ gym_id: gymId, member_id: memberId, user_id: userId, method: 'manual' }),
       })
       const data = await res.json()
       if (res.status === 409) { showToast('error', 'Already checked in today', memberName); return }
       if (!res.ok) { showToast('error', 'Check-in failed', data.error || ''); return }
       showToast('success', `${memberName} checked in`, membershipType || '')
-      fetchOccupancy()
-      setSearchResults(prev => prev.map(m => m.member_id === memberId ? { ...m, is_inside: true } : m))
+      await fetchOccupancy()
     } catch {
       showToast('error', 'Check-in failed', 'Network error')
     }
@@ -70,9 +102,13 @@ export default function GymCheckin() {
   // ─── Check-out ───────────────────────────────────────────────────────────
   const handleCheckOut = async (checkinId, memberName) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ gym_id: gymId, checkin_id: checkinId }),
       })
       if (!res.ok) { showToast('error', 'Checkout failed', ''); return }
@@ -84,18 +120,24 @@ export default function GymCheckin() {
   }
 
   // ─── Search (debounced) ──────────────────────────────────────────────────
+  // Depends only on what should actually trigger a new search request — the
+  // query text and the gym. `occupancy` is intentionally excluded: it's a
+  // fresh object/array on every 30s poll tick, so including it here re-fired
+  // this fetch on every occupancy refresh instead of only on query changes.
+  // The "is this member currently inside" flag is merged in separately below
+  // via useMemo, so it still stays in sync with live occupancy.
   useEffect(() => {
-    if (searchQuery.length < 2) { setSearchResults([]); return }
+    if (searchQuery.length < 2) { setRawSearchResults([]); return }
     clearTimeout(searchTimeoutRef.current)
     searchTimeoutRef.current = setTimeout(async () => {
       setSearching(true)
       try {
-        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQuery)}`)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQuery)}`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         const data = await res.json()
-        const insideIds = new Set(occupancy.members_inside.map(m => m.member_id))
-        setSearchResults(
-          (Array.isArray(data) ? data : []).map(m => ({ ...m, is_inside: insideIds.has(m.member_id) }))
-        )
+        setRawSearchResults(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('Search failed:', err)
       } finally {
@@ -103,14 +145,22 @@ export default function GymCheckin() {
       }
     }, 400)
     return () => clearTimeout(searchTimeoutRef.current)
-  }, [searchQuery, gymId, occupancy.members_inside])
+  }, [searchQuery, gymId])
+
+  const searchResults = useMemo(() => {
+    const insideIds = new Set(occupancy.members_inside.map(m => m.member_id))
+    return rawSearchResults.map(m => ({ ...m, is_inside: insideIds.has(m.member_id) }))
+  }, [rawSearchResults, occupancy.members_inside])
 
   // ─── History ─────────────────────────────────────────────────────────────
   const fetchHistory = useCallback(async (date) => {
     if (!gymId) return
     setHistoryLoading(true)
     try {
-      const res = await fetch(`${API}/api/gym-checkin-history/${gymId}?date=${date}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gym-checkin-history/${gymId}?date=${date}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
       setHistoryData(data)
     } catch (err) {
@@ -128,11 +178,10 @@ export default function GymCheckin() {
   const getDateStrip = () => {
     const dates = []
     for (let i = 0; i < 7; i++) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
+      const value = istDateStr(new Date(Date.now() - i * 86400000))
       dates.push({
-        value: d.toISOString().split('T')[0],
-        label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        value,
+        label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
       })
     }
     return dates
@@ -152,7 +201,7 @@ export default function GymCheckin() {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* STICKY HEADER + TABS */}
-      <div style={{
+      <div ref={headerRef} style={{
         position: 'sticky', top: 0, zIndex: 10,
         backgroundColor: "var(--bg-card)", borderBottom: '0.5px solid rgba(0,0,0,0.08)',
       }}>
@@ -308,7 +357,7 @@ export default function GymCheckin() {
             />
             {searchQuery && (
               <button
-                onClick={() => { setSearchQuery(''); setSearchResults([]) }}
+                onClick={() => { setSearchQuery(''); setRawSearchResults([]) }}
                 style={{
                   position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', fontSize: 18, color: 'var(--text-tertiary)', cursor: 'pointer',
@@ -320,6 +369,12 @@ export default function GymCheckin() {
           {searching && (
             <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
               Searching...
+            </div>
+          )}
+
+          {!searching && searchQuery.length >= 2 && searchResults.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
+              No members found
             </div>
           )}
 
@@ -447,7 +502,7 @@ export default function GymCheckin() {
                 style={{
                   flexShrink: 0, width: 80, height: 36, borderRadius: 20,
                   backgroundColor: selectedDate === d.value ? 'var(--text-primary)' : "var(--bg-card)",
-                  color: selectedDate === d.value ? 'white' : 'var(--text-primary)',
+                  color: selectedDate === d.value ? 'var(--bg-card)' : 'var(--text-primary)',
                   border: selectedDate === d.value ? 'none' : '0.5px solid rgba(0,0,0,0.12)',
                   fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 }}
@@ -536,7 +591,7 @@ export default function GymCheckin() {
       {/* TOAST */}
       {toast && (
         <div style={{
-          position: 'fixed', top: 16, left: 16, right: 16, zIndex: 100,
+          position: 'fixed', top: headerHeight + 12, left: 16, right: 16, zIndex: 100,
           backgroundColor: toast.type === 'success' ? 'var(--success-bg)' : 'var(--error-bg)',
           borderRadius: 16, padding: '14px 16px',
           animation: 'slideDown 0.3s ease',

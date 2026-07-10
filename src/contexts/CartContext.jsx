@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const CartContext = createContext(null)
 
-const STORAGE_KEY = 'ff_supplement_cart'
+const STORAGE_KEY = 'gv_supplement_cart'
 
 function loadCart(gymId) {
   try {

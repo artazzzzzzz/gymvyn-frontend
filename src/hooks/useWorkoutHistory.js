@@ -38,6 +38,7 @@ export function useWorkoutHistory() {
           .from('workout_logs')
           .select('*')
           .eq('user_id', userId)
+          .neq('notes', 'Rest day')
           .order('created_at', { ascending: false })
           .limit(20)
 

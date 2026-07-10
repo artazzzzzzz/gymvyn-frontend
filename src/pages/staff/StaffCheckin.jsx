@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useStaffPermissions } from '../../hooks/useStaffPermissions'
 import NoAccessState from '../../components/staff/NoAccessState'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
+import { supabase } from '../../utils/supabase'
 
 function LoadingSpinner() {
   return (
@@ -23,7 +24,7 @@ export default function StaffCheckin() {
   const [activeTab, setActiveTab] = useState('manual')
   const [occupancy, setOccupancy] = useState({ current_occupancy: 0, today_total: 0, members_inside: [] })
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState([])
+  const [rawSearchResults, setRawSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [historyData, setHistoryData] = useState({ total: 0, checkins: [] })
@@ -31,13 +32,27 @@ export default function StaffCheckin() {
   const [toast, setToast] = useState(null)
   const searchTimeoutRef = useRef(null)
   const occupancyIntervalRef = useRef(null)
+  const isMountedRef = useRef(true)
 
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => { isMountedRef.current = false }
+  }, [])
+
+  // isMountedRef guards the state update (not the in-flight request itself)
+  // so a fetch that resolves after this effect instance has been torn down
+  // — e.g. a fast unmount, or React StrictMode's dev-only double-invoke of
+  // this effect — can never apply a stale response to a gone/superseded
+  // component.
   const fetchOccupancy = useCallback(async () => {
     if (!gymId) return
     try {
-      const res = await fetch(`${API}/api/gym-occupancy/${gymId}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gym-occupancy/${gymId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
-      setOccupancy(data)
+      if (isMountedRef.current) setOccupancy(data)
     } catch {}
   }, [gymId])
 
@@ -54,17 +69,20 @@ export default function StaffCheckin() {
 
   const handleCheckIn = async (memberId, userId, memberName, membershipType) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/checkin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ gym_id: gymId, member_id: memberId, user_id: userId, method: 'manual' }),
       })
       const data = await res.json()
       if (res.status === 409) { showToast('error', 'Already checked in today', memberName); return }
       if (!res.ok) { showToast('error', 'Check-in failed', data.error || ''); return }
       showToast('success', `${memberName} checked in`, membershipType || '')
-      fetchOccupancy()
-      setSearchResults(prev => prev.map(m => m.member_id === memberId ? { ...m, is_inside: true } : m))
+      await fetchOccupancy()
     } catch {
       showToast('error', 'Check-in failed', 'Network error')
     }
@@ -72,9 +90,13 @@ export default function StaffCheckin() {
 
   const handleCheckOut = async (checkinId, memberName) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ gym_id: gymId, checkin_id: checkinId }),
       })
       if (!res.ok) { showToast('error', 'Checkout failed', ''); return }
@@ -85,28 +107,44 @@ export default function StaffCheckin() {
     }
   }
 
+  // Depends only on what should actually trigger a new search request — the
+  // query text and the gym. `occupancy` is intentionally excluded: it's a
+  // fresh object/array on every 30s poll tick, so including it here re-fired
+  // this fetch on every occupancy refresh instead of only on query changes.
+  // The "is this member currently inside" flag is merged in separately below
+  // via useMemo, so it still stays in sync with live occupancy.
   useEffect(() => {
-    if (searchQuery.length < 2) { setSearchResults([]); return }
+    if (searchQuery.length < 2) { setRawSearchResults([]); return }
     clearTimeout(searchTimeoutRef.current)
     searchTimeoutRef.current = setTimeout(async () => {
       setSearching(true)
       try {
-        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQuery)}`)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQuery)}`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         const data = await res.json()
-        const insideIds = new Set(occupancy.members_inside.map(m => m.member_id))
-        setSearchResults((Array.isArray(data) ? data : []).map(m => ({ ...m, is_inside: insideIds.has(m.member_id) })))
+        setRawSearchResults(Array.isArray(data) ? data : [])
       } catch {} finally {
         setSearching(false)
       }
     }, 400)
     return () => clearTimeout(searchTimeoutRef.current)
-  }, [searchQuery, gymId, occupancy.members_inside])
+  }, [searchQuery, gymId])
+
+  const searchResults = useMemo(() => {
+    const insideIds = new Set(occupancy.members_inside.map(m => m.member_id))
+    return rawSearchResults.map(m => ({ ...m, is_inside: insideIds.has(m.member_id) }))
+  }, [rawSearchResults, occupancy.members_inside])
 
   const fetchHistory = useCallback(async (date) => {
     if (!gymId) return
     setHistoryLoading(true)
     try {
-      const res = await fetch(`${API}/api/gym-checkin-history/${gymId}?date=${date}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gym-checkin-history/${gymId}?date=${date}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
       setHistoryData(data)
     } catch {} finally {
@@ -200,7 +238,7 @@ export default function StaffCheckin() {
               }}
             />
             {searchQuery && (
-              <button onClick={() => { setSearchQuery(''); setSearchResults([]) }} style={{
+              <button onClick={() => { setSearchQuery(''); setRawSearchResults([]) }} style={{
                 position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                 background: 'none', border: 'none', fontSize: 18, color: 'var(--text-tertiary)', cursor: 'pointer',
               }}>×</button>

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../utils/supabase'
+import { useAuth } from '../hooks/useAuth'
 
 const BASE = import.meta.env.VITE_API_URL || ''
 
 export function GymCodeCard() {
+  const { user } = useAuth()
   const [code, setCode] = useState('')
   const [gymName, setGymName] = useState('')
   const [loading, setLoading] = useState(true)
@@ -13,17 +15,25 @@ export function GymCodeCard() {
   const [showQR, setShowQR] = useState(false)
 
   useEffect(() => {
+    if (!user) return
     ;(async () => {
+      setLoading(true)
+      setError(false)
       try {
         const { data: { session } } = await supabase.auth.getSession()
         const res = await fetch(`${BASE}/api/gym/my-gym-code`, {
           headers: { ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
         })
-        if (res.ok) {
-          const d = await res.json()
-          setCode(d.join_code || '')
-          setGymName(d.gym_name || '')
+        if (!res.ok) {
+          // A failed request (401/403/500) must never fall through to the
+          // placeholder literal below — that would show a fake code as if
+          // it were real.
+          setError(true)
+          return
         }
+        const d = await res.json()
+        setCode(d.join_code || '')
+        setGymName(d.gym_name || '')
       } catch (e) {
         console.error('GymCodeCard load error:', e)
         setError(true)
@@ -31,7 +41,7 @@ export function GymCodeCard() {
         setLoading(false)
       }
     })()
-  }, [])
+  }, [user])
 
   const copy = () => {
     navigator.clipboard.writeText(code).catch(() => {})
@@ -74,8 +84,8 @@ export function GymCodeCard() {
       {/* Code pill + copy + share + qr */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: showQR ? 12 : 0 }}>
         <div style={{ flex: 1, background: 'var(--bg-primary)', borderRadius: 12, padding: 16, minWidth: 0 }}>
-          <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace", letterSpacing: '0.1em' }}>
-            {error ? '—' : (code || 'A3F9K2')}
+          <span style={{ fontSize: 22, fontWeight: 700, color: (error || !code) ? 'var(--text-tertiary)' : 'var(--text-primary)', fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace", letterSpacing: '0.1em' }}>
+            {error || !code ? '—' : code}
           </span>
         </div>
         <button

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../utils/supabase'
+import { useAuth } from '../hooks/useAuth'
 import { InviteClientSheet } from './InviteClientSheet'
 
 export function TrainerCodeCard() {
+  const { user } = useAuth()
   const [trainerCode, setTrainerCode] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -11,7 +13,10 @@ export function TrainerCodeCard() {
   const [showInvite, setShowInvite] = useState(false)
 
   useEffect(() => {
+    if (!user) return
     const fetchCode = async () => {
+      setLoading(true)
+      setError(false)
       try {
         const { data: { session } } = await supabase.auth.getSession()
         const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/trainer/my-code`, {
@@ -32,7 +37,7 @@ export function TrainerCodeCard() {
       }
     }
     fetchCode()
-  }, [])
+  }, [user])
 
   const displayCode = loading ? '' : (error || !trainerCode) ? '—' : trainerCode
 

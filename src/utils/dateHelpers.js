@@ -1,3 +1,14 @@
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+
+// IST calendar date (YYYY-MM-DD) for a given instant, independent of the
+// device's own timezone. Gym check-in history is bucketed by IST calendar
+// day server-side, so any "which day is this" comparison against that data
+// must use this instead of toISOString().split('T')[0] (which yields the
+// UTC calendar day and drifts by up to 5.5h — wrong near local midnight).
+export function istDateStr(date = new Date()) {
+  return new Date(date.getTime() + IST_OFFSET_MS).toISOString().slice(0, 10)
+}
+
 export function formatDate(dateStr) {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('en-IN', {
