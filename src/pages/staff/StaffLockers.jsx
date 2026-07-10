@@ -52,7 +52,7 @@ function AssignSheet({ locker, gymId, onClose, onSuccess }) {
     const t = setTimeout(async () => {
       setSearching(true)
       try {
-        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQ)}`)
+        const res = await staffApiFetch(`/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQ)}`)
         const data = await res.json()
         setSearchResults(Array.isArray(data) ? data : [])
       } catch {} finally { setSearching(false) }

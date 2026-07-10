@@ -60,7 +60,10 @@ function CollectModal({ gymId, onClose, onSuccess }) {
     const t = setTimeout(async () => {
       setSearching(true)
       try {
-        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQ)}`)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQ)}`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         const data = await res.json()
         setSearchResults(Array.isArray(data) ? data : [])
       } catch {} finally { setSearching(false) }
@@ -284,9 +287,11 @@ export default function StaffPayments() {
     if (!gymId) return
     setLoading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const authHeaders = { Authorization: `Bearer ${session?.access_token}` }
       const [sumRes, listRes] = await Promise.all([
-        fetch(`${API}/api/gym-payments/${gymId}/summary`),
-        fetch(`${API}/api/gym-payments/${gymId}${filter !== 'all' ? `?method=${filter}` : ''}`),
+        fetch(`${API}/api/gym-payments/${gymId}/summary`, { headers: authHeaders }),
+        fetch(`${API}/api/gym-payments/${gymId}${filter !== 'all' ? `?method=${filter}` : ''}`, { headers: authHeaders }),
       ])
       const sumData = await sumRes.json()
       const listData = await listRes.json()

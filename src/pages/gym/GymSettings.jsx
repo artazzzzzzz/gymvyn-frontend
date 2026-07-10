@@ -135,7 +135,10 @@ export default function GymSettings() {
     const fetchSettings = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`${API}/api/gyms/${gymId}/settings`)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/api/gyms/${gymId}/settings`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         const data = await res.json()
         setProfile({
           name: data.name || '', city: data.city || '',
@@ -188,9 +191,13 @@ export default function GymSettings() {
     if (!isDirty || saving) return
     setSaving(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/gyms/${gymId}/settings`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ ...profile, operating_hours: hours, notifications }),
       })
       if (!res.ok) throw new Error('Save failed')
@@ -209,9 +216,14 @@ export default function GymSettings() {
     if (file.size > 5 * 1024 * 1024) { showToastMsg('File too large. Max 5MB.', 'error'); return }
     setLogoUploading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const formData = new FormData()
       formData.append('logo', file)
-      const res = await fetch(`${API}/api/gyms/${gymId}/upload-logo`, { method: 'POST', body: formData })
+      const res = await fetch(`${API}/api/gyms/${gymId}/upload-logo`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: formData,
+      })
       const data = await res.json()
       setLogoUrl(data.logo_url)
       showToastMsg('Logo updated')
@@ -248,12 +260,16 @@ export default function GymSettings() {
       is_active: true,
     }
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const url = editingPlan
         ? `${API}/api/gyms/${gymId}/membership-plans/${editingPlan.id}`
         : `${API}/api/gyms/${gymId}/membership-plans`
       const res = await fetch(url, {
         method: editingPlan ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify(planData),
       })
       const data = await res.json()
@@ -267,7 +283,11 @@ export default function GymSettings() {
 
   const handleDeletePlan = async (planId) => {
     try {
-      const res = await fetch(`${API}/api/gyms/${gymId}/membership-plans/${planId}`, { method: 'DELETE' })
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gyms/${gymId}/membership-plans/${planId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
       setPlans(Array.isArray(data) ? data : plans.filter(p => p.id !== planId))
       showToastMsg('Plan removed')
@@ -278,9 +298,13 @@ export default function GymSettings() {
 
   const handleTogglePlan = async (planId, isActive) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/gyms/${gymId}/membership-plans/${planId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ is_active: isActive }),
       })
       const data = await res.json()
@@ -334,7 +358,11 @@ export default function GymSettings() {
   const handleDeactivate = async () => {
     setDeactivating(true)
     try {
-      await fetch(`${API}/api/gyms/${gymId}`, { method: 'DELETE' })
+      const { data: { session } } = await supabase.auth.getSession()
+      await fetch(`${API}/api/gyms/${gymId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       localStorage.removeItem('gymId')
       navigate('/home')
     } catch {

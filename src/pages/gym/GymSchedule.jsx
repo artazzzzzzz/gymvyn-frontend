@@ -239,9 +239,13 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
         recurring,
         recurring_days: recurring ? recurringDays : [],
       }
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE_URL}/api/gym-schedule`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify(body),
       })
       if (!res.ok) {
@@ -493,8 +497,10 @@ export default function GymSchedule() {
     try {
       const monday = getMondayOfWeek(date)
       const mondayISO = monday.toISOString().split('T')[0]
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(
-        `${BASE_URL}/api/gym-schedule/${gId}?week_start=${mondayISO}`
+        `${BASE_URL}/api/gym-schedule/${gId}?week_start=${mondayISO}`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
       )
       const data = await res.json().catch(() => null)
       if (res.ok) setWeekData(data)

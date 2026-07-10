@@ -50,7 +50,10 @@ function PhotosTab({ userId }) {
   async function fetchPhotos() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/progress-photos/${userId}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/progress-photos/${userId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       if (!res.ok) throw new Error()
       setPhotos(await res.json())
     } catch {
@@ -69,7 +72,12 @@ function PhotosTab({ userId }) {
       form.append('userId', userId)
       form.append('photo', file)
       form.append('date', new Date().toISOString().slice(0, 10))
-      const res = await fetch(`${API}/upload-progress-photo`, { method: 'POST', body: form })
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/upload-progress-photo`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: form,
+      })
       if (!res.ok) throw new Error()
       await fetchPhotos()
     } catch {

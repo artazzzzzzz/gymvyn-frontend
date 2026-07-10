@@ -3,6 +3,7 @@ import { useStaffPermissions } from '../../hooks/useStaffPermissions'
 import { useAuth } from '../../hooks/useAuth'
 import NoAccessState from '../../components/staff/NoAccessState'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
+import { supabase } from '../../utils/supabase'
 
 const API = import.meta.env.VITE_API_URL || ''
 const LIMIT = 20
@@ -116,7 +117,10 @@ export default function StaffMembers() {
     setLoading(true)
     try {
       const statusParam = f !== 'all' ? `&status=${f}` : ''
-      const res = await fetch(`${API}/api/gym-members?gymId=${gymId}&page=${pg}&limit=${LIMIT}${statusParam}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gym-members?gymId=${gymId}&page=${pg}&limit=${LIMIT}${statusParam}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
       const list = Array.isArray(data) ? data : (data.members || [])
       setMembers(pg === 1 ? list : prev => [...prev, ...list])

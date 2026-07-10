@@ -129,10 +129,14 @@ function CollectModal({ isOpen, onClose, gymId, onSuccess }) {
 
   useEffect(() => {
     if (!isOpen || !gymId) return
-    fetch(`${BASE}/api/gym-members?gymId=${encodeURIComponent(gymId)}&limit=100`)
-      .then(r => r.json())
-      .then(d => setAllMembers(Array.isArray(d) ? d : (d?.members ?? [])))
-      .catch(() => setAllMembers([]))
+    supabase.auth.getSession().then(({ data: { session } }) =>
+      fetch(`${BASE}/api/gym-members?gymId=${encodeURIComponent(gymId)}&limit=100`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+        .then(r => r.json())
+        .then(d => setAllMembers(Array.isArray(d) ? d : (d?.members ?? [])))
+        .catch(() => setAllMembers([]))
+    )
   }, [isOpen, gymId])
 
   function handleClose() {
@@ -151,9 +155,13 @@ function CollectModal({ isOpen, onClose, gymId, onSuccess }) {
     if (!selectedMember) return
     setSubmitting(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/api/gym-payments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({
           member_id: selectedMember.id,
           gym_id:    gymId,
@@ -364,9 +372,11 @@ export default function GymPayments() {
 
     async function load() {
       try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const authHeaders = { Authorization: `Bearer ${session?.access_token}` }
         const [sumRes, payRes] = await Promise.all([
-          fetch(`${BASE}/api/gym-payments/${gymId}/summary`),
-          fetch(`${BASE}/api/gym-payments/${gymId}?page=1&limit=${LIMIT}`),
+          fetch(`${BASE}/api/gym-payments/${gymId}/summary`, { headers: authHeaders }),
+          fetch(`${BASE}/api/gym-payments/${gymId}?page=1&limit=${LIMIT}`, { headers: authHeaders }),
         ])
         const sumData = await sumRes.json().catch(() => null)
         const payData = await payRes.json().catch(() => [])
@@ -395,7 +405,10 @@ export default function GymPayments() {
     try {
       const statusParam = filter !== 'all' && filter !== 'this_week' ? `&status=${filter}` : ''
       const periodParam = filter === 'this_week' ? '&period=this_week' : ''
-      const res  = await fetch(`${BASE}/api/gym-payments/${gymId}?page=1&limit=${LIMIT}${statusParam}${periodParam}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res  = await fetch(`${BASE}/api/gym-payments/${gymId}?page=1&limit=${LIMIT}${statusParam}${periodParam}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json().catch(() => [])
       const list = Array.isArray(data) ? data : (data?.payments ?? [])
       setPayments(list)
@@ -415,7 +428,10 @@ export default function GymPayments() {
     try {
       const statusParam = activeFilter !== 'all' && activeFilter !== 'this_week' ? `&status=${activeFilter}` : ''
       const periodParam = activeFilter === 'this_week' ? '&period=this_week' : ''
-      const res  = await fetch(`${BASE}/api/gym-payments/${gymId}?page=${nextPage}&limit=${LIMIT}${statusParam}${periodParam}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res  = await fetch(`${BASE}/api/gym-payments/${gymId}?page=${nextPage}&limit=${LIMIT}${statusParam}${periodParam}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json().catch(() => [])
       const list = Array.isArray(data) ? data : (data?.payments ?? [])
       setPayments(prev => [...prev, ...list])
@@ -431,9 +447,13 @@ export default function GymPayments() {
     if (!gymId || sendingReminders) return
     setSendingReminders(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res  = await fetch(`${BASE}/api/gym-payments/send-reminders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ gym_id: gymId }),
       })
       const data = await res.json().catch(() => ({}))

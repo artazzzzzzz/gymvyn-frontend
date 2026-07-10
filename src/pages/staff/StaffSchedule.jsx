@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useStaffPermissions } from '../../hooks/useStaffPermissions'
 import NoAccessState from '../../components/staff/NoAccessState'
+import { supabase } from '../../utils/supabase'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -59,7 +60,10 @@ export default function StaffSchedule() {
     setLoading(true)
     try {
       const ws = weekStart.toISOString().split('T')[0]
-      const res = await fetch(`${API}/api/gym-schedule/${gymId}?week_start=${ws}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gym-schedule/${gymId}?week_start=${ws}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
       setSchedule(Array.isArray(data) ? data : [])
     } catch {

@@ -82,7 +82,10 @@ export default function GymOnboarding() {
     if (!authUser) return
     const checkExisting = async () => {
       try {
-        const res = await fetch(`${API}/api/gyms/owner/${authUser.id}`)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/api/gyms/owner/${authUser.id}`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         const data = await res.json()
         if (data.gym) {
           localStorage.setItem('gymId', data.gym.id)
@@ -161,9 +164,13 @@ export default function GymOnboarding() {
       if (!city.trim())    throw new Error('City is required')
       if (!gymType)        throw new Error('Please select a gym type')
 
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/gyms`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({
           user_id: user.id,
           name: gymName.trim(), city: city.trim(),
@@ -186,7 +193,11 @@ export default function GymOnboarding() {
         try {
           const formData = new FormData()
           formData.append('logo', logoFile)
-          await fetch(`${API}/api/gyms/${gymId}/upload-logo`, { method: 'POST', body: formData })
+          await fetch(`${API}/api/gyms/${gymId}/upload-logo`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+            body: formData,
+          })
         } catch (logoErr) {
           console.error('Logo upload failed:', logoErr)
         }

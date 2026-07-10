@@ -223,11 +223,15 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
 
   useEffect(() => {
     if (!gymId) return
-    fetch(`${BASE}/api/gym-members?gymId=${encodeURIComponent(gymId)}&limit=500&page=1`)
-      .then(r => r.json())
-      .then(d => setMembers(Array.isArray(d) ? d : (d.members || [])))
-      .catch(() => setMembers([]))
-      .finally(() => setMembersLoading(false))
+    supabase.auth.getSession().then(({ data: { session } }) =>
+      fetch(`${BASE}/api/gym-members?gymId=${encodeURIComponent(gymId)}&limit=500&page=1`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+        .then(r => r.json())
+        .then(d => setMembers(Array.isArray(d) ? d : (d.members || [])))
+        .catch(() => setMembers([]))
+        .finally(() => setMembersLoading(false))
+    )
   }, [gymId])
 
   const filtered = members.filter(m =>

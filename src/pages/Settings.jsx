@@ -136,7 +136,10 @@ export default function Settings() {
         setUserId(authUser.id)
         setUserEmail(authUser.email || '')
 
-        const res = await fetch(`${API}/api/users/${authUser.id}`)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/api/users/${authUser.id}`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         if (!res.ok) throw new Error('User not found')
         const data = await res.json()
         setUser(data)
@@ -205,9 +208,13 @@ export default function Settings() {
       }
       Object.keys(payload).forEach(k => { if (payload[k] === undefined) delete payload[k] })
 
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/users/${userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('Save failed')
@@ -227,9 +234,13 @@ export default function Settings() {
   const handleShareAchievementsToggle = async (val) => {
     setShareAchievements(val)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       await fetch(`${API}/api/users/${userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ share_achievements: val }),
       })
     } catch {
@@ -244,9 +255,13 @@ export default function Settings() {
     if (passwordForm.newPass !== passwordForm.confirm) { setPasswordError("Passwords don't match"); return }
     setPasswordSaving(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/users/${userId}/change-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ new_password: passwordForm.newPass }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed') }

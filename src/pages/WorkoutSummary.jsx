@@ -172,11 +172,15 @@ export default function WorkoutSummary() {
   useEffect(() => {
     if (summary || !workoutId) return
     setFetching(true)
-    fetch(`${BASE}/api/workout/logs/${workoutId}`)
-      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() })
-      .then(data => setSummary(dbRowToSummary(data)))
-      .catch(err => setFetchError(err.message))
-      .finally(() => setFetching(false))
+    supabase.auth.getSession().then(({ data: { session } }) =>
+      fetch(`${BASE}/api/workout/logs/${workoutId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+        .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() })
+        .then(data => setSummary(dbRowToSummary(data)))
+        .catch(err => setFetchError(err.message))
+        .finally(() => setFetching(false))
+    )
   }, [workoutId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fetch workout_set_logs to get real IDs for editing ─────────────────────

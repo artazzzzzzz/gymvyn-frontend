@@ -87,9 +87,13 @@ export async function getGymTrainers(gymId) {
 }
 
 export async function inviteTrainer({ gymId, fullName, phone, bio, specialties, hourlyRate }) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-trainers/invite`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({
       gym_id: gymId, full_name: fullName, phone, bio, specialties,
       hourly_rate: hourlyRate,
@@ -101,16 +105,24 @@ export async function inviteTrainer({ gymId, fullName, phone, bio, specialties, 
 }
 
 export async function removeTrainer(trainerId) {
-  const res = await fetch(`${BASE_URL}/api/gym-trainers/${trainerId}`, { method: 'DELETE' });
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-trainers/${trainerId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to remove trainer (${res.status})`);
   return data;
 }
 
 export async function assignTrainer(memberId, trainerId) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-members/${memberId}/assign-trainer`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({ trainer_id: trainerId }),
   });
   const data = await res.json().catch(() => ({}));
@@ -142,9 +154,13 @@ export async function getGymPayments(gymId, status) {
 }
 
 export async function markPaymentPaid(paymentId, method, notes) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-payments/${paymentId}/mark-paid`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({ payment_method: method, notes }),
   });
   const data = await res.json().catch(() => ({}));
@@ -153,9 +169,13 @@ export async function markPaymentPaid(paymentId, method, notes) {
 }
 
 export async function recordPayment({ gymId, userId, membershipId, amount, dueDate, notes }) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-payments`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({
       gym_id: gymId,
       user_id: userId,
@@ -278,16 +298,23 @@ export async function deleteAnnouncement(announcementId) {
 // ── Gym settings ─────────────────────────────────────────────────────────────
 
 export async function getGymSettings(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/settings`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/settings`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch settings (${res.status})`);
   return data;
 }
 
 export async function updateGymSettings(gymId, updates) {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/settings`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify(updates),
   });
   const data = await res.json().catch(() => ({}));
@@ -296,10 +323,12 @@ export async function updateGymSettings(gymId, updates) {
 }
 
 export async function uploadGymLogo(gymId, file) {
+  const { data: { session } } = await supabase.auth.getSession();
   const form = new FormData();
   form.append('logo', file);
   const res = await fetch(`${BASE_URL}/api/gyms/${gymId}/upload-logo`, {
     method: 'POST',
+    headers: { Authorization: `Bearer ${session?.access_token}` },
     body: form,
   });
   const data = await res.json().catch(() => ({}));
@@ -320,9 +349,13 @@ export async function getGymQR(gymId, userId) {
 }
 
 export async function checkInMember(userId, gymId, method = 'manual') {
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/checkin`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
     body: JSON.stringify({ userId, gymId, method }),
   });
   const data = await res.json().catch(() => ({}));

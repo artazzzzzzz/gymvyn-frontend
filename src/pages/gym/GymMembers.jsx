@@ -194,9 +194,13 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded }) {
     setError(''); setSubmitting(true)
     try {
       const base = import.meta.env.VITE_API_URL || ''
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${base}/api/gym-members/manual`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({
           gym_id: gymId,
           full_name: manualName.trim(),
@@ -261,9 +265,13 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded }) {
     setError(''); setSubmitting(true)
     try {
       const base = import.meta.env.VITE_API_URL || ''
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${base}/api/gym-members/import`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ gym_id: gymId, members: csvRows }),
       })
       const data = await res.json()
@@ -659,7 +667,10 @@ export default function GymMembers() {
       try {
         const base = import.meta.env.VITE_API_URL
         const url  = `${base}/api/gym-members?gymId=${encodeURIComponent(gymId)}&page=${page}&limit=${LIMIT}`
-        const res  = await fetch(url)
+        const { data: { session } } = await supabase.auth.getSession()
+        const res  = await fetch(url, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
         const data = await res.json().catch(() => [])
         if (cancelled) return
 

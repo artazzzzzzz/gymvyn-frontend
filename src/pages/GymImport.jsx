@@ -116,8 +116,10 @@ export default function GymImport() {
       fd.append('gym_id', gym.id)
       fd.append('file', file)
 
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API_BASE}/api/gym-members/csv-import`, {
         method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
         body: fd,
       })
       const data = await res.json().catch(() => ({}))
