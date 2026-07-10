@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
-import { apiFetch, getMyGym, getGymOccupancy, getMacros, calculateMacros } from '../utils/api'
+import { apiFetch, getMyGym, getGymOccupancy, getMacros, calculateMacros, getXPProfile, useStreakFreeze } from '../utils/api'
 import PrimaryButton from '../components/PrimaryButton'
 import AIPlanGenerator from '../components/AIPlanGenerator'
 
@@ -82,6 +82,7 @@ export default function Home() {
   const [stats,          setStats]          = useState({ weight: null, calories: 0, prs: 0 })
   const [weightChange,   setWeightChange]   = useState(null)
   const [trainerData,    setTrainerData]    = useState(null)
+  const [trainerLoadError, setTrainerLoadError] = useState(false)
   const [recentActivity, setRecentActivity] = useState([])
   const [gymData,        setGymData]        = useState(null)
 
@@ -91,6 +92,8 @@ export default function Home() {
   const [showAIBuilder,  setShowAIBuilder]  = useState(false)
   const [todayLogs,      setTodayLogs]      = useState([])
   const [todayMacros,    setTodayMacros]    = useState({ protein: 0, carbs: 0, fat: 0 })
+  const [freezesRemaining, setFreezesRemaining] = useState(null)
+  const [restFreezeResult, setRestFreezeResult] = useState(null)
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const firstName = profile?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
@@ -241,23 +244,61 @@ export default function Home() {
   }, [user])
 
   // ── Trainer fetch ─────────────────────────────────────────────────────────
+  // The backend returns 200 + null body for "no trainer linked" — it never
+  // 404s for that case. So anything caught here (401/403/500/network) is a
+  // genuine failure, not a real unlinked state; don't conflate the two.
   useEffect(() => {
     if (!user) return
+    setTrainerLoadError(false)
     apiFetch(`/api/trainer/my-trainer/${user.id}`)
       .then(d => setTrainerData(d))
-      .catch(() => setTrainerData(null))
+      .catch(() => { setTrainerData(null); setTrainerLoadError(true) })
   }, [user])
 
   // ── Gym fetch ─────────────────────────────────────────────────────────────
+  // gym_memberships (via getMyGym) is the source of truth for gym linkage —
+  // users.gym_id is a denormalized field that can go stale, so it must not
+  // gate this fetch or decide "linked" on its own.
   useEffect(() => {
-    if (!profile?.gym_id || !user?.id) return
-    Promise.all([getMyGym(user.id), getGymOccupancy(profile.gym_id)])
-      .then(([gym, occ]) => setGymData({ ...gym, occupancy: occ?.count ?? occ?.occupancy ?? null }))
+    if (!user?.id) return
+    getMyGym(user.id)
+      .then(async (gym) => {
+        if (!gym?.linked || !gym?.gym?.id) {
+          setGymData(null)
+          return
+        }
+        const occ = await getGymOccupancy(gym.gym.id).catch(() => null)
+        setGymData({ ...gym, occupancy: occ?.count ?? occ?.occupancy ?? null })
+      })
       .catch(() => setGymData(null))
-  }, [profile?.gym_id, user?.id])
+  }, [user?.id])
+
+  // ── XP profile fetch (freezes remaining) ──────────────────────────────────
+  useEffect(() => {
+    if (!user) return
+    getXPProfile()
+      .then(p => setFreezesRemaining(p?.freezesRemaining ?? null))
+      .catch(() => setFreezesRemaining(null))
+  }, [user])
 
   async function handleSkip() {
     if (!user) return
+
+    // Rest days draw from the same streak-freeze pool as the manual "Use a
+    // freeze" button — same endpoint, same user_xp.freezes_remaining counter.
+    let freezeResult = null
+    try {
+      freezeResult = await useStreakFreeze()
+      if (freezeResult?.success && typeof freezeResult.freezesRemaining === 'number') {
+        setFreezesRemaining(freezeResult.freezesRemaining)
+      }
+    } catch (err) {
+      console.error('[Home] freeze error:', err)
+    }
+    setRestFreezeResult(freezeResult)
+
+    // Log the rest day regardless of freeze outcome — it's still a real,
+    // record-keeping entry even when there's no freeze left to protect it.
     const startedAt = new Date().toISOString()
     const { error } = await supabase.from('workout_logs').insert({
       user_id: user.id,
@@ -273,8 +314,15 @@ export default function Home() {
     setTodayLogs(logs => [...logs, { started_at: startedAt, notes: 'Rest day', exercises: [] }])
   }
 
+  // Was today's rest day left unprotected because the monthly freeze pool is
+  // exhausted? (Other rejection reasons — streak already intact / already
+  // active today — mean no protection was needed in the first place.)
+  const restUnprotected = restFreezeResult
+    ? restFreezeResult.success === false && restFreezeResult.reason === 'No freezes remaining'
+    : freezesRemaining === 0
+
   const hasTrainer = trainerData?.status === 'active'
-  const hasGym     = !!profile?.gym_id
+  const hasGym     = !!gymData?.linked
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -337,9 +385,15 @@ export default function Home() {
               <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                 Rest day
               </h2>
-              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6 }}>
-                Recovery is part of the plan. See you tomorrow.
-              </p>
+              {restUnprotected ? (
+                <p style={{ fontSize: 13, color: 'var(--error)', marginTop: 6 }}>
+                  No freezes left this month — this rest day won't protect your streak.
+                </p>
+              ) : (
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6 }}>
+                  Recovery is part of the plan. See you tomorrow.
+                </p>
+              )}
             </>
           ) : hasPlan ? (
             /* State B — plan exists, not yet done */
@@ -682,7 +736,10 @@ export default function Home() {
 
         {/* My Trainer — always visible */}
         <button
-          onClick={() => hasTrainer ? navigate('/my-trainer') : setShowJoinTrainer?.(true)}
+          onClick={() => {
+            if (trainerLoadError) return apiFetch(`/api/trainer/my-trainer/${user.id}`).then(setTrainerData).then(() => setTrainerLoadError(false)).catch(() => setTrainerLoadError(true))
+            return hasTrainer ? navigate('/my-trainer') : setShowJoinTrainer?.(true)
+          }}
           style={{
             background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12,
             padding: 16, height: 56, display: 'flex', alignItems: 'center',
@@ -697,7 +754,11 @@ export default function Home() {
             </svg>
             <div>
               <span style={{ fontSize: 14, fontWeight: 500, color: hasTrainer ? "var(--text-primary)" : "var(--text-tertiary)", display: 'block' }}>My Trainer</span>
-              {!hasTrainer && <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Tap to link</span>}
+              {trainerLoadError ? (
+                <span style={{ fontSize: 11, color: "var(--error)" }}>Couldn't load — tap to retry</span>
+              ) : !hasTrainer && (
+                <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Tap to link</span>
+              )}
             </div>
           </div>
           <span style={{ fontSize: 18, color: "var(--text-tertiary)", lineHeight: 1 }}>{hasTrainer ? '›' : '+'}</span>

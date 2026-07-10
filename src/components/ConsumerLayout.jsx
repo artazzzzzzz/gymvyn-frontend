@@ -7,6 +7,7 @@ import { JoinGymSheet } from './JoinGymSheet'
 import { JoinTrainerSheet } from './JoinTrainerSheet'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
+import { getMyGym } from '../utils/api'
 import { CartProvider } from '../contexts/CartContext'
 import { useWorkoutSessionContext } from '../contexts/WorkoutSessionContext'
 
@@ -24,12 +25,15 @@ export default function ConsumerLayout() {
 
   const fetchLinks = useCallback(async () => {
     if (!user) return
-    const [{ data: u }, { data: t }] = await Promise.all([
-      supabase.from('users').select('gym_id').eq('id', user.id).single(),
+    // gym_memberships (via getMyGym) is the source of truth for gym linkage —
+    // users.gym_id is a denormalized field that can go stale, so it must not
+    // be trusted directly here.
+    const [gym, { data: t }] = await Promise.all([
+      getMyGym(user.id).catch(() => null),
       supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle(),
     ])
-    setHasGym(!!u?.gym_id)
-    setGymId(u?.gym_id || null)
+    setHasGym(!!gym?.linked)
+    setGymId(gym?.gym?.id || null)
     setHasTrainer(!!t?.trainer_id)
   }, [user])
 
