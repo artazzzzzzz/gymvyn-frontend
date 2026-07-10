@@ -30,3 +30,8 @@ tests/playwright-report/
 .code-review-graph/
 .claude/skills/
 .env*
+
+# Tool-generated scratch/config state — not project content
+.agents/
+.codex/
+.understand-anything/

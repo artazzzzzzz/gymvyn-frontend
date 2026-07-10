@@ -1,4 +1,83 @@
-# CLAUDE.md — gymvyn-frontend
+# Gymvyn Frontend Agent Instructions
+
+## Project
+This is the Gymvyn frontend repo.
+
+Path:
+~/Desktop/gymvyn-frontend
+
+Sibling backend repo:
+~/Desktop/gymvyn-backend
+
+Do not move folders. Do not create a parent workspace. Claude, GitHub, and the existing workflow depend on the current sibling repo layout.
+
+## User context
+The user is Artaz, solo founder of Gymvyn. The user is not deeply technical. Final explanations to the user should be short, plain-language, direct, and candid. Separate verified facts from assumptions.
+
+## Non-negotiable rules
+- Stay on main branch. No worktrees.
+- Do not make unrelated changes.
+- Diagnose before editing.
+- One task at a time.
+- Do not treat "prompt sent" as "done."
+- Always provide verification commands before finishing.
+- Mark anything unverified clearly.
+
+## Frontend stack
+- React + Vite + Tailwind v4.
+- Vercel deploys automatically from GitHub push.
+- Never manually run Vercel production deploys.
+- Never touch Vercel project settings unless explicitly asked.
+
+## UI rules
+- Use CSS variables only.
+- Do not hardcode colors.
+- Dark mode uses data-theme="dark" on the HTML element.
+- Use useLayoutEffect for theme sync where relevant.
+- No emojis anywhere in the UI. Use inline SVGs instead.
+- localStorage keys must use gv_ prefix.
+
+## Backend awareness
+Backend repo is at:
+~/Desktop/gymvyn-backend
+
+If a frontend task depends on API behavior, inspect the backend sibling repo before guessing.
+
+Do not edit backend files unless the user explicitly asks or the task clearly requires a coordinated frontend/backend fix.
+
+## Important backend/database facts
+- users table has no email column. Email lives in auth.users only.
+- Starting weight is not a users column. It is stored in progress_entries.
+- progress_entries.logged_at must be a full ISO timestamp.
+- AI API keys must never be exposed in frontend or VITE_* vars.
+- Cloudinary paths must stay as fitforge/exercises/.
+
+## Security testing standard
+For any auth, ownership, gym/member, trainer/client, chat, or relationship-status change, test:
+
+1. Unauthorized user is blocked.
+2. Resource owner/self is allowed.
+3. Legitimately linked different party is allowed.
+4. Inactive/stale relationship is blocked.
+
+## Required final report
+Before finishing any future task, provide:
+
+1. Files changed
+2. Exact root cause found
+3. Exact fix made
+4. Commands run
+5. Whether frontend changed
+6. Whether backend changed
+7. Whether deployment is needed
+8. Manual browser verification steps
+9. Anything still unverified
+
+## Existing repo guide
+
+The following instructions were already present and remain useful. Keep them unless they directly conflict with the non-negotiable rules above.
+
+# AGENTS.md — gymvyn-frontend
 
 Operational guide for working in this repo. For architecture/"why", read
 [PROJECT.md](PROJECT.md). For known bugs and security holes, read [GAPS.md](GAPS.md).
@@ -145,8 +224,8 @@ scanning the full skill list.
 - **Testing:** `webapp-testing` (Playwright)
 - **Security work (GAPS.md remediation):** `exploitability-validation`, `redteam-hunting` — only
   when actively auditing/fixing auth or IDOR issues
-- **Meta:** `claude-api`, `output-skill`, `writing-skills`, `using-superpowers`
+- **Meta:** `Codex-api`, `output-skill`, `writing-skills`, `using-superpowers`
 
 Everything else installed (office-doc generation, 3D/shader/art/image-gen, social-media research,
 C/C++ crash analysis, duplicate "taste"/design skills, and anything already bundled in the
-`claude-mem` plugin) is off-domain for this repo — don't reach for it here.
+`Codex-mem` plugin) is off-domain for this repo — don't reach for it here.
