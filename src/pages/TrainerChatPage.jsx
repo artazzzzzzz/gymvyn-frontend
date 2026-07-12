@@ -152,6 +152,7 @@ export default function TrainerChatPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactsError, setContactsError] = useState(false);
   const [startingContact, setStartingContact] = useState(false);
 
   /* ── polling logic (preserved) ── */
@@ -241,12 +242,14 @@ export default function TrainerChatPage() {
   const openPicker = async () => {
     setPickerOpen(true);
     setContactsLoading(true);
+    setContactsError(false);
     try {
       const data = await apiFetch('/api/chat/contacts');
       setContacts(data || []);
     } catch (err) {
       console.error('Load contacts error:', err);
       setContacts([]);
+      setContactsError(true);
     } finally {
       setContactsLoading(false);
     }
@@ -671,6 +674,18 @@ export default function TrainerChatPage() {
               {contactsLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
                   <div style={{ width: 24, height: 24, border: `2px solid ${C.blue}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                </div>
+              ) : contactsError ? (
+                <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                  <p style={{ color: C.text, fontSize: 13, marginBottom: 12 }}>Couldn't load contacts, try again</p>
+                  <button
+                    onClick={openPicker}
+                    style={{
+                      padding: '7px 16px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                      border: `1px solid ${C.border}`, background: C.card, color: C.text,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >Retry</button>
                 </div>
               ) : contacts.length === 0 ? (
                 <p style={{ textAlign: 'center', color: C.sub, fontSize: 13, padding: '32px 0' }}>No contacts available</p>

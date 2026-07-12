@@ -181,6 +181,7 @@ export default function TrainerDashboard() {
   const [profile, setProfile] = useState(null);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchVal, setSearchVal] = useState('');
@@ -191,6 +192,8 @@ export default function TrainerDashboard() {
   }, [user?.id]);
 
   const loadData = async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const [profileRes, clientsRes] = await Promise.all([
         apiFetch(`/api/trainer/profile/${user.id}`),
@@ -199,7 +202,11 @@ export default function TrainerDashboard() {
       setProfile(profileRes);
       setClients(clientsRes);
     } catch (err) {
+      // An error here (401/403/500/network) must not render as "no
+      // profile / no clients" — that's indistinguishable from a genuinely
+      // empty trainer account.
       console.error('Load dashboard error:', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -253,6 +260,28 @@ export default function TrainerDashboard() {
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.text, animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center', maxWidth: 320 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>Couldn't load your dashboard</h2>
+          <p style={{ fontSize: 13, color: C.sub, marginBottom: 20, lineHeight: 1.5 }}>
+            Something went wrong loading this page. Your profile and clients are unaffected — try again.
+          </p>
+          <button
+            onClick={loadData}
+            style={{
+              padding: '12px 24px', borderRadius: 12, border: `1px solid ${C.border}`,
+              background: C.text, color: C.bg, fontWeight: 600, fontSize: 14, cursor: 'pointer',
+            }}
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }

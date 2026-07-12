@@ -7,6 +7,7 @@ import {
   getGymMembers,
   getGymOccupancy,
   getChurnScores,
+  getGymRevenue,
 } from '../../utils/api'
 import { getAvatarColor } from '../../utils/avatarColor'
 import GymBottomNav from '../../components/GymBottomNav'
@@ -213,9 +214,13 @@ export default function GymDashboard() {
 
   const [gym, setGym] = useState(null)
   const [members, setMembers] = useState([])
+  const [membersError, setMembersError] = useState(false)
   const [occupancy, setOccupancy] = useState({ current: 0, capacity: 0 })
+  const [occupancyError, setOccupancyError] = useState(false)
   const [churnCount, setChurnCount] = useState(0)
+  const [churnError, setChurnError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [gymLoadError, setGymLoadError] = useState(false)
   // null = loading, number = resolved, 'error' = failed
   const [revenue, setRevenue] = useState(null)
 
@@ -225,6 +230,10 @@ export default function GymDashboard() {
 
     async function load() {
       setLoading(true)
+      setGymLoadError(false)
+      setMembersError(false)
+      setOccupancyError(false)
+      setChurnError(false)
       try {
         const gymData = await getGymByUserId(user.id)
         if (cancelled) return
@@ -232,31 +241,48 @@ export default function GymDashboard() {
         // Cache for owner pages that read via useOwnerGymId.
         try { if (gymData?.id) localStorage.setItem('gymId', gymData.id) } catch {}
 
+        const ERR = Symbol('error')
         const [membersRes, occupancyRes, churnRes, revenueRes] = await Promise.all([
-          getGymMembers(gymData.id).catch(() => []),
-          getGymOccupancy(gymData.id).catch(() => ({ current: 0, capacity: 0 })),
-          getChurnScores(gymData.id).catch(() => null),
-          fetch(`${import.meta.env.VITE_API_URL || ''}/api/gym/revenue?gym_id=${encodeURIComponent(gymData.id)}`)
-            .then(r => r.json())
-            .catch(() => null),
+          getGymMembers(gymData.id).catch(() => ERR),
+          getGymOccupancy(gymData.id).catch(() => ERR),
+          getChurnScores(gymData.id).catch(() => ERR),
+          getGymRevenue(gymData.id).catch(() => ERR),
         ])
         if (cancelled) return
 
-        const memberList = Array.isArray(membersRes)
-          ? membersRes
-          : membersRes?.members ?? []
-        setMembers(memberList)
-        setOccupancy(occupancyRes || { current: 0, capacity: 0 })
-        setChurnCount(
-          churnRes?.summary?.high
-          ?? churnRes?.high_risk_count
-          ?? 0
-        )
+        // Each stat gets its own distinct error flag — a 401/500/network
+        // failure must never render identically to "this gym genuinely
+        // has 0 members / 0 occupancy / 0 churn risk".
+        if (membersRes === ERR) {
+          setMembersError(true)
+        } else {
+          const memberList = Array.isArray(membersRes)
+            ? membersRes
+            : membersRes?.members ?? []
+          setMembers(memberList)
+        }
+
+        if (occupancyRes === ERR) {
+          setOccupancyError(true)
+        } else {
+          setOccupancy(occupancyRes || { current: 0, capacity: 0 })
+        }
+
+        if (churnRes === ERR) {
+          setChurnError(true)
+        } else {
+          setChurnCount(churnRes?.summary?.high_risk_count ?? 0)
+        }
+
         setRevenue(
-          typeof revenueRes?.revenue === 'number' ? revenueRes.revenue : 'error'
+          revenueRes !== ERR && typeof revenueRes?.revenue === 'number' ? revenueRes.revenue : 'error'
         )
       } catch (err) {
+        // A failure fetching the gym itself (401/403/500/network) must not
+        // fall through to the default "Your Gym" / 0-everything render —
+        // that looks identical to a brand-new, empty gym.
         console.error('GymDashboard load error:', err)
+        if (!cancelled) setGymLoadError(true)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -297,6 +323,28 @@ export default function GymDashboard() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <div className="w-7 h-7 border-2 border-[var(--success)] border-t-transparent rounded-full animate-spin" />
           <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Loading dashboard…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (gymLoadError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center', maxWidth: 320 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Couldn't load your dashboard</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 20, lineHeight: 1.5 }}>
+            Something went wrong loading this page. Your gym data is unaffected — try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px', borderRadius: 12, border: '1px solid var(--text-primary)',
+              background: 'var(--cta-bg)', color: 'var(--cta-text)', fontWeight: 600, fontSize: 14, cursor: 'pointer',
+            }}
+          >
+            Try again
+          </button>
         </div>
       </div>
     )
@@ -355,10 +403,10 @@ export default function GymDashboard() {
           {/* members.length is real — from getGymMembers API */}
           <KpiCard
             label="Total Members"
-            value={members.length}
-            sub="All enrolled"
-            subColor="var(--success)"
-            subBg="var(--success-bg)"
+            value={membersError ? '—' : members.length}
+            sub={membersError ? "Couldn't load" : 'All enrolled'}
+            subColor={membersError ? 'var(--error)' : 'var(--success)'}
+            subBg={membersError ? 'var(--error-bg)' : 'var(--success-bg)'}
           />
           <KpiCard
             label="Monthly Revenue"
@@ -368,25 +416,25 @@ export default function GymDashboard() {
                 ? '₹—'
                 : `₹${Number(revenue).toLocaleString('en-IN')}`
             }
-            sub="Paid this month"
-            subColor="var(--success)"
-            subBg="var(--success-bg)"
+            sub={revenue === 'error' ? "Couldn't load" : 'Paid this month'}
+            subColor={revenue === 'error' ? 'var(--error)' : 'var(--success)'}
+            subBg={revenue === 'error' ? 'var(--error-bg)' : 'var(--success-bg)'}
           />
           {/* TODO: occupancy.current is real (check_ins table) but capacity comes from gyms.capacity which may be unset */}
           <KpiCard
             label="Active Today"
-            value={occupancy.current}
-            sub={`of ${occupancy.capacity || '—'} capacity`}
-            subColor="var(--text-secondary)"
-            subBg="var(--bg-pill)"
+            value={occupancyError ? '—' : occupancy.current}
+            sub={occupancyError ? "Couldn't load" : `of ${occupancy.capacity || '—'} capacity`}
+            subColor={occupancyError ? 'var(--error)' : 'var(--text-secondary)'}
+            subBg={occupancyError ? 'var(--error-bg)' : 'var(--bg-pill)'}
           />
           {/* churnCount is real — from ML scoring endpoint */}
           <KpiCard
             label="Churn Risk"
-            value={churnCount}
-            sub={churnCount > 0 ? 'High risk members' : 'No churn risk'}
-            subColor={churnCount > 0 ? 'var(--error)' : 'var(--success)'}
-            subBg={churnCount > 0 ? 'var(--error-bg)' : 'var(--success-bg)'}
+            value={churnError ? '—' : churnCount}
+            sub={churnError ? "Couldn't load" : churnCount > 0 ? 'High risk members' : 'No churn risk'}
+            subColor={churnError ? 'var(--error)' : churnCount > 0 ? 'var(--error)' : 'var(--success)'}
+            subBg={churnError ? 'var(--error-bg)' : churnCount > 0 ? 'var(--error-bg)' : 'var(--success-bg)'}
           />
         </div>
 
@@ -398,20 +446,28 @@ export default function GymDashboard() {
         {/* 4 — Live Occupancy */}
         <div style={{ ...card, marginBottom: 16 }}>
           <p style={sectionLabel}>LIVE OCCUPANCY</p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '10px 0 10px' }}>
-            <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{occupancy.current}</span>
-            <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>/ {occupancy.capacity || '—'} capacity</span>
-          </div>
-          <div style={{ height: 6, background: 'var(--bg-pill)', borderRadius: 3, overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${occupancyPct}%`,
-              background: 'var(--success)',
-              borderRadius: 3,
-              transition: 'width 0.5s ease',
-            }} />
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '6px 0 0' }}>{occupancyPct}% full</p>
+          {occupancyError ? (
+            <p style={{ fontSize: 13, color: 'var(--error)', margin: '10px 0 0' }}>
+              Couldn't load occupancy — try refreshing.
+            </p>
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '10px 0 10px' }}>
+                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{occupancy.current}</span>
+                <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>/ {occupancy.capacity || '—'} capacity</span>
+              </div>
+              <div style={{ height: 6, background: 'var(--bg-pill)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${occupancyPct}%`,
+                  background: 'var(--success)',
+                  borderRadius: 3,
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '6px 0 0' }}>{occupancyPct}% full</p>
+            </>
+          )}
         </div>
 
         {/* 5 — Quick Actions 2×2 */}
@@ -434,7 +490,11 @@ export default function GymDashboard() {
               See all →
             </button>
           </div>
-          {recentMembers.length === 0 ? (
+          {membersError ? (
+            <p style={{ fontSize: 13, color: 'var(--error)', textAlign: 'center', padding: '16px 0', margin: 0 }}>
+              Couldn't load members — try refreshing.
+            </p>
+          ) : recentMembers.length === 0 ? (
             <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 0', margin: 0 }}>
               No members yet
             </p>

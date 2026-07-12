@@ -14,6 +14,7 @@ export default function ClientChatPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactsError, setContactsError] = useState(false);
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
@@ -50,12 +51,14 @@ export default function ClientChatPage() {
   const openPicker = async () => {
     setPickerOpen(true);
     setContactsLoading(true);
+    setContactsError(false);
     try {
       const data = await apiFetch('/api/chat/contacts');
       setContacts(data || []);
     } catch (err) {
       console.error('Load contacts error:', err);
       setContacts([]);
+      setContactsError(true);
     } finally {
       setContactsLoading(false);
     }
@@ -104,6 +107,16 @@ export default function ClientChatPage() {
           {contactsLoading ? (
             <div className="flex items-center justify-center py-10">
               <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : contactsError ? (
+            <div className="text-center py-10 px-4">
+              <p className="text-sm text-[var(--text-primary)] mb-3">Couldn't load contacts, try again</p>
+              <button
+                onClick={openPicker}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold border border-[var(--border)] text-[var(--text-primary)]"
+              >
+                Retry
+              </button>
             </div>
           ) : contacts.length === 0 ? (
             <p className="text-center text-sm text-[var(--text-secondary)] py-10">No contacts available</p>
@@ -168,7 +181,10 @@ export default function ClientChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    // ConsumerLayout renders a persistent 64px fixed BottomNav below the
+    // Outlet, so the chat window gets a fixed height instead of the full
+    // viewport (h-screen pushes the input bar underneath the nav).
+    <div style={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <ChatWindow
         conversationId={conversation.id}
         otherPersonName={trainerName}

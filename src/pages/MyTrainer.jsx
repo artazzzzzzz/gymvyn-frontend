@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { MoreVertical } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 import { useAssignedDietPlan } from '../hooks/useAssignedDietPlan';
 import AssignedDietPlanView from '../components/diet/AssignedDietPlanView';
+import { unlinkTrainer } from '../utils/api';
 
 const BASE = import.meta.env.VITE_API_URL || '';
 
@@ -64,6 +66,7 @@ const specColors = [
 
 export default function MyTrainer() {
   const navigate = useNavigate();
+  const { refetchLinks } = useOutletContext() || {};
 
   const { plan: dietPlan, loading: dietLoading } = useAssignedDietPlan();
 
@@ -72,16 +75,23 @@ export default function MyTrainer() {
   const [conversation, setConversation] = useState(null);
   const [loading,      setLoading]      = useState(true);
   const [noTrainer,    setNoTrainer]    = useState(false);
+  const [loadError,    setLoadError]    = useState(false);
 
   const [showJoin,       setShowJoin]       = useState(false);
   const [joinCode,       setJoinCode]       = useState('');
   const [joining,        setJoining]        = useState(false);
   const [justConnected,  setJustConnected]  = useState(false);
 
+  const [menuOpen,          setMenuOpen]          = useState(false);
+  const [unlinkConfirmOpen, setUnlinkConfirmOpen]  = useState(false);
+  const [unlinking,         setUnlinking]          = useState(false);
+  const [unlinkError,       setUnlinkError]        = useState('');
+
   useEffect(() => { load() }, []);
 
   async function load() {
     setLoading(true);
+    setLoadError(false);
     try {
       const data = await authFetch('/api/trainer/my-trainer');
       setTrainer(data.trainer);
@@ -92,8 +102,11 @@ export default function MyTrainer() {
       if (err.status === 404) {
         setNoTrainer(true);
       } else {
+        // 401/403/500/network — do NOT treat as "not linked". Show a
+        // distinct error state so an auth/backend failure never looks
+        // identical to a genuine unlinked trainer.
         console.error('Load trainer error:', err);
-        setNoTrainer(true);
+        setLoadError(true);
       }
     } finally {
       setLoading(false);
@@ -113,6 +126,24 @@ export default function MyTrainer() {
       alert(err.message || 'Invalid or expired code');
     } finally {
       setJoining(false);
+    }
+  }
+
+  async function confirmUnlink() {
+    setUnlinking(true);
+    setUnlinkError('');
+    try {
+      await unlinkTrainer();
+      setUnlinkConfirmOpen(false);
+      setTrainer(null);
+      setPlan(null);
+      setConversation(null);
+      setNoTrainer(true);
+      refetchLinks?.();
+    } catch (err) {
+      setUnlinkError(err.message || 'Could not unlink from trainer.');
+    } finally {
+      setUnlinking(false);
     }
   }
 
@@ -152,6 +183,38 @@ export default function MyTrainer() {
   }
 
   // ── No trainer linked ────────────────────────────────────────────────────────
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
+          <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
+        </div>
+        <div className="pt-[72px] px-5 space-y-4">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 border border-[var(--border)] text-center">
+            <div className="w-16 h-16 rounded-full bg-[var(--error-bg)] border border-[var(--border)] flex items-center justify-center mx-auto mb-4">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--error)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">Couldn't load your trainer</h2>
+            <p className="text-[var(--text-tertiary)] text-sm mb-6 leading-relaxed">
+              Something went wrong loading this page. Your trainer link (if any) is unaffected — try again.
+            </p>
+            <button
+              onClick={load}
+              className="w-full py-3.5 rounded-xl font-semibold text-[var(--cta-text)] border"
+              style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)' }}
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (noTrainer) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
@@ -269,15 +332,38 @@ export default function MyTrainer() {
       <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
 
       {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5 gap-2">
         <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
-        <button
-          onClick={() => navigate('/client/chat')}
-          className="text-[13px] font-semibold px-4 h-9 rounded-xl flex items-center border"
-          style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)' }}
-        >
-          Message →
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/client/chat')}
+            className="text-[13px] font-semibold px-4 h-9 rounded-xl flex items-center border"
+            style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)' }}
+          >
+            Message →
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center shrink-0"
+            >
+              <MoreVertical size={18} className="text-[var(--text-primary)]" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-11 z-50 w-56 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <button
+                    onClick={() => { setMenuOpen(false); setUnlinkError(''); setUnlinkConfirmOpen(true); }}
+                    className="w-full text-left px-4 py-3 text-sm font-medium text-[var(--error)]"
+                  >
+                    Leave this trainer
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="pt-[72px] pb-6">
@@ -530,6 +616,42 @@ export default function MyTrainer() {
 
         <div className="h-6" />
       </div>
+
+      {unlinkConfirmOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6"
+          onClick={() => !unlinking && setUnlinkConfirmOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[var(--bg-card)] rounded-2xl p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-2">Leave {trainerName}?</p>
+            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed mb-5">
+              Your history will be saved but they will no longer have access to your data. You can connect with a new trainer anytime.
+            </p>
+            {unlinkError && (
+              <p className="text-xs text-[var(--error)] mb-3">{unlinkError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setUnlinkConfirmOpen(false)}
+                disabled={unlinking}
+                className="flex-1 py-3 rounded-xl font-medium text-sm text-[var(--text-secondary)] border border-[var(--border)] bg-[var(--bg-elevated)] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUnlink}
+                disabled={unlinking}
+                className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-[var(--error)] disabled:opacity-60"
+              >
+                {unlinking ? 'Leaving…' : 'Leave Trainer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

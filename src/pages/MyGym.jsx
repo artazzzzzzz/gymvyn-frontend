@@ -1,11 +1,30 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Loader2, Building2 } from 'lucide-react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
+import { Loader2, Building2, X, MoreVertical } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-import { getMyGym, joinGym, getGymAnnouncements, getGymSchedule, getGymOccupancy } from '../utils/api'
+import { getMyGym, joinGym, unlinkGym, getClassesByDate, getGymOccupancy, getGymQR } from '../utils/api'
 import { supabase } from '../utils/supabase'
 
 const BASE = import.meta.env.VITE_API_URL
+
+// Local YYYY-MM-DD (avoids the UTC day-shift that toISOString() can cause).
+function localDateStr(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function formatClassTime(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d)) return '—'
+  let h = d.getHours()
+  const m = d.getMinutes()
+  const period = h < 12 ? 'AM' : 'PM'
+  h = h % 12 || 12
+  return { time: `${h}:${String(m).padStart(2, '0')}`, period }
+}
 
 function timeAgo(iso) {
   if (!iso) return '—'
@@ -109,30 +128,53 @@ function JoinGymView({ userId, onJoined }) {
 export default function MyGym() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { refetchLinks } = useOutletContext() || {}
+
+  const [menuOpen,        setMenuOpen]        = useState(false)
+  const [unlinkConfirmOpen, setUnlinkConfirmOpen] = useState(false)
+  const [unlinking,       setUnlinking]       = useState(false)
+  const [unlinkError,     setUnlinkError]     = useState('')
 
   const [gymInfo,        setGymInfo]        = useState(null)   // { linked, gym, membership }
   const [announcements,  setAnnouncements]  = useState([])
   const [classes,        setClasses]        = useState([])
   const [occupancy,      setOccupancy]      = useState(null)
+  const [gymLoadError,   setGymLoadError]   = useState(false)
 
   const [loadingGym,  setLoadingGym]  = useState(true)
-  const [loadingAnns, setLoadingAnns] = useState(false)
   const [loadingCls,  setLoadingCls]  = useState(false)
   const [loadingOcc,  setLoadingOcc]  = useState(false)
   const [activeOrders, setActiveOrders] = useState([])
 
+  const [qrOpen,    setQrOpen]    = useState(false)
+  const [qrLoading, setQrLoading] = useState(false)
+  const [qrError,   setQrError]   = useState('')
+  const [qrCode,    setQrCode]    = useState('')
+
+  const [contactOpen,    setContactOpen]    = useState(false)
+  const [membershipOpen, setMembershipOpen] = useState(false)
+
+  const [announcementDetail, setAnnouncementDetail] = useState(null)
+
   async function loadGym() {
     if (!user) return
     setLoadingGym(true)
+    setGymLoadError(false)
     try {
       const result = await getMyGym(user.id)
       setGymInfo(result)
+      setAnnouncements(Array.isArray(result?.announcements) ? result.announcements : [])
       if (result?.linked && result?.gym?.id) {
         loadSecondary(result.gym.id)
       }
     } catch (err) {
+      // The backend never 404s for "not linked" — it returns 200 with
+      // { linked: false }. So anything caught here (401/403/500/network)
+      // is a genuine failure, not a real unlinked state. Never conflate
+      // the two by defaulting to { linked: false }.
       console.error('Load my gym error:', err)
-      setGymInfo({ linked: false })
+      setGymInfo(null)
+      setGymLoadError(true)
     } finally {
       setLoadingGym(false)
     }
@@ -155,19 +197,13 @@ export default function MyGym() {
   }
 
   async function loadSecondary(gymId) {
-    setLoadingAnns(true)
     setLoadingCls(true)
     setLoadingOcc(true)
 
     loadActiveOrders()
 
-    getGymAnnouncements(gymId)
-      .then(data => setAnnouncements(Array.isArray(data) ? data : []))
-      .catch(() => setAnnouncements([]))
-      .finally(() => setLoadingAnns(false))
-
-    getGymSchedule(gymId)
-      .then(data => setClasses(Array.isArray(data) ? data : []))
+    getClassesByDate(gymId, localDateStr(new Date()))
+      .then(data => setClasses(Array.isArray(data?.classes) ? data.classes : []))
       .catch(() => setClasses([]))
       .finally(() => setLoadingCls(false))
 
@@ -178,6 +214,39 @@ export default function MyGym() {
   }
 
   useEffect(() => { loadGym() }, [user])
+
+  async function openQr() {
+    if (!user?.id || !gymInfo?.gym?.id) return
+    setQrOpen(true)
+    setQrLoading(true)
+    setQrError('')
+    try {
+      const data = await getGymQR(gymInfo.gym.id, user.id)
+      setQrCode(data.qr_code)
+    } catch (err) {
+      setQrError(err.message || 'Could not load QR code.')
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  async function confirmUnlink() {
+    setUnlinking(true)
+    setUnlinkError('')
+    try {
+      await unlinkGym()
+      setUnlinkConfirmOpen(false)
+      setGymInfo({ linked: false })
+      setAnnouncements([])
+      setClasses([])
+      setOccupancy(null)
+      refetchLinks?.()
+    } catch (err) {
+      setUnlinkError(err.message || 'Could not unlink from gym.')
+    } finally {
+      setUnlinking(false)
+    }
+  }
 
   const gym        = gymInfo?.gym        || {}
   const membership = gymInfo?.membership || {}
@@ -199,18 +268,57 @@ export default function MyGym() {
       {/* TOP BAR */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
         <span className="text-xl font-semibold text-[var(--text-primary)]">My Gym</span>
-        <button className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-        </button>
+        {gymInfo?.linked && (
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center"
+            >
+              <MoreVertical size={18} className="text-[var(--text-primary)]" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-11 z-50 w-52 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] overflow-hidden">
+                  <button
+                    onClick={() => { setMenuOpen(false); setUnlinkError(''); setUnlinkConfirmOpen(true) }}
+                    className="w-full text-left px-4 py-3 text-sm font-medium text-[var(--error)]"
+                  >
+                    Leave this gym
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {loadingGym ? (
         <div className="pt-14 flex items-center justify-center min-h-screen">
           <Loader2 size={24} className="text-[var(--text-tertiary)] animate-spin" />
+        </div>
+      ) : gymLoadError ? (
+        <div className="pt-14 px-5">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 border border-[var(--border)] text-center mt-6">
+            <div className="w-16 h-16 rounded-full bg-[var(--error-bg)] border border-[var(--border)] flex items-center justify-center mx-auto mb-4">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--error)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">Couldn't load your gym</h2>
+            <p className="text-[var(--text-tertiary)] text-sm mb-6 leading-relaxed">
+              Something went wrong loading this page. Your gym membership (if any) is unaffected — try again.
+            </p>
+            <button
+              onClick={loadGym}
+              className="w-full py-3.5 rounded-xl font-semibold text-[var(--cta-text)] border"
+              style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)' }}
+            >
+              Try again
+            </button>
+          </div>
         </div>
       ) : !gymInfo?.linked ? (
         <div className="pt-14">
@@ -220,9 +328,13 @@ export default function MyGym() {
         <div className="pt-[72px] px-5 space-y-4 pb-6">
 
           {/* ── MEMBERSHIP CARD ──────────────────────────────── */}
-          <div className="relative w-full bg-[var(--text-primary)] rounded-[20px] overflow-hidden" style={{ height: 180 }}>
+          <div
+            onClick={openQr}
+            className="relative w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-[20px] overflow-hidden cursor-pointer"
+            style={{ height: 180 }}
+          >
             <div className="absolute inset-0 pointer-events-none" style={{
-              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+              backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)',
               backgroundSize: '14px 14px',
             }} />
             <div className="absolute bottom-0 left-0 right-0 h-[2px] z-10" style={{ background: 'var(--xp-gold)' }} />
@@ -232,18 +344,18 @@ export default function MyGym() {
                   {loadingGym ? (
                     <Skeleton width={140} height={20} style={{ marginBottom: 6 }} />
                   ) : (
-                    <p className="text-[18px] font-bold text-white leading-tight">{gym.name || '—'}</p>
+                    <p className="text-[18px] font-bold text-[var(--text-primary)] leading-tight">{gym.name || '—'}</p>
                   )}
                   {loadingGym ? (
                     <Skeleton width={100} height={14} />
                   ) : (
-                    <p className="text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <p className="text-[12px] mt-1 text-[var(--text-tertiary)]">
                       {gym.address || gym.city || '—'}
                     </p>
                   )}
                 </div>
                 <div className="w-14 h-14 rounded-xl p-1.5 flex items-center justify-center"
-                  style={{ background: 'rgba(255,255,255,0.10)' }}>
+                  style={{ background: 'var(--bg-camera)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1.5, width: 42, height: 42 }}>
                     {QR_GRID.flat().map((cell, i) => (
                       <div key={i} style={{
@@ -260,8 +372,8 @@ export default function MyGym() {
                   <span
                     className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
                     style={{
-                      background: 'rgba(255,255,255,0.10)',
-                      border: '0.5px solid rgba(255,255,255,0.20)',
+                      background: 'var(--xp-gold-bg)',
+                      border: '0.5px solid var(--border)',
                       color: 'var(--xp-gold)',
                     }}
                   >
@@ -269,14 +381,14 @@ export default function MyGym() {
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
-                    <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>Active</span>
+                    <span className="text-[11px] text-[var(--text-secondary)]">Active</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <span className="text-[11px] text-[var(--text-tertiary)]">
                     Member since {memberSince}
                   </span>
-                  <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.5)' }}>Tap to show QR</span>
+                  <span className="text-[11px] text-[var(--text-tertiary)]">Tap to show QR</span>
                 </div>
               </div>
             </div>
@@ -367,14 +479,9 @@ export default function MyGym() {
               <EmptyState text="No classes scheduled" />
             ) : (
               classes.map(cls => {
-                const startTime = cls.start_time
-                  ? cls.start_time.slice(0, 5)
-                  : '—'
-                const [hh, mm] = startTime.split(':').map(Number)
-                const period = !isNaN(hh) ? (hh < 12 ? 'AM' : 'PM') : ''
-                const displayTime = !isNaN(hh)
-                  ? `${hh % 12 || 12}:${String(mm).padStart(2, '0')}`
-                  : startTime
+                const formatted = formatClassTime(cls.start_time)
+                const displayTime = typeof formatted === 'string' ? formatted : formatted.time
+                const period = typeof formatted === 'string' ? '' : formatted.period
 
                 return (
                   <div
@@ -406,7 +513,7 @@ export default function MyGym() {
             <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)] mb-3">
               Announcements
             </p>
-            {loadingAnns ? (
+            {loadingGym ? (
               <div className="space-y-2">
                 {[1,2].map(i => (
                   <div key={i} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4">
@@ -419,22 +526,29 @@ export default function MyGym() {
             ) : announcements.length === 0 ? (
               <EmptyState text="No announcements yet" />
             ) : (
-              announcements.map(a => (
+              announcements.map(a => {
+                const isLong = (a.body || '').length > 150
+                return (
                 <div
                   key={a.id}
-                  className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 mb-2 flex gap-3 relative overflow-hidden"
+                  onClick={isLong ? () => setAnnouncementDetail(a) : undefined}
+                  className={`bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 mb-2 flex gap-3 relative overflow-hidden ${isLong ? 'cursor-pointer' : ''}`}
                 >
                   <div className="w-[3px] rounded-full shrink-0 self-stretch"
                     style={{ backgroundColor: a.priority === 'urgent' ? 'var(--error)' : 'var(--text-cta)' }} />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-[var(--text-primary)]">{a.title}</p>
-                    <p className="text-[13px] text-[var(--text-secondary)] mt-1 leading-snug">{a.body}</p>
+                    <p className={`text-[13px] text-[var(--text-secondary)] mt-1 leading-snug ${isLong ? 'line-clamp-3' : ''}`}>{a.body}</p>
+                    {isLong && (
+                      <p className="text-[11px] text-[var(--accent)] font-medium mt-1">Read more</p>
+                    )}
                     <p className="text-[11px] text-[var(--text-tertiary)] mt-3">
                       Posted by {a.posted_by || 'Management'} · {timeAgo(a.created_at)}
                     </p>
                   </div>
                 </div>
-              ))
+                )
+              })
             )}
           </div>
 
@@ -560,6 +674,7 @@ export default function MyGym() {
                     <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
                   </svg>
                 ),
+                onClick: openQr,
               },
               {
                 label: 'Contact Gym',
@@ -569,6 +684,7 @@ export default function MyGym() {
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
                   </svg>
                 ),
+                onClick: () => setContactOpen(true),
               },
               {
                 label: 'My Membership',
@@ -579,6 +695,7 @@ export default function MyGym() {
                     <line x1="1" y1="10" x2="23" y2="10"/>
                   </svg>
                 ),
+                onClick: () => setMembershipOpen(true),
               },
               {
                 label: 'Leave a Review',
@@ -592,6 +709,7 @@ export default function MyGym() {
             ].map((a, i) => (
               <button
                 key={i}
+                {...(a.onClick ? { onClick: a.onClick } : {})}
                 className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4 flex items-center gap-3 h-14"
               >
                 <div className="w-9 h-9 bg-[var(--bg-pill)] rounded-xl flex items-center justify-center shrink-0">
@@ -602,6 +720,183 @@ export default function MyGym() {
             ))}
           </div>
 
+        </div>
+      )}
+
+      {qrOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6"
+          onClick={() => setQrOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[var(--bg-card)] rounded-2xl p-6 flex flex-col items-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setQrOpen(false)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--bg-pill)] flex items-center justify-center"
+            >
+              <X size={16} className="text-[var(--text-primary)]" />
+            </button>
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-4">Check-in QR</p>
+            <div className="w-48 h-48 flex items-center justify-center">
+              {qrLoading ? (
+                <Loader2 size={24} className="text-[var(--text-tertiary)] animate-spin" />
+              ) : qrError ? (
+                <p className="text-xs text-[var(--error)] text-center px-2">{qrError}</p>
+              ) : qrCode ? (
+                <img src={qrCode} alt="Check-in QR code" className="w-48 h-48 rounded-xl" />
+              ) : null}
+            </div>
+            <p className="text-xs text-[var(--text-tertiary)] mt-4 text-center">Show this to gym staff to check in</p>
+          </div>
+        </div>
+      )}
+
+      {contactOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6"
+          onClick={() => setContactOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[var(--bg-card)] rounded-2xl p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setContactOpen(false)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--bg-pill)] flex items-center justify-center"
+            >
+              <X size={16} className="text-[var(--text-primary)]" />
+            </button>
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-4">Contact Gym</p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-widest mb-1">Phone</p>
+                {gym.phone ? (
+                  <a href={`tel:${gym.phone}`} className="text-sm font-medium text-[var(--accent)]">{gym.phone}</a>
+                ) : (
+                  <p className="text-sm text-[var(--text-tertiary)]">—</p>
+                )}
+              </div>
+              <div>
+                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-widest mb-1">Address</p>
+                {gym.address ? (
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(gym.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-[var(--accent)]"
+                  >
+                    {gym.address}
+                  </a>
+                ) : (
+                  <p className="text-sm text-[var(--text-tertiary)]">—</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {membershipOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6"
+          onClick={() => setMembershipOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[var(--bg-card)] rounded-2xl p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setMembershipOpen(false)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--bg-pill)] flex items-center justify-center"
+            >
+              <X size={16} className="text-[var(--text-primary)]" />
+            </button>
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-4">My Membership</p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-widest mb-1">Plan</p>
+                <p className="text-sm font-medium text-[var(--text-primary)] capitalize">{membership.membership_type || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-widest mb-1">Start Date</p>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {membership.start_date
+                    ? new Date(membership.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-widest mb-1">End Date</p>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {membership.end_date
+                    ? new Date(membership.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {unlinkConfirmOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6"
+          onClick={() => !unlinking && setUnlinkConfirmOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[var(--bg-card)] rounded-2xl p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-2">Leave {gym.name || 'this gym'}?</p>
+            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed mb-5">
+              Your history will be saved but they will no longer have access to your data. You can join a new gym anytime.
+            </p>
+            {unlinkError && (
+              <p className="text-xs text-[var(--error)] mb-3">{unlinkError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setUnlinkConfirmOpen(false)}
+                disabled={unlinking}
+                className="flex-1 py-3 rounded-xl font-medium text-sm text-[var(--text-secondary)] border border-[var(--border)] bg-[var(--bg-elevated)] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUnlink}
+                disabled={unlinking}
+                className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-[var(--error)] disabled:opacity-60"
+              >
+                {unlinking ? 'Leaving…' : 'Leave Gym'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {announcementDetail && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6"
+          onClick={() => setAnnouncementDetail(null)}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[var(--bg-card)] rounded-2xl p-6 max-h-[70vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setAnnouncementDetail(null)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--bg-pill)] flex items-center justify-center"
+            >
+              <X size={16} className="text-[var(--text-primary)]" />
+            </button>
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-2 pr-8">{announcementDetail.title}</p>
+            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">{announcementDetail.body}</p>
+            <p className="text-[11px] text-[var(--text-tertiary)] mt-4">
+              Posted by {announcementDetail.posted_by || 'Management'} · {timeAgo(announcementDetail.created_at)}
+            </p>
+          </div>
         </div>
       )}
     </div>
