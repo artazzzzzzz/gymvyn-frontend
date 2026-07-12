@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import { supabase } from '../utils/supabase';
 import { TrainerCodeCard } from '../components/TrainerCodeCard';
+import { TrainerJoinGymSheet } from '../components/TrainerJoinGymSheet';
 import { CitySearchInput } from '../components/CitySearchInput';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -90,12 +91,14 @@ export default function TrainerSettings() {
   const [profile, setProfile] = useState(null);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [joinGymOpen, setJoinGymOpen] = useState(false);
 
   const userId = user?.id;
 
@@ -105,6 +108,8 @@ export default function TrainerSettings() {
   }, [userId]);
 
   const loadData = async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const [p, c] = await Promise.all([
         apiFetch(`/api/trainer/profile/${userId}`),
@@ -113,7 +118,10 @@ export default function TrainerSettings() {
       setProfile(p);
       setClients(c || []);
     } catch (err) {
+      // Do not leave `profile` null and let the "Gym: Not linked" row
+      // render as if that were confirmed — surface a distinct error.
       console.error('Load settings error:', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -348,6 +356,16 @@ export default function TrainerSettings() {
           label="Chat"
           onPress={() => navigate('/trainer/chat')}
         />
+        <SettingsRow
+          icon="building"
+          label="Gym"
+          value={
+            loadError
+              ? "Couldn't load"
+              : profile?.gym_id ? 'Linked' : (profile?.pending_gym_id ? 'Pending approval' : 'Not linked')
+          }
+          onPress={() => (loadError ? loadData() : setJoinGymOpen(true))}
+        />
       </div>
 
       {/* ── Section: Your Trainer Code ── */}
@@ -434,13 +452,17 @@ export default function TrainerSettings() {
         </button>
       </div>
 
-      {/* ── Edit Profile Sheet (normal flow, not fixed) ── */}
+      {/* ── Edit Profile Sheet ── */}
       {editOpen && (
-        <div style={{
-          marginTop: 20, background: 'var(--bg-card)',
-          border: '0.5px solid var(--border)',
-          borderRadius: '16px 16px 0 0', padding: 20
-        }}>
+        <>
+          <div onClick={() => setEditOpen(false)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 190 }} />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 191,
+            background: 'var(--bg-card)',
+            borderRadius: '16px 16px 0 0', padding: 20,
+            maxHeight: '85vh', overflowY: 'auto', boxSizing: 'border-box'
+          }}>
+          <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '0 auto 16px' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <span style={{ fontSize: 16, fontWeight: 600 }}>Edit profile</span>
             <button
@@ -551,8 +573,15 @@ export default function TrainerSettings() {
           >
             {saving ? 'Saving…' : 'Save changes'}
           </button>
-        </div>
+          </div>
+        </>
       )}
+
+      <TrainerJoinGymSheet
+        open={joinGymOpen}
+        onClose={() => setJoinGymOpen(false)}
+        onSuccess={loadData}
+      />
 
       {/* Bottom nav */}
       <div style={{

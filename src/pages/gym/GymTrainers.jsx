@@ -4,6 +4,22 @@ import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { supabase } from '../../utils/supabase'
+
+async function authReq(API, method, path, body) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await fetch(`${API}${path}`, {
+    method,
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || data.message || `Error ${res.status}`)
+  return data
+}
 
 const statusConfig = {
   active:  { label: 'Active',  bg: 'var(--success-bg)', color: 'var(--success)' },
@@ -33,13 +49,18 @@ export default function GymTrainers() {
   const [submitting, setSubmitting] = useState(false)
   const [moreOpenId, setMoreOpenId] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [trainerJoinCode, setTrainerJoinCode] = useState(null)
+  const [joinCodeLoading, setJoinCodeLoading] = useState(false)
+  const [joinCodeCopied, setJoinCodeCopied] = useState(false)
+  const [pendingRequests, setPendingRequests] = useState([])
+  const [showRequestsSheet, setShowRequestsSheet] = useState(false)
+  const [requestActionId, setRequestActionId] = useState(null)
 
   const fetchTrainers = async () => {
     if (!gymId) return
     setLoading(true)
     try {
-      const res = await fetch(`${API}/api/gym-trainers/${gymId}`)
-      const data = await res.json()
+      const data = await authReq(API, 'GET', `/api/gym-trainers/${gymId}`)
       setTrainers(Array.isArray(data) ? data : (data?.trainers ?? []))
     } catch (err) {
       setError('Failed to load trainers')
@@ -48,20 +69,62 @@ export default function GymTrainers() {
     }
   }
 
+  const fetchPendingRequests = async () => {
+    try {
+      const data = await authReq(API, 'GET', '/api/gym/trainer-join-requests')
+      setPendingRequests(Array.isArray(data) ? data : [])
+    } catch {
+      setPendingRequests([])
+    }
+  }
+
+  const fetchTrainerJoinCode = async () => {
+    setJoinCodeLoading(true)
+    try {
+      const data = await authReq(API, 'GET', '/api/gym/trainer-join-code')
+      setTrainerJoinCode(data.trainer_join_code || null)
+    } catch {
+      setTrainerJoinCode(null)
+    } finally {
+      setJoinCodeLoading(false)
+    }
+  }
+
   useEffect(() => {
-    if (gymId) fetchTrainers()
+    if (gymId) { fetchTrainers(); fetchPendingRequests() }
     else setLoading(false)
   }, [gymId])
+
+  const handleAcceptRequest = async (req) => {
+    setRequestActionId(req.id)
+    try {
+      await authReq(API, 'PATCH', `/api/gym/trainer-join-requests/${req.id}/accept`)
+      setPendingRequests(prev => prev.filter(r => r.id !== req.id))
+      fetchTrainers()
+    } catch (err) {
+      alert(err.message || 'Failed to accept request')
+    } finally {
+      setRequestActionId(null)
+    }
+  }
+
+  const handleDeclineRequest = async (req) => {
+    setRequestActionId(req.id)
+    try {
+      await authReq(API, 'DELETE', `/api/gym/trainer-join-requests/${req.id}`)
+      setPendingRequests(prev => prev.filter(r => r.id !== req.id))
+    } catch (err) {
+      alert(err.message || 'Failed to decline request')
+    } finally {
+      setRequestActionId(null)
+    }
+  }
 
   const handleInvite = async () => {
     if (!inviteValue.trim()) return
     setSubmitting(true)
     try {
-      await fetch(`${API}/api/gym-trainers/invite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gym_id: gymId, type: activeTab, value: inviteValue.trim() }),
-      })
+      await authReq(API, 'POST', '/api/gym-trainers/invite', { gym_id: gymId, type: activeTab, value: inviteValue.trim() })
       setInviteValue('')
       setShowAddSheet(false)
       fetchTrainers()
@@ -76,18 +139,14 @@ export default function GymTrainers() {
     if (!manualForm.full_name.trim()) return
     setSubmitting(true)
     try {
-      await fetch(`${API}/api/gym-trainers/manual`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gym_id: gymId,
-          full_name: manualForm.full_name.trim(),
-          phone: manualForm.phone.trim() || null,
-          specializations: manualForm.specializations
-            ? manualForm.specializations.split(',').map(s => s.trim()).filter(Boolean)
-            : [],
-          experience_years: 0,
-        }),
+      await authReq(API, 'POST', '/api/gym-trainers/manual', {
+        gym_id: gymId,
+        full_name: manualForm.full_name.trim(),
+        phone: manualForm.phone.trim() || null,
+        specializations: manualForm.specializations
+          ? manualForm.specializations.split(',').map(s => s.trim()).filter(Boolean)
+          : [],
+        experience_years: 0,
       })
       setManualForm({ full_name: '', phone: '', specializations: '' })
       setShowAddSheet(false)
@@ -103,7 +162,7 @@ export default function GymTrainers() {
     if (!selectedTrainer) return
     setSubmitting(true)
     try {
-      await fetch(`${API}/api/gym-trainers/${selectedTrainer.id}`, { method: 'DELETE' })
+      await authReq(API, 'DELETE', `/api/gym-trainers/${selectedTrainer.id}`)
       setShowRemoveSheet(false)
       setSelectedTrainer(null)
       fetchTrainers()
@@ -205,6 +264,40 @@ export default function GymTrainers() {
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </button>
+
+        {/* PENDING JOIN REQUESTS BANNER */}
+        {pendingRequests.length > 0 && (
+          <button
+            onClick={() => setShowRequestsSheet(true)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+              backgroundColor: 'var(--warning-bg)', borderRadius: 12,
+              border: '0.5px solid rgba(0,0,0,0.08)', padding: '14px 16px',
+              cursor: 'pointer', textAlign: 'left', boxSizing: 'border-box',
+            }}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              backgroundColor: 'var(--bg-card)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {pendingRequests.length} pending join request{pendingRequests.length === 1 ? '' : 's'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>
+                Trainers requesting to join your gym
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        )}
 
         {/* LOADING */}
         {loading && (
@@ -383,10 +476,14 @@ export default function GymTrainers() {
                   { key: 'phone', label: 'Phone' },
                   { key: 'email', label: '✉ Email' },
                   { key: 'manual', label: '✏ Manual' },
+                  { key: 'code', label: '🔑 Code' },
                 ].map(tab => (
                   <button
                     key={tab.key}
-                    onClick={() => { setActiveTab(tab.key); setInviteValue('') }}
+                    onClick={() => {
+                      setActiveTab(tab.key); setInviteValue('')
+                      if (tab.key === 'code' && !trainerJoinCode) fetchTrainerJoinCode()
+                    }}
                     style={{
                       flex: 1, padding: '8px 0',
                       backgroundColor: activeTab === tab.key ? 'white' : 'transparent',
@@ -486,6 +583,107 @@ export default function GymTrainers() {
                     They can claim this profile using their phone number.
                   </div>
                 </div>
+              )}
+
+              {/* Code tab */}
+              {activeTab === 'code' && (
+                <div>
+                  <div style={{
+                    background: 'var(--bg-primary)', borderRadius: 12, padding: 16,
+                    marginBottom: 8, textAlign: 'center',
+                  }}>
+                    <span style={{
+                      fontSize: 22, fontWeight: 700,
+                      color: joinCodeLoading || !trainerJoinCode ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                      fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace",
+                      letterSpacing: '0.1em',
+                    }}>
+                      {joinCodeLoading ? 'Loading…' : (trainerJoinCode || '—')}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20, textAlign: 'center' }}>
+                    Share this code — a trainer enters it from their app to request joining your gym. You'll need to approve the request before they're linked.
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!trainerJoinCode) return
+                      navigator.clipboard.writeText(trainerJoinCode).catch(() => {})
+                      setJoinCodeCopied(true)
+                      setTimeout(() => setJoinCodeCopied(false), 2000)
+                    }}
+                    disabled={!trainerJoinCode}
+                    style={{
+                      width: '100%', height: 52,
+                      backgroundColor: joinCodeCopied ? 'var(--success-bg)' : 'var(--text-primary)',
+                      color: joinCodeCopied ? 'var(--success)' : "var(--bg-card)",
+                      border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                      cursor: trainerJoinCode ? 'pointer' : 'default',
+                      opacity: trainerJoinCode ? 1 : 0.5,
+                    }}
+                  >{joinCodeCopied ? 'Copied!' : 'Copy Code'}</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PENDING JOIN REQUESTS SHEET */}
+      {showRequestsSheet && (
+        <>
+          <div
+            onClick={() => setShowRequestsSheet(false)}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
+            zIndex: 51, padding: '0 0 32px',
+            maxHeight: '80vh', overflowY: 'auto',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 0' }} />
+            <div style={{ padding: '16px 20px 0' }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
+                Pending Join Requests
+              </div>
+
+              {pendingRequests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>
+                  No pending requests
+                </div>
+              ) : (
+                pendingRequests.map(req => {
+                  const { bg, text } = getAvatarColor(req.full_name)
+                  const initials = getInitials(req.full_name)
+                  const busy = requestActionId === req.id
+                  return (
+                    <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
+                      <div style={{ width: 42, height: 42, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: text }}>{initials}</span>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {req.full_name}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 1 }}>
+                          {formatSpecializations(req.specializations)}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                        <button
+                          onClick={() => handleDeclineRequest(req)}
+                          disabled={busy}
+                          style={{ height: 30, padding: '0 12px', background: 'var(--bg-pill)', border: '1px solid var(--bg-pill)', borderRadius: 20, color: 'var(--text-secondary)', fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}
+                        >Decline</button>
+                        <button
+                          onClick={() => handleAcceptRequest(req)}
+                          disabled={busy}
+                          style={{ height: 30, padding: '0 14px', background: '#EAF3DE', border: '1px solid #EAF3DE', borderRadius: 20, color: 'var(--success)', fontSize: 13, fontWeight: 600, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}
+                        >Accept</button>
+                      </div>
+                    </div>
+                  )
+                })
               )}
             </div>
           </div>
