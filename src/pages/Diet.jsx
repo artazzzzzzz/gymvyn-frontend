@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ChevronLeft, ChevronRight, Settings, Pencil,
-  Search, Mic, BookOpen, X, Droplets, Info, Camera,
+  Search, Mic, BookOpen, X, Droplets, Info, Camera, Check, RefreshCw,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
@@ -12,6 +12,7 @@ import VoiceDietRecorder from '../components/VoiceDietRecorder'
 import VoiceDietConfirmSheet from '../components/VoiceDietConfirmSheet'
 import EditFoodLogSheet from '../components/EditFoodLogSheet'
 import FoodPhotoCapture from '../components/FoodPhotoCapture'
+import GenerateDietPlanSheet from '../components/GenerateDietPlanSheet'
 import { useAssignedDietPlan } from '../hooks/useAssignedDietPlan'
 import AssignedDietPlanView from '../components/diet/AssignedDietPlanView'
 import {
@@ -53,6 +54,17 @@ function guessMealTypeNow() {
   if (h < 16) return 'lunch'
   if (h < 19) return 'snack'
   return 'dinner'
+}
+
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+// Plan items store quantity as a free-text string like "2 pieces" or "1 katori" —
+// split off the leading number so edits can scale macros proportionally, the
+// same way VoiceDietConfirmSheet scales voice-parsed items.
+function parsePlanQuantity(qtyStr) {
+  const m = String(qtyStr ?? '').match(/^([\d.]+)\s*(.*)$/)
+  if (m) return { num: parseFloat(m[1]) || 1, unit: m[2].trim() || 'serving' }
+  return { num: 1, unit: String(qtyStr ?? 'serving') }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,7 +110,9 @@ export default function Diet() {
   const { toasts, addToast, removeToast } = useToasts()
 
   const { plan: trainerDietPlan } = useAssignedDietPlan()
-  const [dietTab, setDietTab] = useState('log') // 'log' | 'trainer'
+  const [dietTab, setDietTab] = useState('log') // 'log' | 'plan' | 'trainer'
+  const [showGenerateSheet, setShowGenerateSheet] = useState(false)
+  const [confirmingPlanItem, setConfirmingPlanItem] = useState(null)
 
   const [showDietSettings, setShowDietSettings] = useState(false)
   const [macros, setMacros] = useState(null)
@@ -275,6 +289,52 @@ export default function Diet() {
   const DIET_MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
   const DIET_MEAL_LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snacks' }
 
+  // AI diet plans are a fixed 7-day template keyed by weekday name, not by
+  // calendar date — so "today's" meals are whichever plan day shares today's
+  // weekday name, repeating every week.
+  const todaysPlanDay = useMemo(() => {
+    if (!plan?.plan_data?.days) return null
+    const weekday = WEEKDAY_NAMES[selectedDate.getDay()]
+    return plan.plan_data.days.find(d => d.day_name === weekday) || null
+  }, [plan, selectedDate])
+
+  function isPlanItemConfirmed(mealType, itemIndex) {
+    return logs.some(l =>
+      l.diet_plan_id === plan?.id &&
+      l.plan_day === todaysPlanDay?.day &&
+      l.meal_type === mealType &&
+      l.plan_item_index === itemIndex
+    )
+  }
+
+  function openPlanItemConfirm(mealType, itemIndex, item) {
+    const { num, unit } = parsePlanQuantity(item.quantity)
+    setConfirmingPlanItem({
+      mealType,
+      dayNumber: todaysPlanDay.day,
+      itemIndex,
+      parseResult: {
+        transcript: '',
+        inferred_meal_type: mealType,
+        items: [{
+          food_name: item.name,
+          quantity: num,
+          unit,
+          protein_g: item.protein_g || 0,
+          carbs_g: item.carbs_g || 0,
+          fat_g: item.fat_g || 0,
+          calories: item.calories || 0,
+        }],
+      },
+    })
+  }
+
+  function handlePlanGenerated(newPlan) {
+    setPlan(newPlan)
+    setDietTab('plan')
+    addToast('Diet plan generated')
+  }
+
   const dietTotals = useMemo(() => ({
     calories: Math.round(logs.reduce((s, l) => s + (l.calories  || 0), 0)),
     protein:  Math.round(logs.reduce((s, l) => s + (l.protein_g || 0), 0)),
@@ -332,12 +392,13 @@ export default function Diet() {
         </div>
       </div>
 
-      {/* ── TAB BAR (only when trainer plan exists) ── */}
-      {trainerDietPlan && (
+      {/* ── TAB BAR (only when an AI plan and/or trainer plan exists) ── */}
+      {(plan || trainerDietPlan) && (
         <div style={{ display: 'flex', gap: 6, padding: '8px 16px 4px', backgroundColor: 'var(--bg-primary)' }}>
           {[
             { key: 'log', label: 'Log' },
-            { key: 'trainer', label: 'Trainer Plan' },
+            ...(plan ? [{ key: 'plan', label: 'AI Plan' }] : []),
+            ...(trainerDietPlan ? [{ key: 'trainer', label: 'Trainer Plan' }] : []),
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -366,6 +427,80 @@ export default function Diet() {
             </p>
           </div>
           <AssignedDietPlanView plan={trainerDietPlan} />
+        </div>
+      ) : plan && dietTab === 'plan' ? (
+        <div style={{ padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Your AI Diet Plan</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                {plan.diet_type ? plan.diet_type.replace('_', ' ') : ''}{plan.cuisine_pref ? ` · ${plan.cuisine_pref.replace('_', ' ')}` : ''}
+              </div>
+            </div>
+            <button onClick={() => setShowGenerateSheet(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}>
+              <RefreshCw size={13} />
+              Regenerate
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', marginBottom: 12, background: 'var(--bg-elevated)', border: '0.5px solid var(--border)', borderRadius: 10 }}>
+            <Info size={14} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              Tap an item to confirm you ate it — you can edit the quantity first. Confirmed items count toward today's log.
+            </p>
+          </div>
+
+          {!todaysPlanDay ? (
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '24px 0' }}>
+              No meals planned for {WEEKDAY_NAMES[selectedDate.getDay()]}.
+            </p>
+          ) : (
+            DIET_MEAL_TYPES.map(mealType => {
+              const items = todaysPlanDay.meals?.find(m => m.meal_type === mealType)?.items || []
+              if (items.length === 0) return null
+              return (
+                <div key={mealType} style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                    {DIET_MEAL_LABELS[mealType]}
+                  </div>
+                  <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 14, overflow: 'hidden' }}>
+                    {items.map((item, idx) => {
+                      const confirmed = isPlanItemConfirmed(mealType, idx)
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => !confirmed && openPlanItemConfirm(mealType, idx, item)}
+                          style={{
+                            padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10,
+                            borderBottom: idx < items.length - 1 ? '1px solid var(--border)' : 'none',
+                            cursor: confirmed ? 'default' : 'pointer',
+                            opacity: confirmed ? 0.55 : 1,
+                          }}
+                        >
+                          <div style={{
+                            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                            border: confirmed ? 'none' : '1.5px solid var(--border)',
+                            background: confirmed ? 'var(--success)' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            {confirmed && <Check size={13} color="#fff" />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', textDecoration: confirmed ? 'line-through' : 'none' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{item.quantity}</div>
+                          </div>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{Math.round(item.calories || 0)} kcal</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       ) : (
       <>{/* ── CALORIE HERO CARD ── */}
@@ -426,6 +561,23 @@ export default function Diet() {
           ))}
         </div>
       </div>
+
+      {/* ── AI DIET PLAN PROMPT (only until a plan exists) ── */}
+      {!plan && !isLoading && (
+        <div style={{
+          backgroundColor: 'var(--bg-card)', borderRadius: 14, marginLeft: 16, marginRight: 16, marginTop: 8,
+          padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+        }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Get an AI diet plan</div>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>A full week of Indian meals, built to your macros.</div>
+          </div>
+          <button onClick={() => setShowGenerateSheet(true)}
+            style={{ background: 'var(--text-primary)', color: 'var(--bg-card)', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+            Generate
+          </button>
+        </div>
+      )}
 
       {/* ── QUICK LOG STRIP ── */}
       <div style={{ display: 'flex', overflowX: 'auto', padding: '12px 16px', gap: 8, scrollbarWidth: 'none' }}>
@@ -655,6 +807,32 @@ export default function Diet() {
             refreshLogs(dateYMD);
           }}
           onClose={() => setEditingLog(null)}
+        />
+      )}
+
+      {showGenerateSheet && (
+        <GenerateDietPlanSheet
+          isRegenerate={!!plan}
+          onGenerated={handlePlanGenerated}
+          onClose={() => setShowGenerateSheet(false)}
+        />
+      )}
+
+      {confirmingPlanItem && (
+        <VoiceDietConfirmSheet
+          parseResult={confirmingPlanItem.parseResult}
+          logDate={dateYMD}
+          planRef={{
+            diet_plan_id: plan.id,
+            plan_day: confirmingPlanItem.dayNumber,
+            plan_item_index: confirmingPlanItem.itemIndex,
+          }}
+          onSaved={(count) => {
+            setConfirmingPlanItem(null);
+            addToast(`Logged ${count} item${count !== 1 ? 's' : ''}`);
+            refreshLogs(dateYMD);
+          }}
+          onClose={() => setConfirmingPlanItem(null)}
         />
       )}
 

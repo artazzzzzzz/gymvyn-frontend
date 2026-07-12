@@ -24,7 +24,7 @@ function guessMealTypeNow() {
   return 'snack';
 }
 
-export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, onClose }) {
+export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, onClose, planRef }) {
   const { transcript, inferred_meal_type } = parseResult;
 
   const baseMacrosRef = useRef(null);
@@ -111,7 +111,16 @@ export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, o
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ meal_type: mealType, items, log_date: logDate }),
+        body: JSON.stringify({
+          meal_type: mealType,
+          items,
+          log_date: logDate,
+          ...(planRef ? {
+            diet_plan_id: planRef.diet_plan_id,
+            plan_day: planRef.plan_day,
+            plan_item_index: planRef.plan_item_index,
+          } : {}),
+        }),
       });
 
       const data = await res.json().catch(() => ({}));
