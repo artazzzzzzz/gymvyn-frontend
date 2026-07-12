@@ -1,7 +1,7 @@
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import {
-  ScanLine, Users, CreditCard, Calendar, Lock,
+  ScanLine, Users, CreditCard, Calendar, Lock, Package, Megaphone,
 } from 'lucide-react'
 
 function greeting() {
@@ -11,12 +11,16 @@ function greeting() {
   return 'Good evening'
 }
 
+// Mirrors StaffBottomNav's ALL_PERM_TABS so every grantable permission
+// surfaces somewhere on staff home, not just a subset.
 const QUICK_ACTIONS = [
-  { id: 'checkin',       label: 'Check-in Members', Icon: ScanLine,    path: '/staff/checkin',  perm: 'checkin' },
-  { id: 'view_members',  label: 'View Members',      Icon: Users,       path: '/staff/members',  perm: 'view_members' },
-  { id: 'collect',       label: 'Collect Payment',   Icon: CreditCard,  path: '/staff/payments', perm: 'collect_payment' },
-  { id: 'schedule',      label: 'View Schedule',     Icon: Calendar,    path: '/staff/schedule', perm: 'view_schedule' },
-  { id: 'lockers',       label: 'Manage Lockers',    Icon: Lock,        path: '/staff/lockers',  perm: 'manage_lockers' },
+  { id: 'checkin',       label: 'Check-in Members', Icon: ScanLine,   path: '/staff/checkin',       enabled: p => !!p?.checkin },
+  { id: 'view_members',  label: 'View Members',     Icon: Users,      path: '/staff/members',       enabled: p => !!p?.view_members },
+  { id: 'payments',      label: 'Payments',         Icon: CreditCard, path: '/staff/payments',      enabled: p => !!(p?.view_payments || p?.collect_payment) },
+  { id: 'schedule',      label: 'View Schedule',    Icon: Calendar,   path: '/staff/schedule',       enabled: p => !!p?.view_schedule },
+  { id: 'lockers',       label: 'Manage Lockers',   Icon: Lock,       path: '/staff/lockers',        enabled: p => !!p?.manage_lockers },
+  { id: 'supplements',   label: 'Supplements',      Icon: Package,    path: '/staff/supplements',    enabled: p => !!p?.view_supplements },
+  { id: 'announcements', label: 'Announcements',    Icon: Megaphone,  path: '/staff/announcements',  enabled: p => !!p?.view_announcements },
 ]
 
 export default function StaffDashboard() {
@@ -26,7 +30,7 @@ export default function StaffDashboard() {
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there'
 
-  const enabledActions = QUICK_ACTIONS.filter(a => permissions?.[a.perm])
+  const enabledActions = QUICK_ACTIONS.filter(a => a.enabled(permissions))
 
   return (
     <div style={{
