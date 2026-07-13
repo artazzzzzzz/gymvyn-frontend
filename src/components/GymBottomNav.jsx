@@ -23,8 +23,8 @@ export default function GymBottomNav({ onMorePress }) {
       icon: 'ti-users',
     },
     {
-      label: 'Payments',
-      path: '/gym/payments',
+      label: 'Finance',
+      path: '/gym/finance',
       icon: 'ti-cash',
     },
     {

@@ -17,15 +17,6 @@ const IconUsers = () => (
   </svg>
 )
 
-const IconBarChart = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="20" x2="18" y2="10"/>
-    <line x1="12" y1="20" x2="12" y2="4"/>
-    <line x1="6"  y1="20" x2="6"  y2="14"/>
-  </svg>
-)
-
 const IconScan = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -103,16 +94,6 @@ const IconPackage = () => (
   </svg>
 )
 
-const IconReceipt = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/>
-    <line x1="9" y1="9" x2="15" y2="9"/>
-    <line x1="9" y1="13" x2="15" y2="13"/>
-    <line x1="9" y1="17" x2="12" y2="17"/>
-  </svg>
-)
-
 const IconKey = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -154,16 +135,6 @@ const IconDumbbell = () => (
   </svg>
 )
 
-const IconBarChart2 = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="20" x2="18" y2="10"/>
-    <line x1="12" y1="20" x2="12" y2="4"/>
-    <line x1="6"  y1="20" x2="6"  y2="14"/>
-    <line x1="2"  y1="20" x2="22" y2="20"/>
-  </svg>
-)
-
 const IconWallet = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -176,11 +147,7 @@ const IconWallet = () => (
 const GYM_OWNER_BASE_ITEMS = [
   { id: 'chat',         label: 'Chat',             sub: 'Message staff, trainers & members', path: '/gym/chat',  icon: <IconChat /> },
   { id: 'feed',         label: 'Gym Feed',         sub: 'Posts, tips & achievements',  path: '/gym/feed',         icon: <IconFeed /> },
-  { id: 'reports',      label: 'Reports',          sub: 'Revenue & analytics reports', path: '/gym/reports',      icon: <IconBarChart2 /> },
-  { id: 'insights',     label: 'Insights',         sub: 'Analytics & occupancy',       path: '/gym/insights',     icon: <IconBarChart /> },
   { id: 'supplements',  label: 'Supplements',      sub: 'Products & member orders',    path: '/gym/supplements',  icon: <IconPackage /> },
-  { id: 'expenses',         label: 'Expense Tracker',  sub: 'Log & track gym spending',      path: '/gym/expenses',         icon: <IconReceipt /> },
-  { id: 'trainer-payouts', label: 'Trainer Payouts', sub: 'Earnings & payout management', path: '/gym/trainer-payouts',  icon: <IconWallet /> },
   { id: 'equipment',       label: 'Equipment',        sub: 'Track & schedule maintenance', path: '/gym/equipment',        icon: <IconDumbbell /> },
   { id: 'checkin',      label: 'Check-in',         sub: 'Scan member QR codes',        path: '/gym/checkin',      icon: <IconScan /> },
   { id: 'staff',        label: 'Staff',            sub: 'Manage front desk access',    path: '/gym/staff',        icon: <IconBadge /> },
@@ -309,7 +276,7 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
   const consumerExtras = [gymItem, trainerItem, classesItem]
 
   const gymOwnerItems = lockersEnabled
-    ? [...GYM_OWNER_BASE_ITEMS.slice(0, 3), LOCKERS_ITEM, ...GYM_OWNER_BASE_ITEMS.slice(3)]
+    ? [...GYM_OWNER_BASE_ITEMS.slice(0, 2), LOCKERS_ITEM, ...GYM_OWNER_BASE_ITEMS.slice(2)]
     : GYM_OWNER_BASE_ITEMS
 
   const items =

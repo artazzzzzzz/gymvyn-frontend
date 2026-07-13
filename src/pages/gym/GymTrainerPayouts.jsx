@@ -528,7 +528,7 @@ function TrainerCard({ trainer, onSetRate, onMarkPaid }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function GymTrainerPayouts() {
+export default function GymTrainerPayouts({ embedded = false, topOffset = 0 } = {}) {
   const navigate = useNavigate()
   const gymId = useOwnerGymId()
 
@@ -594,7 +594,7 @@ export default function GymTrainerPayouts() {
         <div style={{
           background: 'var(--bg-card)', borderBottom: '1px solid var(--border)',
           padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 4,
-          position: 'sticky', top: 0, zIndex: 30,
+          position: 'sticky', top: topOffset, zIndex: 30,
         }}>
           <button onClick={() => navigate('/gym/dashboard')} style={{ background: 'none', border: 'none', padding: '4px 6px 4px 2px', cursor: 'pointer', display: 'flex' }}>
             <ChevronLeft size={22} color="var(--text-primary)" />
@@ -717,8 +717,12 @@ export default function GymTrainerPayouts() {
 
       {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
 
-      <GymBottomNav onMorePress={() => setMoreOpen(true)} />
-      <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+      {!embedded && (
+        <>
+          <GymBottomNav onMorePress={() => setMoreOpen(true)} />
+          <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+        </>
+      )}
 
       <style>{`@keyframes gv-skel { from { opacity: 0.5; } to { opacity: 0.9; } }`}</style>
     </>

@@ -85,7 +85,7 @@ const rankConfig = {
   2: { label: '#3', bg: 'var(--bg-pill)', color: 'var(--text-secondary)' },
 }
 
-export default function GymInsights() {
+export default function GymInsights({ embedded = false, topOffset = 0 } = {}) {
   const gymId = useOwnerGymId()
   const [stats, setStats] = useState(null)
   const [insights, setInsights] = useState(null)
@@ -155,7 +155,7 @@ export default function GymInsights() {
     }}>
       {/* STICKY HEADER */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
+        position: 'sticky', top: topOffset, zIndex: 10,
         backgroundColor: "var(--bg-card)", padding: '16px 20px 12px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '0.5px solid rgba(0,0,0,0.08)',
@@ -367,8 +367,12 @@ export default function GymInsights() {
 
       </div>
 
-      <GymBottomNav active="insights" onMorePress={() => setMoreOpen(true)} />
-      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+      {!embedded && (
+        <>
+          <GymBottomNav active="insights" onMorePress={() => setMoreOpen(true)} />
+          <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+        </>
+      )}
     </div>
   )
 }

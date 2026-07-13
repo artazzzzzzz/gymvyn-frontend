@@ -450,7 +450,7 @@ function ChartTooltip({ active, payload, label }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function GymExpenses() {
+export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   const navigate = useNavigate()
 
   const [moreOpen,  setMoreOpen]  = useState(false)
@@ -622,7 +622,7 @@ export default function GymExpenses() {
         <div style={{
           background: 'var(--bg-card)', borderBottom: '1px solid rgba(0,0,0,0.08)',
           padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 4,
-          position: 'sticky', top: 0, zIndex: 30,
+          position: 'sticky', top: topOffset, zIndex: 30,
         }}>
           <button onClick={() => navigate('/gym/dashboard')} style={{ background: 'none', border: 'none', padding: '4px 6px 4px 2px', cursor: 'pointer', display: 'flex' }}>
             <ChevronLeft size={22} color="var(--text-primary)" />
@@ -850,8 +850,12 @@ export default function GymExpenses() {
         />
       )}
 
-      <GymBottomNav onMorePress={() => setMoreOpen(true)} />
-      <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+      {!embedded && (
+        <>
+          <GymBottomNav onMorePress={() => setMoreOpen(true)} />
+          <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+        </>
+      )}
     </>
   )
 }

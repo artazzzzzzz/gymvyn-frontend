@@ -342,7 +342,7 @@ function CollectModal({ isOpen, onClose, gymId, onSuccess }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function GymPayments() {
+export default function GymPayments({ embedded = false, topOffset = 0 } = {}) {
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -487,7 +487,7 @@ export default function GymPayments() {
           background: 'var(--bg-card)', borderBottom: '0.5px solid rgba(0,0,0,0.08)',
           padding: '14px 20px',
           display: 'flex', alignItems: 'center', gap: 4,
-          position: 'sticky', top: 0, zIndex: 30,
+          position: 'sticky', top: topOffset, zIndex: 30,
         }}>
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', padding: '4px 6px 4px 2px', cursor: 'pointer', display: 'flex', minWidth: 36 }}>
             <svg width="22" height="22" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -669,8 +669,12 @@ export default function GymPayments() {
         </button>
 
         {/* 7 — Bottom nav */}
-        <GymBottomNav onMorePress={() => setMoreOpen(true)} />
-        <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+        {!embedded && (
+          <>
+            <GymBottomNav onMorePress={() => setMoreOpen(true)} />
+            <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+          </>
+        )}
       </div>
 
       {/* Collect modal */}

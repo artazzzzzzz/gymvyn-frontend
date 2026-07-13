@@ -237,7 +237,7 @@ export default function GymTrainers() {
 
         {/* MANAGE PAYOUTS CARD */}
         <button
-          onClick={() => navigate('/gym/trainer-payouts')}
+          onClick={() => navigate('/gym/finance?section=trainer-payouts')}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 12,
             backgroundColor: 'var(--bg-card)', borderRadius: 12,

@@ -11,6 +11,7 @@ import TrainerLayout from './components/TrainerLayout'
 import StaffLayout from './layouts/StaffLayout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import AuthCallback from './pages/AuthCallback'
 import RoleSelect from './pages/RoleSelect'
 import StaffOnboarding from './pages/StaffOnboarding'
 import Onboarding from './pages/Onboarding'
@@ -28,20 +29,16 @@ import GymDashboard from './pages/gym/GymDashboard'
 import GymMembers from './pages/gym/GymMembers'
 import GymMemberDetail from './pages/gym/GymMemberDetail'
 import GymImport from './pages/GymImport'
-import GymPayments from './pages/gym/GymPayments'
 import GymSchedule from './pages/gym/GymSchedule'
 import GymAnnouncements from './pages/GymAnnouncements'
 import GymTrainers from './pages/gym/GymTrainers'
 import GymSettings from './pages/gym/GymSettings'
 import GymCheckin from './pages/gym/GymCheckin'
-import GymInsights from './pages/gym/GymInsights'
 import GymSupplements from './pages/gym/GymSupplements'
-import GymExpenses from './pages/gym/GymExpenses'
 import GymLockers from './pages/gym/GymLockers'
 import GymStaff from './pages/gym/GymStaff'
-import GymReports from './pages/gym/GymReports'
 import GymEquipment from './pages/gym/GymEquipment'
-import GymTrainerPayouts from './pages/gym/GymTrainerPayouts'
+import GymFinance from './pages/gym/GymFinance'
 import GymChatPage from './pages/gym/GymChatPage'
 import GymComingSoon from './pages/GymComingSoon'
 import ExerciseLibrary from './pages/ExerciseLibrary'
@@ -101,6 +98,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login"        element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/signup"       element={<PublicRoute><Signup /></PublicRoute>} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/role-select"       element={<AuthRoute><RoleSelect /></AuthRoute>} />
           <Route path="/onboarding"        element={<AuthRoute><Onboarding /></AuthRoute>} />
           <Route path="/stagv-onboarding"  element={<AuthRoute><StaffOnboarding /></AuthRoute>} />
@@ -154,21 +152,23 @@ export default function App() {
           <Route path="/gym/members"             element={<GymOwnerRoute><GymMembers /></GymOwnerRoute>} />
           <Route path="/gym/members/:memberId"   element={<GymOwnerRoute><GymMemberDetail /></GymOwnerRoute>} />
           <Route path="/gym/import"              element={<GymOwnerRoute><GymImport /></GymOwnerRoute>} />
-          <Route path="/gym/payments"     element={<GymOwnerRoute><GymPayments /></GymOwnerRoute>} />
+          <Route path="/gym/finance"      element={<GymOwnerRoute><GymFinance /></GymOwnerRoute>} />
+          {/* Legacy routes — redirect into the consolidated Finance hub (deep-links/bookmarks) */}
+          <Route path="/gym/payments"        element={<Navigate to="/gym/finance?section=payments" replace />} />
+          <Route path="/gym/expenses"        element={<Navigate to="/gym/finance?section=expenses" replace />} />
+          <Route path="/gym/trainer-payouts" element={<Navigate to="/gym/finance?section=trainer-payouts" replace />} />
+          <Route path="/gym/insights"        element={<Navigate to="/gym/finance?section=insights" replace />} />
+          <Route path="/gym/reports"         element={<Navigate to="/gym/finance?section=reports" replace />} />
           <Route path="/gym/schedule"     element={<GymOwnerRoute><GymSchedule /></GymOwnerRoute>} />
           <Route path="/gym/announcements" element={<GymOwnerRoute><GymAnnouncements /></GymOwnerRoute>} />
           <Route path="/gym/trainers"     element={<GymOwnerRoute><GymTrainers /></GymOwnerRoute>} />
           <Route path="/gym/settings"     element={<GymOwnerRoute><GymSettings /></GymOwnerRoute>} />
           <Route path="/gym/checkin"      element={<GymOwnerRoute><GymCheckin /></GymOwnerRoute>} />
           <Route path="/gym/checkins"     element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
-          <Route path="/gym/insights"     element={<GymOwnerRoute><GymInsights /></GymOwnerRoute>} />
           <Route path="/gym/supplements"  element={<GymOwnerRoute><GymSupplements /></GymOwnerRoute>} />
-          <Route path="/gym/expenses"    element={<GymOwnerRoute><GymExpenses /></GymOwnerRoute>} />
           <Route path="/gym/lockers"    element={<GymOwnerRoute><GymLockers /></GymOwnerRoute>} />
           <Route path="/gym/staff"     element={<GymOwnerRoute><GymStaff /></GymOwnerRoute>} />
-          <Route path="/gym/reports"   element={<GymOwnerRoute><GymReports /></GymOwnerRoute>} />
           <Route path="/gym/equipment" element={<GymOwnerRoute><GymEquipment /></GymOwnerRoute>} />
-          <Route path="/gym/trainer-payouts" element={<GymOwnerRoute><GymTrainerPayouts /></GymOwnerRoute>} />
           <Route path="/gym/profile"      element={<GymOwnerRoute><GymComingSoon /></GymOwnerRoute>} />
           <Route path="/gym/feed"         element={<GymOwnerRoute><GymFeedOwnerPage /></GymOwnerRoute>} />
           <Route path="/gym/chat"         element={<GymOwnerRoute><GymChatPage /></GymOwnerRoute>} />
@@ -196,6 +196,7 @@ export default function App() {
             <Route path="/staff/settings"       element={<StaffSettings />} />
             <Route path="/staff/checkin"        element={<StaffCheckin />} />
             <Route path="/staff/members"        element={<StaffMembers />} />
+            <Route path="/staff/member-import"  element={<GymImport />} />
             <Route path="/staff/payments"       element={<StaffPayments />} />
             <Route path="/staff/schedule"       element={<StaffSchedule />} />
             <Route path="/staff/lockers"        element={<StaffLockers />} />

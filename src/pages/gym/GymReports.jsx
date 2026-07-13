@@ -33,7 +33,7 @@ function SectionHeader({ title, sublabel }) {
   );
 }
 
-export default function GymReports() {
+export default function GymReports({ embedded = false } = {}) {
   const gymId = useOwnerGymId();
   const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, range } = useReportDateRange();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -229,8 +229,12 @@ export default function GymReports() {
         </div>
       </div>
 
-      <GymBottomNav onMorePress={() => setMoreOpen(true)} />
-      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+      {!embedded && (
+        <>
+          <GymBottomNav onMorePress={() => setMoreOpen(true)} />
+          <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+        </>
+      )}
     </div>
   );
 }

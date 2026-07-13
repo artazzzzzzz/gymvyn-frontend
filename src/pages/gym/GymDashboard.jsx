@@ -475,8 +475,8 @@ export default function GymDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
           <QuickActionCard icon={<IconUserPlus />} label="Add Member"       onTap={() => navigate('/gym/members')} />
           <QuickActionCard icon={<IconCheckin />}  label="Check In"         onTap={() => navigate('/gym/checkin')} />
-          <QuickActionCard icon={<IconPayment />}  label="Collect Payment"  onTap={() => navigate('/gym/payments')} />
-          <QuickActionCard icon={<IconReports />}  label="View Reports"     onTap={() => navigate('/gym/insights')} />
+          <QuickActionCard icon={<IconPayment />}  label="Collect Payment"  onTap={() => navigate('/gym/finance?section=payments')} />
+          <QuickActionCard icon={<IconReports />}  label="View Reports"     onTap={() => navigate('/gym/finance?section=reports')} />
         </div>
 
         {/* 6 — Recent Members */}

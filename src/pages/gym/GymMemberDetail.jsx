@@ -714,7 +714,7 @@ export default function GymMemberDetail() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <p style={sectionLabel}>PAYMENT HISTORY</p>
               <button
-                onClick={() => navigate('/gym/payments')}
+                onClick={() => navigate('/gym/finance?section=payments')}
                 style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-cta)', fontWeight: 600, cursor: 'pointer', padding: 0 }}
               >
                 See all →
