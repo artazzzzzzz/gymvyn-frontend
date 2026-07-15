@@ -6,6 +6,7 @@ import { supabase } from '../../utils/supabase'
 import { getAvatarColor } from '../../utils/avatarColor'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
+import { ListSkeleton } from '../../components/loading/Loading'
 
 const FILTERS = ['all', 'active', 'expiring', 'at_risk', 'inactive']
 const LIMIT = 20
@@ -105,25 +106,6 @@ function MemberRow({ member, onClick }) {
   )
 }
 
-// ── SkeletonRow ───────────────────────────────────────────────────────────────
-
-function SkeletonRow() {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 12,
-      padding: '0 16px', height: 68,
-      borderBottom: '0.5px solid rgba(0,0,0,0.06)',
-    }}>
-      <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--bg-pill)', flexShrink: 0, animation: 'skel 1.2s ease infinite alternate' }} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ height: 13, width: '55%', background: 'var(--bg-pill)', borderRadius: 4, animation: 'skel 1.2s ease infinite alternate' }} />
-        <div style={{ height: 11, width: '38%', background: 'var(--bg-pill)', borderRadius: 4, animation: 'skel 1.2s ease 0.2s infinite alternate' }} />
-      </div>
-      <div style={{ width: 56, height: 24, background: 'var(--bg-pill)', borderRadius: 20, animation: 'skel 1.2s ease infinite alternate' }} />
-    </div>
-  )
-}
-
 // ── SummaryPill ───────────────────────────────────────────────────────────────
 
 function SummaryPill({ label, bg, text }) {
@@ -140,7 +122,7 @@ function SummaryPill({ label, bg, text }) {
 
 // ── AddMemberSheet ────────────────────────────────────────────────────────────
 
-function AddMemberSheet({ isOpen, onClose, gymId, onAdded }) {
+function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
   // view: 'options' | 'form' | 'csv'
   const [view, setView]               = useState('options')
   const [plans, setPlans]             = useState([])
@@ -291,7 +273,7 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded }) {
     { label: 'Invite via Email', icon: <MailIcon />  },
     { label: 'Scan Member QR',   icon: <QrIcon />    },
     { label: 'Add Manually',     icon: <UserPlusIcon />, onPress: () => setView('form') },
-    { label: 'Import CSV',       icon: <UploadIcon />,   onPress: () => setView('csv')  },
+    { label: 'Import Members',   icon: <UploadIcon />,   onPress: () => { onClose?.(); setTimeout(() => onImportMembers?.(), 180) } },
   ]
 
   const phoneOk = manualPhone === '' || /^\d{10}$/.test(manualPhone)
@@ -723,8 +705,6 @@ export default function GymMembers() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      <style>{`@keyframes skel { from { opacity: 0.4; } to { opacity: 1; } }`}</style>
-
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingBottom: 80 }}>
 
         {/* 1 — Top bar */}
@@ -744,6 +724,22 @@ export default function GymMembers() {
             <svg width="20" height="20" fill="none" stroke="var(--text-secondary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
+          </button>
+          <button
+            onClick={() => navigate('/gym/import')}
+            style={{
+              background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)',
+              borderRadius: 20, padding: '8px 12px',
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}
+          >
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            Import
           </button>
           <button
             onClick={() => setShowAddModal(true)}
@@ -810,11 +806,11 @@ export default function GymMembers() {
         {/* 5 — Members list */}
         <div style={{
           margin: '0 20px 16px',
-          background: 'var(--bg-card)', border: '0.5px solid rgba(0,0,0,0.08)',
+          background: 'var(--bg-card)', border: '0.5px solid var(--border)',
           borderRadius: 12, overflow: 'hidden',
         }}>
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
+            <ListSkeleton rows={6} />
           ) : filtered.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 20px' }}>
               <svg width="48" height="48" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -876,6 +872,7 @@ export default function GymMembers() {
           onClose={() => setShowAddModal(false)}
           gymId={gymId}
           onAdded={() => { setPage(1); setMembers([]) }}
+          onImportMembers={() => navigate('/gym/import')}
         />
       </div>
     </>

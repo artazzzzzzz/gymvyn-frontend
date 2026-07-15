@@ -130,6 +130,13 @@ export async function assignTrainer(memberId, trainerId) {
   return data;
 }
 
+export async function importGymMembers(gymId, members) {
+  return apiFetch(`/api/member-imports/${encodeURIComponent(gymId)}/import`, {
+    method: 'POST',
+    body: JSON.stringify({ members }),
+  });
+}
+
 // ── Gym payments ─────────────────────────────────────────────────────────────
 
 export async function getGymRevenue(gymId) {

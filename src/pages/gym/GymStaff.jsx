@@ -12,6 +12,7 @@ const BASE = import.meta.env.VITE_API_URL
 const PERMISSION_META = [
   { key: 'checkin',            label: 'Check-in Members',  sub: 'Scan QR or search to check members in' },
   { key: 'view_members',       label: 'View Members',      sub: 'See member list and profiles' },
+  { key: 'manage_members',     label: 'Manage Members',    sub: 'Import and update gym memberships' },
   { key: 'view_payments',      label: 'View Payments',     sub: 'See payment records and history' },
   { key: 'collect_payment',    label: 'Collect Payments',  sub: 'Mark payments as received' },
   { key: 'view_schedule',      label: 'View Schedule',     sub: 'See class schedule' },

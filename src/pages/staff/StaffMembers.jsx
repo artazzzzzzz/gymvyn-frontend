@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStaffPermissions } from '../../hooks/useStaffPermissions'
-import { useAuth } from '../../hooks/useAuth'
 import NoAccessState from '../../components/staff/NoAccessState'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
 import { supabase } from '../../utils/supabase'
@@ -21,7 +21,7 @@ function LoadingSpinner() {
   )
 }
 
-function MemberDetailSheet({ member, onClose, canCollectPayment, gymId, onCollectPayment }) {
+function MemberDetailSheet({ member, onClose, canCollectPayment, onCollectPayment }) {
   if (!member) return null
   const { bg, text } = getAvatarColor(member.full_name || '')
   const statusColor = member.status === 'active' ? 'var(--success)' : member.status === 'expiring_soon' ? 'var(--warning)' : 'var(--error)'
@@ -97,7 +97,7 @@ function MemberDetailSheet({ member, onClose, canCollectPayment, gymId, onCollec
 
 export default function StaffMembers() {
   const { permissions, gymId, loading: permsLoading } = useStaffPermissions()
-  const { user } = useAuth()
+  const navigate = useNavigate()
 
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -133,8 +133,13 @@ export default function StaffMembers() {
   }, [gymId, filter])
 
   useEffect(() => {
-    if (gymId) { setPage(1); fetchMembers(1, filter) }
-  }, [gymId, filter])
+    if (!gymId) return undefined
+    const id = requestAnimationFrame(() => {
+      setPage(1)
+      fetchMembers(1, filter)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [gymId, filter, fetchMembers])
 
   const FILTERS = [
     { key: 'all', label: 'All' },
@@ -161,7 +166,35 @@ export default function StaffMembers() {
         backgroundColor: 'var(--bg-card)', borderBottom: '0.5px solid var(--border)',
         padding: '16px 20px 12px',
       }}>
-        <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Members</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Members</span>
+          {permissions.manage_members && (
+            <button
+              onClick={() => navigate('/staff/member-import')}
+              style={{
+                height: 36,
+                padding: '0 12px',
+                borderRadius: 18,
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Import
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{
@@ -246,7 +279,6 @@ export default function StaffMembers() {
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
           canCollectPayment={permissions.collect_payment}
-          gymId={gymId}
           onCollectPayment={() => {}}
         />
       )}

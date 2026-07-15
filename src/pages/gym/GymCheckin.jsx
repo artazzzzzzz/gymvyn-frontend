@@ -4,7 +4,10 @@ import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
 import { formatRelative, istDateStr } from '../../utils/dateHelpers'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { useManualCheckinSearch } from '../../hooks/useManualCheckinSearch'
 import { supabase } from '../../utils/supabase'
+import { createPendingActionGuard, mergeInsideStatus } from '../../utils/manualCheckinSearch'
+import { ButtonSpinner, InlineLoader, ListSkeleton, RefreshIndicator } from '../../components/loading/Loading'
 
 export default function GymCheckin() {
   const gymId = useOwnerGymId()
@@ -14,19 +17,18 @@ export default function GymCheckin() {
   const [occupancy, setOccupancy] = useState({ current_occupancy: 0, today_total: 0, members_inside: [] })
   const [scanStatus, setScanStatus] = useState('idle')
   const [manualCode, setManualCode] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [rawSearchResults, setRawSearchResults] = useState([])
-  const [searching, setSearching] = useState(false)
+  const { searchQuery, setSearchQuery, rawSearchResults, searching, searchError, clearSearch } = useManualCheckinSearch({ gymId })
   const [selectedDate, setSelectedDate] = useState(istDateStr())
   const [historyData, setHistoryData] = useState({ total: 0, checkins: [] })
   const [historyLoading, setHistoryLoading] = useState(false)
   const [toast, setToast] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
-  const searchTimeoutRef = useRef(null)
   const occupancyIntervalRef = useRef(null)
   const isMountedRef = useRef(true)
   const headerRef = useRef(null)
   const [headerHeight, setHeaderHeight] = useState(0)
+  const [pendingCheckins, setPendingCheckins] = useState({})
+  const pendingCheckinGuardRef = useRef(createPendingActionGuard())
 
   // Measure the sticky header (title row + tab bar) so the toast can be
   // pinned just below it instead of overlapping it with a guessed offset.
@@ -79,6 +81,9 @@ export default function GymCheckin() {
 
   // ─── Check-in ────────────────────────────────────────────────────────────
   const handleCheckIn = async (memberId, userId, memberName, memberSince, membershipType) => {
+    const pendingKey = memberId || userId
+    if (!pendingCheckinGuardRef.current.start(pendingKey)) return
+    setPendingCheckins(current => ({ ...current, [pendingKey]: true }))
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/checkin`, {
@@ -96,6 +101,13 @@ export default function GymCheckin() {
       await fetchOccupancy()
     } catch {
       showToast('error', 'Check-in failed', 'Network error')
+    } finally {
+      pendingCheckinGuardRef.current.finish(pendingKey)
+      setPendingCheckins(current => {
+        const next = { ...current }
+        delete next[pendingKey]
+        return next
+      })
     }
   }
 
@@ -119,37 +131,8 @@ export default function GymCheckin() {
     }
   }
 
-  // ─── Search (debounced) ──────────────────────────────────────────────────
-  // Depends only on what should actually trigger a new search request — the
-  // query text and the gym. `occupancy` is intentionally excluded: it's a
-  // fresh object/array on every 30s poll tick, so including it here re-fired
-  // this fetch on every occupancy refresh instead of only on query changes.
-  // The "is this member currently inside" flag is merged in separately below
-  // via useMemo, so it still stays in sync with live occupancy.
-  useEffect(() => {
-    if (searchQuery.length < 2) { setRawSearchResults([]); return }
-    clearTimeout(searchTimeoutRef.current)
-    searchTimeoutRef.current = setTimeout(async () => {
-      setSearching(true)
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const res = await fetch(`${API}/api/gym-members-search/${gymId}?q=${encodeURIComponent(searchQuery)}`, {
-          headers: { Authorization: `Bearer ${session?.access_token}` },
-        })
-        const data = await res.json()
-        setRawSearchResults(Array.isArray(data) ? data : [])
-      } catch (err) {
-        console.error('Search failed:', err)
-      } finally {
-        setSearching(false)
-      }
-    }, 400)
-    return () => clearTimeout(searchTimeoutRef.current)
-  }, [searchQuery, gymId])
-
   const searchResults = useMemo(() => {
-    const insideIds = new Set(occupancy.members_inside.map(m => m.member_id))
-    return rawSearchResults.map(m => ({ ...m, is_inside: insideIds.has(m.member_id) }))
+    return mergeInsideStatus(rawSearchResults, occupancy.members_inside)
   }, [rawSearchResults, occupancy.members_inside])
 
   // ─── History ─────────────────────────────────────────────────────────────
@@ -357,31 +340,37 @@ export default function GymCheckin() {
             />
             {searchQuery && (
               <button
-                onClick={() => { setSearchQuery(''); setRawSearchResults([]) }}
+                onClick={clearSearch}
                 style={{
                   position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', fontSize: 18, color: 'var(--text-tertiary)', cursor: 'pointer',
                 }}
               >×</button>
             )}
+            <InlineLoader
+              label="Searching"
+              visible={searching}
+              style={{ position: 'absolute', right: searchQuery ? 42 : 16, top: '50%', transform: 'translateY(-50%)', fontSize: 12 }}
+            />
           </div>
 
-          {searching && (
-            <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
-              Searching...
+          {searchError && (
+            <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 13, color: 'var(--error)' }}>
+              {searchError}
             </div>
           )}
 
-          {!searching && searchQuery.length >= 2 && searchResults.length === 0 && (
+          {!searching && !searchError && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
             <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
               No members found
             </div>
           )}
 
-          {!searching && searchResults.length > 0 && (
+          {searchResults.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
               {searchResults.map(member => {
                 const { bg, text } = getAvatarColor(member.full_name)
+                const checkinPending = !!pendingCheckins[member.member_id || member.user_id]
                 return (
                   <div key={member.member_id} style={{
                     backgroundColor: "var(--bg-card)", borderRadius: 12,
@@ -407,13 +396,21 @@ export default function GymCheckin() {
                       }}>Inside</span>
                     ) : (
                       <button
+                        disabled={checkinPending}
                         onClick={() => handleCheckIn(member.member_id, member.user_id, member.full_name, null, member.membership_type)}
                         style={{
                           backgroundColor: 'var(--text-primary)', color: "var(--bg-card)", border: 'none',
                           borderRadius: 8, height: 32, padding: '0 16px',
-                          fontSize: 12, fontWeight: 500, cursor: 'pointer', flexShrink: 0,
+                          fontSize: 12, fontWeight: 500, cursor: checkinPending ? 'default' : 'pointer', flexShrink: 0,
+                          opacity: checkinPending ? 0.65 : 1,
                         }}
-                      >Check In</button>
+                      >
+                        {checkinPending ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 72, justifyContent: 'center' }}>
+                            <ButtonSpinner size={12} /> Checking in...
+                          </span>
+                        ) : 'Check In'}
+                      </button>
                     )}
                   </div>
                 )
@@ -534,56 +531,59 @@ export default function GymCheckin() {
             ))}
           </div>
 
-          {historyLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>Loading...</div>
+          {historyLoading && (historyData.checkins?.length ?? 0) === 0 ? (
+            <ListSkeleton rows={4} />
           ) : (historyData.checkins?.length ?? 0) === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-tertiary)' }}>
               No check-ins on this date
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {(historyData.checkins || []).map(ci => {
-                const { bg, text } = getAvatarColor(ci.full_name)
-                const duration = formatDuration(ci.checked_in_at, ci.checked_out_at)
-                return (
-                  <div key={ci.id} style={{
-                    backgroundColor: "var(--bg-card)", borderRadius: 12,
-                    border: '0.5px solid rgba(0,0,0,0.08)', padding: 16,
-                    display: 'flex', alignItems: 'center', gap: 12,
-                  }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: '50%',
-                      backgroundColor: bg, color: text,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 14, fontWeight: 600, flexShrink: 0,
-                    }}>{getInitials(ci.full_name)}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{ci.full_name}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{ci.membership_type || 'Member'}</span>
-                        <span style={{
-                          backgroundColor: ci.method === 'qr' ? 'var(--accent-bg)' : 'var(--bg-pill)',
-                          color: ci.method === 'qr' ? 'var(--text-cta)' : 'var(--text-secondary)',
-                          fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                          textTransform: 'uppercase', letterSpacing: '0.06em',
-                        }}>{ci.method === 'qr' ? 'QR' : 'Manual'}</span>
+            <>
+              <RefreshIndicator refreshing={historyLoading} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(historyData.checkins || []).map(ci => {
+                  const { bg, text } = getAvatarColor(ci.full_name)
+                  const duration = formatDuration(ci.checked_in_at, ci.checked_out_at)
+                  return (
+                    <div key={ci.id} style={{
+                      backgroundColor: "var(--bg-card)", borderRadius: 12,
+                      border: '0.5px solid var(--border)', padding: 16,
+                      display: 'flex', alignItems: 'center', gap: 12,
+                    }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: '50%',
+                        backgroundColor: bg, color: text,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 14, fontWeight: 600, flexShrink: 0,
+                      }}>{getInitials(ci.full_name)}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{ci.full_name}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{ci.membership_type || 'Member'}</span>
+                          <span style={{
+                            backgroundColor: ci.method === 'qr' ? 'var(--accent-bg)' : 'var(--bg-pill)',
+                            color: ci.method === 'qr' ? 'var(--text-cta)' : 'var(--text-secondary)',
+                            fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                            textTransform: 'uppercase', letterSpacing: '0.06em',
+                          }}>{ci.method === 'qr' ? 'QR' : 'Manual'}</span>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {new Date(ci.checked_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                          {ci.checked_out_at
+                            ? duration
+                            : <span style={{ color: 'var(--success)' }}>Inside</span>
+                          }
+                        </div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {new Date(ci.checked_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                        {ci.checked_out_at
-                          ? duration
-                          : <span style={{ color: 'var(--success)' }}>● Still inside</span>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            </>
           )}
         </div>
       )}
