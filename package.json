@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test": "node --test tests/manualCheckinSearch.test.js tests/memberImportCsv.test.js",
     "test:dark-visual": "playwright test tests/dark-mode-visual.spec.js",
     "test:dark-runtime": "playwright test tests/dark-mode-runtime.spec.js",
     "test:dark-update": "playwright test tests/dark-mode-visual.spec.js --update-snapshots",
