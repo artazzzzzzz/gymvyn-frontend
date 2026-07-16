@@ -1,6 +1,7 @@
 // Shared "New Conversation" contact picker, backed by GET /api/chat/contacts.
 // Reused by GymChatPage.jsx and StaffChatPage.jsx so the picker UI/logic is
 // written once instead of copied per role page.
+import { ListSkeleton } from '../loading/Loading';
 
 function initials(name = '') {
   return (name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
@@ -25,8 +26,8 @@ export default function ContactPicker({ contacts, loading, selecting, onSelect, 
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-              <div style={{ width: 24, height: 24, border: '2px solid var(--success)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'gv-contact-picker-spin 0.7s linear infinite' }} />
+            <div style={{ padding: 16 }}>
+              <ListSkeleton rows={4} />
             </div>
           ) : contacts.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13, padding: '32px 0' }}>No contacts available</p>
@@ -57,7 +58,6 @@ export default function ContactPicker({ contacts, loading, selecting, onSelect, 
           )}
         </div>
       </div>
-      <style>{`@keyframes gv-contact-picker-spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

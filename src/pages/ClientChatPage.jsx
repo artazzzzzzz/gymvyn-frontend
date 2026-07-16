@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import ChatWindow from './ChatWindow';
+import { ListSkeleton, SkeletonBlock } from '../components/loading/Loading';
 
 export default function ClientChatPage() {
   const { user } = useAuth();
@@ -105,8 +106,8 @@ export default function ClientChatPage() {
         </div>
         <div className="flex-1 overflow-y-auto">
           {contactsLoading ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <div className="p-4">
+              <ListSkeleton rows={4} />
             </div>
           ) : contactsError ? (
             <div className="text-center py-10 px-4">
@@ -148,7 +149,10 @@ export default function ClientChatPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-full max-w-md px-5">
+          <SkeletonBlock height={48} width="100%" radius={14} style={{ marginBottom: 16 }} />
+          <ListSkeleton rows={4} />
+        </div>
       </div>
     );
   }

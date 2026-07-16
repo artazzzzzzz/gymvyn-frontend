@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
+import { ButtonSpinner, ListSkeleton, RefreshIndicator, SkeletonBlock } from '../components/loading/Loading';
 
 /* ─── palette ─── */
 const C = {
@@ -207,7 +208,7 @@ export default function TrainerChatPage() {
       setMessages(data || []);
     } catch (err) {
       console.error('Load messages error:', err);
-      setMessages([]);
+      if (messages.length === 0) setMessages([]);
     } finally {
       setMessagesLoading(false);
     }
@@ -327,9 +328,10 @@ export default function TrainerChatPage() {
   /* ── loading ── */
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 32, height: 32, border: `2px solid ${C.blue}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ minHeight: '100vh', background: C.bg, padding: 16 }}>
+        <SkeletonBlock height={24} width="42%" style={{ marginTop: 20, marginBottom: 12 }} />
+        <SkeletonBlock height={36} width="100%" radius={10} style={{ marginBottom: 10 }} />
+        <ListSkeleton rows={6} />
       </div>
     );
   }
@@ -556,10 +558,11 @@ export default function TrainerChatPage() {
 
           {/* Messages area */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', scrollbarWidth: 'none' }}>
-            {messagesLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}>
-                <div style={{ width: 24, height: 24, border: `2px solid ${C.blue}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            {messagesLoading && messages.length === 0 ? (
+              <div style={{ display: 'grid', gap: 10 }}>
+                <SkeletonBlock height={38} width="68%" radius={18} />
+                <SkeletonBlock height={38} width="52%" radius={18} style={{ justifySelf: 'end' }} />
+                <SkeletonBlock height={56} width="74%" radius={18} />
               </div>
             ) : messages.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: 60 }}>
@@ -571,6 +574,7 @@ export default function TrainerChatPage() {
               </div>
             ) : (
               <>
+                <RefreshIndicator refreshing={messagesLoading} />
                 {/* Date separator */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                   <div style={{ flex: 1, height: '0.5px', background: C.border }} />
@@ -621,7 +625,7 @@ export default function TrainerChatPage() {
               }}
             >
               {sending ? (
-                <div style={{ width: 14, height: 14, border: '2px solid var(--bg-card)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                <ButtonSpinner size={14} />
               ) : (
                 <IcoSend />
               )}
@@ -672,8 +676,8 @@ export default function TrainerChatPage() {
             </div>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {contactsLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                  <div style={{ width: 24, height: 24, border: `2px solid ${C.blue}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                <div style={{ padding: 16 }}>
+                  <ListSkeleton rows={4} />
                 </div>
               ) : contactsError ? (
                 <div style={{ textAlign: 'center', padding: '32px 16px' }}>

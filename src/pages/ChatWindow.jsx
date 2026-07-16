@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
+import { ButtonSpinner, SkeletonBlock } from '../components/loading/Loading';
 
 export default function ChatWindow({ conversationId, otherPersonName, onBack, headerRight }) {
   const { user } = useAuth();
@@ -34,6 +35,15 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
       setLoading(false);
     }
   };
+
+  const MessageSkeletons = () => (
+    <div className="w-full space-y-3">
+      <div className="flex justify-start"><SkeletonBlock width="62%" height={38} radius={18} /></div>
+      <div className="flex justify-end"><SkeletonBlock width="48%" height={38} radius={18} /></div>
+      <div className="flex justify-start"><SkeletonBlock width="70%" height={58} radius={18} /></div>
+      <div className="flex justify-end"><SkeletonBlock width="36%" height={38} radius={18} /></div>
+    </div>
+  );
 
   const subscribeRealtime = () => {
     const interval = setInterval(() => {
@@ -133,9 +143,7 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-          </div>
+          <MessageSkeletons />
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-8">
             <div className="mb-3 text-[var(--text-tertiary)]">
@@ -240,9 +248,13 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
             disabled={!text.trim() || sending}
             className="w-10 h-10 bg-[var(--success)] rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity"
           >
-            <svg className="w-4 h-4 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
+            {sending ? (
+              <ButtonSpinner size={15} />
+            ) : (
+              <svg className="w-4 h-4 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            )}
           </button>
         </div>
       </div>

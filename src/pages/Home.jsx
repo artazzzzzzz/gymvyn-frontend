@@ -6,6 +6,7 @@ import { useStreak } from '../hooks/useStreak'
 import { apiFetch, getMyGym, getGymOccupancy, getMacros, calculateMacros, getXPProfile, useStreakFreeze } from '../utils/api'
 import PrimaryButton from '../components/PrimaryButton'
 import AIPlanGenerator from '../components/AIPlanGenerator'
+import { CardSkeleton, SkeletonBlock } from '../components/loading/Loading'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,30 @@ function DumbbellIcon({ color = "var(--text-tertiary)" }) {
       <line x1="6" y1="6" x2="6" y2="18" strokeWidth="2.5"/>
       <line x1="18" y1="6" x2="18" y2="18" strokeWidth="2.5"/>
     </svg>
+  )
+}
+
+function HomeSkeleton() {
+  return (
+    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--bg-primary)', paddingBottom: 96 }}>
+      <div style={{ paddingTop: 56, paddingLeft: 20, paddingRight: 20 }}>
+        <SkeletonBlock height={28} width="64%" />
+        <SkeletonBlock height={13} width="34%" style={{ marginTop: 8 }} />
+        <div style={{ height: 2, background: 'var(--text-primary)', marginTop: 16, marginBottom: 20, borderRadius: 1, opacity: 0.28 }} />
+      </div>
+      <div style={{ margin: '0 20px' }}>
+        <CardSkeleton lines={4} style={{ borderRadius: 16, padding: 20 }} />
+      </div>
+      <div style={{ margin: '12px 20px 0' }}>
+        <CardSkeleton lines={5} style={{ borderRadius: 16 }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, margin: '16px 20px 0' }}>
+        {[0, 1, 2].map(i => <CardSkeleton key={i} lines={1} style={{ minHeight: 78, padding: 12 }} />)}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, margin: '16px 20px 0' }}>
+        {[0, 1, 2, 3].map(i => <CardSkeleton key={i} lines={1} style={{ minHeight: 56, padding: 14 }} />)}
+      </div>
+    </div>
   )
 }
 
@@ -323,6 +348,8 @@ export default function Home() {
 
   const hasTrainer = trainerData?.status === 'active'
   const hasGym     = !!gymData?.linked
+
+  if (loading) return <HomeSkeleton />
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (

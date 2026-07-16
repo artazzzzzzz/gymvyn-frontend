@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { apiFetch } from '../../utils/api';
 import ChatWindow from '../ChatWindow';
 import ContactPicker from '../../components/chat/ContactPicker';
+import { ListSkeleton } from '../../components/loading/Loading';
 
 function formatLastTime(iso) {
   if (!iso) return '';
@@ -120,9 +121,8 @@ export default function StaffChatPage() {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
-          <div style={{ width: 28, height: 28, border: '2px solid var(--success)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'gv-staff-chat-spin 0.7s linear infinite' }} />
-          <style>{`@keyframes gv-staff-chat-spin { to { transform: rotate(360deg); } }`}</style>
+        <div style={{ padding: '20px' }}>
+          <ListSkeleton rows={6} />
         </div>
       ) : conversations.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 32px' }}>
