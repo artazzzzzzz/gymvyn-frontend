@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
+import { OAUTH_PROVIDERS, startOAuth } from '../utils/authFlow'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -86,21 +86,23 @@ function InputField({ icon, type = 'text', placeholder, value, onChange, rightEl
   )
 }
 
-const SocialButtons = ({ onApple, onGoogle }) => (
+const SocialButtons = ({ onApple, onGoogle, disabled, loadingProvider }) => (
   <div className="grid grid-cols-2 gap-2 mt-3">
     <button
       onClick={onApple}
-      className="h-12 bg-[var(--bg-elevated)] border border-[var(--border-strong)] rounded-xl flex items-center justify-center gap-2 active:opacity-80 transition-opacity text-[var(--text-primary)]"
+      disabled={disabled}
+      className="h-12 bg-[var(--bg-elevated)] border border-[var(--border-strong)] rounded-xl flex items-center justify-center gap-2 active:opacity-80 transition-opacity text-[var(--text-primary)] disabled:opacity-60 disabled:cursor-not-allowed"
     >
       <AppleIcon />
-      <span className="text-[14px] font-semibold">Apple</span>
+      <span className="text-[14px] font-semibold">{loadingProvider === OAUTH_PROVIDERS.apple ? 'Starting...' : 'Apple'}</span>
     </button>
     <button
       onClick={onGoogle}
-      className="h-12 bg-[var(--bg-elevated)] border border-[var(--border-strong)] rounded-xl flex items-center justify-center gap-2 active:bg-[var(--bg-pill)] transition-colors"
+      disabled={disabled}
+      className="h-12 bg-[var(--bg-elevated)] border border-[var(--border-strong)] rounded-xl flex items-center justify-center gap-2 active:bg-[var(--bg-pill)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
     >
       <GoogleIcon />
-      <span className="text-[14px] font-semibold text-[var(--text-primary)]">Google</span>
+      <span className="text-[14px] font-semibold text-[var(--text-primary)]">{loadingProvider === OAUTH_PROVIDERS.google ? 'Starting...' : 'Google'}</span>
     </button>
   </div>
 )
@@ -141,9 +143,10 @@ export default function Login() {
   const [password,     setPassword]     = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading,    setIsLoading]    = useState(false)
+  const [oauthLoading, setOauthLoading] = useState(null)
   const [error,        setError]        = useState('')
 
-  const canSubmit = email.trim() && password.length >= 6 && !isLoading
+  const canSubmit = email.trim() && password.length >= 6 && !isLoading && !oauthLoading
 
   async function handleLogin() {
     if (!canSubmit) return
@@ -156,18 +159,16 @@ export default function Login() {
     if (authError) setError(friendlyError(authError.message))
   }
 
-  async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    })
-  }
-
-  async function handleApple() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: window.location.origin },
-    })
+  async function handleOAuth(provider) {
+    if (oauthLoading) return
+    setError('')
+    setOauthLoading(provider)
+    try {
+      await startOAuth(provider)
+    } catch (err) {
+      setError(friendlyError(err?.message || 'Could not start sign in. Please try again.'))
+      setOauthLoading(null)
+    }
   }
 
   return (
@@ -259,7 +260,12 @@ export default function Login() {
 
         {/* Social */}
         <OrDivider />
-        <SocialButtons onApple={handleApple} onGoogle={handleGoogle} />
+        <SocialButtons
+          onApple={() => handleOAuth(OAUTH_PROVIDERS.apple)}
+          onGoogle={() => handleOAuth(OAUTH_PROVIDERS.google)}
+          disabled={!!oauthLoading || isLoading}
+          loadingProvider={oauthLoading}
+        />
 
         {/* Sign up link */}
         <p className="text-center mt-6 text-[13px] text-[var(--text-tertiary)]">

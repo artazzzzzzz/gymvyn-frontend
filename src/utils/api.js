@@ -594,3 +594,38 @@ export const deleteWorkout = (workoutId, userId) =>
     method: 'DELETE',
     body: JSON.stringify({ userId }),
   });
+
+// ── Owner Assistant ───────────────────────────────────────────────────────────
+
+export const assistantSendMessage = ({ conversationId, message }) =>
+  apiFetch('/api/assistant/message', {
+    method: 'POST',
+    body: JSON.stringify({ conversationId, message }),
+  });
+
+export const assistantGetAttention = () =>
+  apiFetch('/api/assistant/attention');
+
+export const assistantGetBadge = () =>
+  apiFetch('/api/assistant/attention/badge');
+
+export const assistantGetConversations = () =>
+  apiFetch('/api/assistant/conversations');
+
+export const assistantGetConversation = (id) =>
+  apiFetch(`/api/assistant/conversations/${id}`);
+
+export const assistantGetSettings = () =>
+  apiFetch('/api/assistant/settings');
+
+export const assistantUpdateSettings = (updates) =>
+  apiFetch('/api/assistant/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+
+export const assistantUpdateActionLog = (id, status) =>
+  apiFetch(`/api/assistant/action-log/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
