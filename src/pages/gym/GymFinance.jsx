@@ -6,6 +6,7 @@ import MoreSheet from '../../components/MoreSheet'
 import GymPayments from './GymPayments'
 import GymExpenses from './GymExpenses'
 import GymTrainerPayouts from './GymTrainerPayouts'
+import GymStaffSalary from './GymStaffSalary'
 import GymInsights from './GymInsights'
 import GymReports from './GymReports'
 
@@ -42,31 +43,6 @@ const ANALYTICS_SECTIONS = [
 const HEADER_HEIGHT = 52
 const TAB_ROW_HEIGHT = 48
 const SUBTAB_ROW_HEIGHT = 44
-
-function StaffSalaryComingSoon() {
-  return (
-    <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-      <div style={{
-        width: 56, height: 56, borderRadius: '50%', background: 'var(--bg-pill)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
-      }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      </div>
-      <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 6px' }}>
-        Staff Salary — Coming Soon
-      </p>
-      <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 auto', maxWidth: 260, lineHeight: 1.5 }}>
-        Rate management and payout tracking for front-desk staff will live here,
-        mirroring Trainer Salary.
-      </p>
-    </div>
-  )
-}
 
 export default function GymFinance() {
   const navigate = useNavigate()
@@ -110,7 +86,7 @@ export default function GymFinance() {
     if (activeTab === 'payments') return <GymPayments embedded topOffset={topOffset} />
     if (activeTab === 'money-out') {
       if (activeMoneyOutSection === 'trainer-salary') return <GymTrainerPayouts embedded topOffset={topOffset} />
-      if (activeMoneyOutSection === 'staff-salary') return <StaffSalaryComingSoon />
+      if (activeMoneyOutSection === 'staff-salary') return <GymStaffSalary embedded topOffset={topOffset} />
       return <GymExpenses embedded topOffset={topOffset} />
     }
     if (activeAnalyticsSection === 'reports') return <GymReports embedded />
