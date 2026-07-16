@@ -163,6 +163,48 @@ input::placeholder, textarea::placeholder {
   animation: fade-in 0.2s ease-out;
 }
 
+@keyframes gv-skeleton-shimmer {
+  0% { opacity: 0.56; }
+  50% { opacity: 0.86; }
+  100% { opacity: 0.56; }
+}
+
+@keyframes gv-spin {
+  to { transform: rotate(360deg); }
+}
+
+.gv-skeleton {
+  animation: gv-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+
+.gv-button-spinner {
+  animation: gv-spin 0.75s linear infinite;
+}
+
+.gv-delayed-loader {
+  opacity: 0;
+  animation: gv-loader-appear 0.001ms linear 180ms forwards;
+}
+
+@keyframes gv-loader-appear {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gv-skeleton,
+  .gv-button-spinner,
+  .gv-delayed-loader,
+  .animate-fade-in,
+  .animate-scan,
+  .ob-enter,
+  .ob-stagger,
+  .ob-float,
+  .ob-orb {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 @keyframes scan {
   0% { top: 8px; }
   50% { top: calc(100% - 8px); }
