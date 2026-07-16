@@ -7,10 +7,10 @@ import BarcodeScanner from './BarcodeScanner'
 import PrimaryButton from './PrimaryButton'
 import { supabase } from '../utils/supabase'
 import {
-  apiFetch,
   logFood, deleteFoodLog,
-  searchFood, logFoodByVoice, logFoodByCamera,
-  createCustomMeal, getCustomMeals, deleteCustomMeal,
+  searchFood, getFoodByBarcode, logFoodByVoice, logFoodByCamera,
+  createCustomFood, updateCustomFood, deleteCustomFood, getCustomFoods,
+  createSavedMeal, getSavedMeals, getSavedMeal, deleteSavedMeal, logSavedMeal,
 } from '../utils/api'
 import { useXPToast } from './XPToast'
 
@@ -38,8 +38,15 @@ const WEIGHT_UNITS = [
   { unit: 'lb', grams_per_unit: 453.592 },
 ]
 
+const VOLUME_UNITS = [
+  { unit: 'ml', grams_per_unit: 1 },
+  { unit: 'l',  grams_per_unit: 1000 },
+]
+
 function getValidUnits(food) {
-  if (WEIGHT_UNIT_SET.has((food.serving_unit || '').toLowerCase())) return WEIGHT_UNITS
+  const unit = (food.serving_unit || '').toLowerCase()
+  if (unit === 'ml' || unit === 'l') return VOLUME_UNITS
+  if (WEIGHT_UNIT_SET.has(unit)) return WEIGHT_UNITS
   return [{ unit: food.serving_unit || 'serving', grams_per_unit: null }]
 }
 
@@ -138,6 +145,10 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
   const [addedIds, setAddedIds] = useState(new Set())
   const [validUnits, setValidUnits] = useState([])
   const [selectedUnit, setSelectedUnit] = useState('')
+  const [customFoodsOpen, setCustomFoodsOpen] = useState(false)
+  const [customFoodPrefill, setCustomFoodPrefill] = useState(null)
+  const [barcodeInput, setBarcodeInput] = useState('')
+  const [barcodeState, setBarcodeState] = useState({ status: 'empty', product: null, message: '', barcode: '' })
 
   useEffect(() => {
     if (!userId) return
@@ -167,14 +178,69 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
     setPicked(food)
   }
 
+  function customPrefillFromProduct(product = {}) {
+    return {
+      name: product.name || '',
+      brand: product.brand || '',
+      barcode: product.barcode || barcodeInput || '',
+      serving_size: product.serving_size ? String(product.serving_size) : '1',
+      serving_unit: product.serving_unit || 'serving',
+      serving_description: product.serving_description || '',
+      grams_equivalent: product.grams_equivalent ? String(product.grams_equivalent) : '',
+      ml_equivalent: product.ml_equivalent ? String(product.ml_equivalent) : '',
+      calories: product.calories_per_serving != null ? String(product.calories_per_serving) : '',
+      protein_g: product.protein_g != null ? String(product.protein_g) : '',
+      carbs_g: product.carbs_g != null ? String(product.carbs_g) : '',
+      fat_g: product.fat_g != null ? String(product.fat_g) : '',
+      fiber_g: product.fiber_g != null ? String(product.fiber_g) : '',
+      notes: product.rejection_reasons?.length
+        ? `Barcode data needs review: ${product.rejection_reasons.join(', ')}`
+        : '',
+    }
+  }
+
+  function openCustomFoodForProduct(product = {}) {
+    setCustomFoodPrefill(customPrefillFromProduct(product))
+    setCustomFoodsOpen(true)
+  }
+
   const handleBarcodeResult = async (barcode) => {
-    setShowScanner(false); setLoading(true)
+    const cleanBarcode = String(barcode || '').replace(/\D/g, '')
+    setShowScanner(false)
+    setBarcodeInput(cleanBarcode)
+    setBarcodeState({ status: 'loading', product: null, message: '', barcode: cleanBarcode })
     try {
-      const result = await apiFetch(`/api/food-barcode/${barcode}`)
-      if (result) handlePickFood(result)
-      else alert('Product not found. Try searching by name.')
-    } catch { alert('Barcode not found in database') }
-    finally { setLoading(false) }
+      const result = await getFoodByBarcode(cleanBarcode)
+      const cannotLog = result?.can_log === false || result?.lookup_status === 'not_found' || result?.lookup_status === 'needs_manual_entry'
+      if (cannotLog) {
+        const notFound = result.lookup_status === 'not_found'
+        setBarcodeState({
+          status: notFound ? 'not_found' : 'poor_quality',
+          product: result,
+          message: notFound ? 'No packaged food found for this barcode.' : 'This barcode data needs manual review before logging.',
+          barcode: cleanBarcode,
+        })
+        return
+      }
+      setBarcodeState({ status: 'found', product: result, message: '', barcode: cleanBarcode })
+      handlePickFood({
+        ...result,
+        id: result.id || result.packaged_food_id,
+        packaged_food_id: result.packaged_food_id || result.id,
+        is_packaged: true,
+      })
+    } catch (e) {
+      setBarcodeState({ status: 'error', product: null, message: e.message || 'Barcode lookup failed', barcode: cleanBarcode })
+    }
+  }
+
+  async function handleManualBarcodeLookup(e) {
+    e?.preventDefault()
+    if (barcodeInput.replace(/\D/g, '').length < 6) {
+      setBarcodeState({ status: 'error', product: null, message: 'Enter at least 6 barcode digits.', barcode: barcodeInput })
+      return
+    }
+    await handleBarcodeResult(barcodeInput)
   }
 
   useEffect(() => {
@@ -196,15 +262,19 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
       const unitDef = validUnits.find(u => u.unit === selectedUnit) ?? validUnits[0]
       const macros = computeMacros(picked, servingAmtStr, numServStr, unitDef)
       const isWeight = unitDef?.grams_per_unit != null
+      const metricBaseUnit = selectedUnit === 'ml' || selectedUnit === 'l' ? 'ml' : 'g'
       const quantityFinal = isWeight
         ? Math.max(0.01, parseFloat(servingAmtStr) || 0) * unitDef.grams_per_unit * Math.max(0.01, parseFloat(numServStr) || 1)
         : Math.max(0.01, parseFloat(servingAmtStr) || 1) * Math.max(0.01, parseFloat(numServStr) || 1)
       const logRes = await logFood({
-        userId, log_date: toYMD(new Date()), mealType: detailMeal,
+        userId, log_date: logDate || toYMD(new Date()), mealType: detailMeal,
         foodName: picked.name, quantity: quantityFinal,
-        servingUnit: isWeight ? 'g' : (selectedUnit || picked.serving_unit),
+        servingUnit: isWeight ? metricBaseUnit : (selectedUnit || picked.serving_unit),
         calories: macros.cal, proteinG: macros.prot, carbsG: macros.carb, fatG: macros.fat,
-        loggedVia: 'manual', foodId: picked.id,
+        loggedVia: 'manual',
+        foodId: picked.is_custom || picked.is_packaged ? undefined : picked.id,
+        customFoodId: picked.is_custom ? (picked.custom_food_id || picked.id) : undefined,
+        packagedFoodId: picked.is_packaged ? (picked.packaged_food_id || picked.id) : undefined,
       })
       if (logRes?.xpResult) showXPToast(logRes.xpResult)
       onLogged(picked.name, Math.round(macros.cal))
@@ -224,7 +294,10 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
         proteinG: Number(r.protein_g) || 0,
         carbsG:   Number(r.carbs_g)   || 0,
         fatG:     Number(r.fat_g)     || 0,
-        loggedVia: 'manual', foodId: r.id,
+        loggedVia: 'manual',
+        foodId: r.is_custom || r.is_packaged ? undefined : r.id,
+        customFoodId: r.is_custom ? (r.custom_food_id || r.id) : undefined,
+        packagedFoodId: r.is_packaged ? (r.packaged_food_id || r.id) : undefined,
       })
       onLogged(r.name, Math.round(Number(r.calories_per_serving) || Number(r.calories) || 0))
       setAddedIds(prev => new Set([...prev, id]))
@@ -255,10 +328,23 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
           <ChevronLeft size={15} /> Back to results
         </button>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          {picked.image_url && (
+            <img src={picked.image_url} alt="" style={{ width: 46, height: 46, borderRadius: 10, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} />
+          )}
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{picked.name}</h2>
+            {(picked.brand || picked.is_packaged) && (
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>
+                {picked.brand ? `${picked.brand} · ` : ''}{picked.is_packaged ? 'Packaged food' : ''}
+              </div>
+            )}
             {picked.is_combo && (
               <span style={{ fontSize: 10, padding: '2px 8px', backgroundColor: 'rgba(16,185,129,0.1)', color: 'var(--success)', borderRadius: 999, marginTop: 4, display: 'inline-block', fontWeight: 600, textTransform: 'uppercase' }}>Combo</span>
+            )}
+            {picked.is_packaged && (
+              <span style={{ fontSize: 10, padding: '2px 8px', backgroundColor: 'var(--accent-bg)', color: 'var(--text-cta)', borderRadius: 999, marginTop: 6, display: 'inline-block', fontWeight: 700, textTransform: 'uppercase' }}>
+                {picked.quality_status || 'packaged'}
+              </span>
             )}
           </div>
           <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -314,6 +400,26 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
     )
   }
 
+  if (customFoodsOpen) {
+    return (
+      <CustomFoodManager
+        onBack={() => { setCustomFoodsOpen(false); setCustomFoodPrefill(null) }}
+        initialForm={customFoodPrefill}
+        onPick={(food) => {
+          setCustomFoodsOpen(false)
+          setCustomFoodPrefill(null)
+          handlePickFood({
+            ...food,
+            id: food.id,
+            custom_food_id: food.id,
+            is_custom: true,
+            source: 'user_custom',
+          })
+        }}
+      />
+    )
+  }
+
   return (
     <div>
       {/* Search row */}
@@ -330,6 +436,56 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
           <Scan size={16} /> Scan
         </button>
       </div>
+
+      <form onSubmit={handleManualBarcodeLookup} style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'var(--bg-primary)', borderRadius: 12, height: 42, paddingLeft: 14, paddingRight: 14 }}>
+          <Scan size={15} color="var(--text-tertiary)" />
+          <input value={barcodeInput} onChange={e => setBarcodeInput(e.target.value.replace(/\D/g, '').slice(0, 18))}
+            placeholder="Enter packaged food barcode"
+            inputMode="numeric"
+            style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: 'var(--text-primary)' }} />
+        </div>
+        <button type="submit" disabled={barcodeState.status === 'loading'}
+          style={{ height: 42, borderRadius: 12, border: 'none', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', padding: '0 14px', fontSize: 13, fontWeight: 700, cursor: barcodeState.status === 'loading' ? 'not-allowed' : 'pointer', opacity: barcodeState.status === 'loading' ? 0.6 : 1 }}>
+          {barcodeState.status === 'loading' ? 'Looking…' : 'Lookup'}
+        </button>
+      </form>
+
+      {barcodeState.status !== 'empty' && barcodeState.status !== 'loading' && barcodeState.status !== 'found' && (
+        <div style={{ marginTop: 10, border: '1px solid var(--border)', borderRadius: 12, padding: 12, backgroundColor: 'var(--bg-primary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                {barcodeState.product?.name || barcodeState.barcode || 'Barcode lookup'}
+              </div>
+              {barcodeState.product?.brand && <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{barcodeState.product.brand}</div>}
+              <div style={{ fontSize: 12, color: barcodeState.status === 'error' ? 'var(--error)' : 'var(--text-secondary)', marginTop: 6, lineHeight: 1.4 }}>
+                {barcodeState.message}
+              </div>
+              {barcodeState.product?.rejection_reasons?.length > 0 && (
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>
+                  {barcodeState.product.rejection_reasons.join(', ')}
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={() => setBarcodeState({ status: 'empty', product: null, message: '', barcode: '' })}
+              style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex', padding: 2 }}>
+              <X size={14} />
+            </button>
+          </div>
+          {(barcodeState.status === 'poor_quality' || barcodeState.status === 'not_found') && (
+            <button type="button" onClick={() => openCustomFoodForProduct(barcodeState.product || { barcode: barcodeState.barcode })}
+              style={{ marginTop: 10, width: '100%', height: 38, borderRadius: 10, border: 'none', backgroundColor: 'var(--text-primary)', color: 'var(--bg-card)', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Plus size={14} /> Create custom food
+            </button>
+          )}
+        </div>
+      )}
+
+      <button onClick={() => { setCustomFoodPrefill(null); setCustomFoodsOpen(true) }}
+        style={{ marginTop: 10, width: '100%', height: 42, borderRadius: 12, border: '1px dashed var(--border)', backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Plus size={15} /> Create or manage custom foods
+      </button>
 
       {/* Recents strip */}
       {!q && recentFoods.length > 0 && (
@@ -380,7 +536,7 @@ function SearchTab({ userId, mealType, onLogged, logDate }) {
                 <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => handlePickFood(r)}>
                   <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                    P {Math.round(r.protein_g||0)}g · C {Math.round(r.carbs_g||0)}g · F {Math.round(r.fat_g||0)}g
+                    {r.is_custom ? 'Custom · ' : ''}P {Math.round(r.protein_g||0)}g · C {Math.round(r.carbs_g||0)}g · F {Math.round(r.fat_g||0)}g
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -406,6 +562,196 @@ const FIELD_BASE = {
   width: '100%', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border)',
   borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'var(--text-primary)',
   outline: 'none', boxSizing: 'border-box',
+}
+
+const CUSTOM_EMPTY = {
+  name: '',
+  brand: '',
+  calories: '',
+  protein_g: '',
+  carbs_g: '',
+  fat_g: '',
+  fiber_g: '',
+  serving_size: '1',
+  serving_unit: 'serving',
+  serving_description: '',
+  grams_equivalent: '',
+  ml_equivalent: '',
+  barcode: '',
+  notes: '',
+}
+
+function CustomFoodManager({ onBack, onPick, initialForm = null }) {
+  const [foods, setFoods] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
+  const [editing, setEditing] = useState(null)
+  const [form, setForm] = useState(() => ({ ...CUSTOM_EMPTY, ...(initialForm || {}) }))
+  const [error, setError] = useState('')
+
+  async function loadFoods() {
+    setLoading(true)
+    try {
+      const data = await getCustomFoods()
+      setFoods(Array.isArray(data) ? data : [])
+    } catch (e) {
+      setError(e.message || 'Failed to load custom foods')
+      setFoods([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { loadFoods() }, [])
+
+  function setField(key, value) {
+    setForm(prev => ({ ...prev, [key]: value }))
+  }
+
+  function beginEdit(food) {
+    setEditing(food)
+    setForm({
+      name: food.name || '',
+      brand: food.brand || '',
+      calories: String(food.calories_per_serving ?? ''),
+      protein_g: String(food.protein_g ?? ''),
+      carbs_g: String(food.carbs_g ?? ''),
+      fat_g: String(food.fat_g ?? ''),
+      fiber_g: String(food.fiber_g ?? ''),
+      serving_size: String(food.serving_size ?? 1),
+      serving_unit: food.serving_unit || 'serving',
+      serving_description: food.serving_description || '',
+      grams_equivalent: String(food.grams_equivalent ?? ''),
+      ml_equivalent: String(food.ml_equivalent ?? ''),
+      barcode: food.barcode || '',
+      notes: food.notes || '',
+    })
+    setError('')
+  }
+
+  function resetForm() {
+    setEditing(null)
+    setForm(CUSTOM_EMPTY)
+    setError('')
+  }
+
+  function numberValue(value, fallback = 0) {
+    const parsed = parseFloat(value)
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+
+  async function handleSave() {
+    if (!form.name.trim()) { setError('Name is required'); return }
+    if (!form.calories || numberValue(form.calories, -1) < 0) { setError('Calories are required'); return }
+    if (!form.serving_size || numberValue(form.serving_size, 0) <= 0) { setError('Serving size is required'); return }
+
+    setSaving(true)
+    setError('')
+    const payload = {
+      name: form.name.trim(),
+      brand: form.brand.trim() || null,
+      calories: numberValue(form.calories),
+      protein_g: numberValue(form.protein_g),
+      carbs_g: numberValue(form.carbs_g),
+      fat_g: numberValue(form.fat_g),
+      fiber_g: numberValue(form.fiber_g),
+      serving_size: numberValue(form.serving_size, 1),
+      serving_unit: form.serving_unit || 'serving',
+      serving_description: form.serving_description.trim() || `${form.serving_size || 1} ${form.serving_unit || 'serving'}`,
+      grams_equivalent: form.grams_equivalent ? numberValue(form.grams_equivalent, null) : null,
+      ml_equivalent: form.ml_equivalent ? numberValue(form.ml_equivalent, null) : null,
+      barcode: form.barcode?.trim() || null,
+      notes: form.notes.trim() || null,
+    }
+
+    try {
+      if (editing?.id) await updateCustomFood(editing.id, payload)
+      else await createCustomFood(payload)
+      resetForm()
+      await loadFoods()
+    } catch (e) {
+      setError(e.message || 'Failed to save custom food')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(food) {
+    setDeletingId(food.id)
+    try {
+      await deleteCustomFood(food.id)
+      setFoods(prev => prev.filter(item => item.id !== food.id))
+      if (editing?.id === food.id) resetForm()
+    } catch (e) {
+      setError(e.message || 'Failed to delete custom food')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
+      <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <ChevronLeft size={15} /> Back to search
+      </button>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <input value={form.name} onChange={e => setField('name', e.target.value)} placeholder="Food name" style={{ ...FIELD_BASE, gridColumn: '1 / -1' }} />
+        <input value={form.brand} onChange={e => setField('brand', e.target.value)} placeholder="Brand optional" style={{ ...FIELD_BASE, gridColumn: '1 / -1' }} />
+        <input type="number" min="0" value={form.calories} onChange={e => setField('calories', e.target.value)} placeholder="Calories" style={FIELD_BASE} />
+        <input type="number" min="0" value={form.protein_g} onChange={e => setField('protein_g', e.target.value)} placeholder="Protein g" style={FIELD_BASE} />
+        <input type="number" min="0" value={form.carbs_g} onChange={e => setField('carbs_g', e.target.value)} placeholder="Carbs g" style={FIELD_BASE} />
+        <input type="number" min="0" value={form.fat_g} onChange={e => setField('fat_g', e.target.value)} placeholder="Fat g" style={FIELD_BASE} />
+        <input type="number" min="0" value={form.fiber_g} onChange={e => setField('fiber_g', e.target.value)} placeholder="Fiber optional" style={FIELD_BASE} />
+        <input type="number" min="0.01" value={form.serving_size} onChange={e => setField('serving_size', e.target.value)} placeholder="Serving size" style={FIELD_BASE} />
+        <select value={form.serving_unit} onChange={e => setField('serving_unit', e.target.value)} style={FIELD_BASE}>
+          {MANUAL_UNITS.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+          <option value="serving">serving</option>
+        </select>
+        <input value={form.serving_description} onChange={e => setField('serving_description', e.target.value)} placeholder="Serving description" style={{ ...FIELD_BASE, gridColumn: '1 / -1' }} />
+        <input type="number" min="0" value={form.grams_equivalent} onChange={e => setField('grams_equivalent', e.target.value)} placeholder="grams equivalent" style={FIELD_BASE} />
+        <input type="number" min="0" value={form.ml_equivalent} onChange={e => setField('ml_equivalent', e.target.value)} placeholder="ml equivalent" style={FIELD_BASE} />
+        <input value={form.barcode} onChange={e => setField('barcode', e.target.value.replace(/\D/g, '').slice(0, 18))} placeholder="Barcode optional" inputMode="numeric" style={{ ...FIELD_BASE, gridColumn: '1 / -1' }} />
+        <textarea value={form.notes} onChange={e => setField('notes', e.target.value)} placeholder="Notes optional" rows={2} style={{ ...FIELD_BASE, gridColumn: '1 / -1', resize: 'vertical' }} />
+      </div>
+
+      {error && <div style={{ fontSize: 13, color: 'var(--error)', backgroundColor: 'var(--accent-bg)', borderRadius: 10, padding: '10px 14px' }}>{error}</div>}
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        {editing && (
+          <button onClick={resetForm} style={{ flex: 1, border: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderRadius: 14, fontWeight: 700, cursor: 'pointer' }}>
+            Cancel
+          </button>
+        )}
+        <PrimaryButton onClick={handleSave} disabled={saving} style={{ flex: 2, height: 'auto', padding: '13px 0', fontWeight: 700 }}>
+          {saving ? 'Saving…' : editing ? 'Update Custom Food' : 'Save Custom Food'}
+        </PrimaryButton>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Your Custom Foods</div>
+        {loading ? (
+          [...Array(3)].map((_, i) => <div key={i} style={{ height: 64, borderRadius: 12, backgroundColor: 'var(--bg-primary)' }} />)
+        ) : foods.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>No custom foods yet.</div>
+        ) : foods.map(food => (
+          <div key={food.id} style={{ display: 'flex', alignItems: 'center', gap: 10, backgroundColor: 'var(--bg-primary)', borderRadius: 12, padding: 12 }}>
+            <button onClick={() => onPick(food)} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', padding: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{food.name}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{Math.round(food.calories_per_serving || 0)} kcal · {food.serving_description || `${food.serving_size} ${food.serving_unit}`}</div>
+            </button>
+            <button onClick={() => beginEdit(food)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Pencil size={14} />
+            </button>
+            <button onClick={() => handleDelete(food)} disabled={deletingId === food.id} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)', color: 'var(--error)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: deletingId === food.id ? 0.5 : 1 }}>
+              {deletingId === food.id ? <RefreshCw size={14} /> : <Trash2 size={14} />}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function ManualTab({ userId, mealType, logDate, onLogged }) {
@@ -492,8 +838,9 @@ function ManualTab({ userId, mealType, logDate, onLogged }) {
 }
 
 // ─── MealBuilder ──────────────────────────────────────────────────────────────
-function MealBuilder({ userId, onSaved, onCancel }) {
+function MealBuilder({ onSaved, onCancel }) {
   const [name, setName] = useState('')
+  const [mealType, setMealType] = useState('breakfast')
   const [items, setItems] = useState([])
   const [q, setQ] = useState('')
   const [results, setResults] = useState([])
@@ -515,17 +862,34 @@ function MealBuilder({ userId, onSaved, onCancel }) {
   }, [q])
 
   function addFood(r) {
-    setItems(prev => [...prev, { food_name: r.name, quantity: 1, serving_unit: r.serving_unit||'serving', calories: Number(r.calories_per_serving)||0, protein_g: Number(r.protein_g)||0, carbs_g: Number(r.carbs_g)||0, fat_g: Number(r.fat_g)||0 }])
+    setItems(prev => [...prev, {
+      food_id: r.is_custom || r.is_packaged ? null : r.id,
+      custom_food_id: r.is_custom ? (r.custom_food_id || r.id) : null,
+      food_name: r.name,
+      quantity: 1,
+      serving_unit: r.serving_unit || 'serving',
+      serving_description: r.serving_description || null,
+      calories: Number(r.calories_per_serving)||0,
+      protein_g: Number(r.protein_g)||0,
+      carbs_g: Number(r.carbs_g)||0,
+      fat_g: Number(r.fat_g)||0,
+      fiber_g: Number(r.fiber_g)||0,
+    }])
     setQ(''); setResults([])
   }
 
-  const totals = items.reduce((a,it) => ({ cal: a.cal+it.calories, prot: a.prot+it.protein_g, carb: a.carb+it.carbs_g, fat: a.fat+it.fat_g }), { cal:0, prot:0, carb:0, fat:0 })
+  const totals = items.reduce((a,it) => ({
+    cal: a.cal + (Number(it.calories) || 0),
+    prot: a.prot + (Number(it.protein_g) || 0),
+    carb: a.carb + (Number(it.carbs_g) || 0),
+    fat: a.fat + (Number(it.fat_g) || 0),
+  }), { cal:0, prot:0, carb:0, fat:0 })
 
   async function handleSave() {
     if (!name.trim()) { setError('Give your meal a name'); return }
     if (items.length === 0) { setError('Add at least one food'); return }
     setError(''); setSaving(true)
-    try { await createCustomMeal({ userId, name: name.trim(), items }); onSaved() }
+    try { await createSavedMeal({ name: name.trim(), meal_type: mealType, items }); onSaved() }
     catch (e) { setError(e.message || 'Failed to save meal') }
     finally { setSaving(false) }
   }
@@ -541,6 +905,12 @@ function MealBuilder({ userId, onSaved, onCancel }) {
           placeholder="e.g., My Breakfast Combo" autoComplete="off" style={FIELD_BASE} />
       </div>
       <div>
+        <label style={{ display: 'block', fontSize: 11, color: 'var(--text-tertiary)', letterSpacing: '0.08em', marginBottom: 6, textTransform: 'uppercase', fontWeight: 500 }}>Default meal</label>
+        <select value={mealType} onChange={e => setMealType(e.target.value)} style={FIELD_BASE}>
+          {MEALS.map(m => <option key={m.type} value={m.type}>{m.label}</option>)}
+        </select>
+      </div>
+      <div>
         <label style={{ display: 'block', fontSize: 11, color: 'var(--text-tertiary)', letterSpacing: '0.08em', marginBottom: 6, textTransform: 'uppercase', fontWeight: 500 }}>Add Foods</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'var(--bg-primary)', borderRadius: 10, padding: '10px 12px' }}>
           <Search size={15} color="var(--text-tertiary)" />
@@ -552,11 +922,11 @@ function MealBuilder({ userId, onSaved, onCancel }) {
         {results.length > 0 && (
           <div style={{ marginTop: 8, maxHeight: 192, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
             {results.map(r => (
-              <button key={r.id} onClick={() => addFood(r)}
+              <button key={r.id || r.name} onClick={() => addFood(r)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-primary)', borderRadius: 10, padding: '10px 12px', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                 <div>
                   <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{r.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{r.serving_description}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{r.is_custom ? 'Custom · ' : ''}{r.serving_description}</div>
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{Math.round(r.calories_per_serving)} kcal</span>
               </button>
@@ -596,28 +966,29 @@ function MealBuilder({ userId, onSaved, onCancel }) {
 }
 
 // ─── MyMealsTab ───────────────────────────────────────────────────────────────
-function MyMealsTab({ userId, mealType, logDate, onLogged }) {
+function MyMealsTab({ mealType, logDate, onLogged }) {
   const [meals, setMeals] = useState([])
   const [loading, setLoading] = useState(true)
   const [building, setBuilding] = useState(false)
   const [loggingId, setLoggingId] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
+  const [viewing, setViewing] = useState(null)
+  const [error, setError] = useState('')
 
   async function loadMeals() {
     setLoading(true)
-    try { const data = await getCustomMeals(userId); setMeals(Array.isArray(data) ? data : []) }
-    catch { setMeals([]) }
+    setError('')
+    try { const data = await getSavedMeals(); setMeals(Array.isArray(data) ? data : []) }
+    catch (e) { setMeals([]); setError(e.message || 'Failed to load saved meals') }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { if (userId) loadMeals() }, [userId])
+  useEffect(() => { loadMeals() }, [])
 
   async function handleLog(meal) {
     setLoggingId(meal.id)
     try {
-      for (const it of (meal.items || [])) {
-        await logFood({ userId, log_date: logDate, mealType, foodName: it.food_name, quantity: it.quantity||1, servingUnit: it.serving_unit, calories: it.calories||0, proteinG: it.protein_g||0, carbsG: it.carbs_g||0, fatG: it.fat_g||0, loggedVia: 'custom_meal' })
-      }
+      await logSavedMeal(meal.id, { log_date: logDate, meal_type: mealType || meal.meal_type })
       onLogged(meal.name, Math.round(meal.total_calories || 0))
     } catch (e) { alert(e.message || 'Failed to log meal') }
     finally { setLoggingId(null) }
@@ -625,12 +996,54 @@ function MyMealsTab({ userId, mealType, logDate, onLogged }) {
 
   async function handleDelete(meal) {
     setDeletingId(meal.id)
-    try { await deleteCustomMeal(meal.id); setMeals(prev => prev.filter(m => m.id !== meal.id)) }
+    try { await deleteSavedMeal(meal.id); setMeals(prev => prev.filter(m => m.id !== meal.id)); if (viewing?.id === meal.id) setViewing(null) }
     catch (e) { alert(e.message || 'Failed to delete meal') }
     finally { setDeletingId(null) }
   }
 
-  if (building) return <MealBuilder userId={userId} onSaved={() => { setBuilding(false); loadMeals() }} onCancel={() => setBuilding(false)} />
+  async function handleView(meal) {
+    setError('')
+    try {
+      const full = await getSavedMeal(meal.id)
+      setViewing(full)
+    } catch (e) {
+      setError(e.message || 'Failed to load saved meal')
+    }
+  }
+
+  if (building) return <MealBuilder onSaved={() => { setBuilding(false); loadMeals() }} onCancel={() => setBuilding(false)} />
+
+  if (viewing) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
+        <button onClick={() => setViewing(null)}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <ChevronLeft size={15} /> Back to saved meals
+        </button>
+        <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 14, padding: 16 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>{viewing.name}</div>
+          {viewing.description && <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>{viewing.description}</div>}
+          <div style={{ display: 'flex', gap: 10, fontSize: 12, marginTop: 12 }}>
+            <span style={{ color: 'var(--text-cta)', fontWeight: 700 }}>{Math.round(viewing.total_calories||0)} kcal</span>
+            <span style={{ color: '#5B8FF9' }}>P {Math.round(viewing.total_protein_g||0)}g</span>
+            <span style={{ color: '#F6C244' }}>C {Math.round(viewing.total_carbs_g||0)}g</span>
+            <span style={{ color: 'var(--error)' }}>F {Math.round(viewing.total_fat_g||0)}g</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {(viewing.items || []).map(item => (
+            <div key={item.id} style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 12, padding: '10px 12px' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{item.food_name}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{item.quantity} {item.serving_unit || ''} · {Math.round(item.calories || 0)} kcal</div>
+            </div>
+          ))}
+        </div>
+        <PrimaryButton onClick={() => handleLog(viewing)} disabled={loggingId === viewing.id} style={{ height: 'auto', padding: '13px 0', fontWeight: 700 }}>
+          {loggingId === viewing.id ? 'Logging…' : 'Log Saved Meal'}
+        </PrimaryButton>
+      </div>
+    )
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
@@ -638,6 +1051,7 @@ function MyMealsTab({ userId, mealType, logDate, onLogged }) {
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0', borderRadius: 16, border: '1.5px dashed var(--border)', backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
         <Plus size={16} /> Create New Meal
       </button>
+      {error && <div style={{ fontSize: 13, color: 'var(--error)', backgroundColor: 'var(--accent-bg)', borderRadius: 10, padding: '10px 14px' }}>{error}</div>}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[...Array(3)].map((_, i) => <div key={i} style={{ height: 80, borderRadius: 12, backgroundColor: 'var(--bg-primary)' }} />)}
@@ -649,10 +1063,10 @@ function MyMealsTab({ userId, mealType, logDate, onLogged }) {
           {meals.map(meal => (
             <div key={meal.id} style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div>
+                <button onClick={() => handleView(meal)} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{meal.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{(meal.items||[]).length} item{(meal.items||[]).length!==1?'s':''}</div>
-                </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{meal.meal_type || 'saved meal'}</div>
+                </button>
                 <button onClick={() => handleDelete(meal)} disabled={deletingId === meal.id}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex', opacity: deletingId===meal.id?0.4:1 }}>
                   {deletingId === meal.id ? <RefreshCw size={14} /> : <Trash2 size={14} />}

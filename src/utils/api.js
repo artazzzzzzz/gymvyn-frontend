@@ -506,6 +506,22 @@ export const getMacros = (userId) =>
 export const searchFood = (query) =>
   dietRequest(`/api/food-search?q=${encodeURIComponent(query)}`);
 
+export async function getFoodByBarcode(barcode) {
+  const cleanBarcode = String(barcode || '').replace(/\D/g, '');
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const res = await fetch(`${BASE_URL}/api/foods/barcode/${encodeURIComponent(cleanBarcode)}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.ok) return data;
+  if (res.status === 404) return { ...data, lookup_status: 'not_found', barcode: cleanBarcode };
+  if (res.status === 422) return { ...data, lookup_status: 'needs_manual_entry', barcode: cleanBarcode };
+  throw new Error(data.error || data.message || `Barcode lookup failed (${res.status})`);
+}
+
 export const logFood = (data) =>
   dietRequest('/api/food-logs', { method: 'POST', body: data });
 
@@ -527,14 +543,50 @@ export const generateDietPlan = (data) =>
 export const getDietPlan = (userId) =>
   dietRequest(`/api/diet-plan/${userId}`);
 
-export const createCustomMeal = (data) =>
-  dietRequest('/api/custom-meals', { method: 'POST', body: data });
+export const getCustomFoods = (query = '') =>
+  dietRequest(`/api/custom-foods${query ? `?q=${encodeURIComponent(query)}` : ''}`);
 
-export const getCustomMeals = (userId) =>
-  dietRequest(`/api/custom-meals/${userId}`);
+export const createCustomFood = (data) =>
+  dietRequest('/api/custom-foods', { method: 'POST', body: data });
+
+export const updateCustomFood = (foodId, data) =>
+  dietRequest(`/api/custom-foods/${foodId}`, { method: 'PUT', body: data });
+
+export const deleteCustomFood = (foodId) =>
+  dietRequest(`/api/custom-foods/${foodId}`, { method: 'DELETE' });
+
+export const getSavedMeals = () =>
+  dietRequest('/api/saved-meals');
+
+export const getSavedMeal = (mealId) =>
+  dietRequest(`/api/saved-meals/${mealId}`);
+
+export const createSavedMeal = (data) =>
+  dietRequest('/api/saved-meals', { method: 'POST', body: data });
+
+export const updateSavedMeal = (mealId, data) =>
+  dietRequest(`/api/saved-meals/${mealId}`, { method: 'PUT', body: data });
+
+export const deleteSavedMeal = (mealId) =>
+  dietRequest(`/api/saved-meals/${mealId}`, { method: 'DELETE' });
+
+export const logSavedMeal = (mealId, data) =>
+  dietRequest(`/api/saved-meals/${mealId}/log`, { method: 'POST', body: data });
+
+// Backward-compatible names for older Diet page code paths.
+export const createCustomMeal = (data) =>
+  createSavedMeal({
+    name: data?.name,
+    description: data?.description,
+    meal_type: data?.meal_type || data?.mealType,
+    items: data?.items || [],
+  });
+
+export const getCustomMeals = () =>
+  getSavedMeals();
 
 export const deleteCustomMeal = (mealId) =>
-  dietRequest(`/api/custom-meals/${mealId}`, { method: 'DELETE' });
+  deleteSavedMeal(mealId);
 
 // ── Workout session ──────────────────────────────────────────────────────────
 

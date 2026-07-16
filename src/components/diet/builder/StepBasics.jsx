@@ -112,6 +112,7 @@ export default function StepBasics({ data, onChange, onNext }) {
           protein={data.protein_g}
           carbs={data.carbs_g}
           fat={data.fat_g}
+          deriveCalories
           onChange={v => onChange({
             ...data,
             calories_target: v.calories,

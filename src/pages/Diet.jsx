@@ -21,7 +21,6 @@ import {
   getFoodLogs, logFood, deleteFoodLog,
   searchFood, logFoodByVoice, logFoodByCamera,
   getDietPlan, generateDietPlan,
-  createCustomMeal, getCustomMeals, deleteCustomMeal,
 } from '../utils/api'
 
 // ─────────────────────────────────────────────────────────────────────────────
