@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../utils/supabase'
+import { ButtonSpinner } from '../components/loading/Loading'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
@@ -183,7 +185,7 @@ export default function Chat() {
 
   const sendMessage = async (textOverride) => {
     const text = (textOverride ?? inputText).trim()
-    if (!text) return
+    if (!text || isTyping) return
 
     const time = new Date().toLocaleTimeString('en-IN', {
       hour: 'numeric', minute: '2-digit', hour12: true,
@@ -199,9 +201,13 @@ export default function Chat() {
     setHasStarted(true)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({
           message: text,
           userId: user?.id,
@@ -396,17 +402,21 @@ export default function Chat() {
           {/* Send */}
           <button
             onClick={() => sendMessage()}
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || isTyping}
             className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-              inputText.trim() ? 'bg-[var(--text-primary)]' : 'bg-[var(--bg-pill)]'
+              inputText.trim() && !isTyping ? 'bg-[var(--text-primary)]' : 'bg-[var(--bg-pill)]'
             }`}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke={inputText.trim() ? 'white' : "var(--text-tertiary)"}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="19" x2="12" y2="5"/>
-              <polyline points="5 12 12 5 19 12"/>
-            </svg>
+            {isTyping ? (
+              <span style={{ color: 'var(--text-tertiary)' }}><ButtonSpinner size={14} /></span>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke={inputText.trim() ? 'var(--bg-card)' : "var(--text-tertiary)"}
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+            )}
           </button>
         </div>
       </div>
