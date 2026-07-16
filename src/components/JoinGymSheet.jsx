@@ -139,7 +139,7 @@ export function JoinGymSheet({ open, onClose, onSuccess }) {
             disabled={!complete}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              width: '100%', height: 52, marginTop: 10,
+              width: '100%', height: 52, marginTop: 20,
               background: success ? 'var(--success)' : 'var(--text-primary)',
               border: 'none', borderRadius: 12,
               opacity: complete ? 1 : 0.4,

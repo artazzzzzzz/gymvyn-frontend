@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { apiFetch } from '../utils/api'
+import { ListSkeleton, SkeletonBlock } from '../components/loading/Loading'
 
 const C = {
   bg: 'var(--bg-pill)',
@@ -9,11 +10,11 @@ const C = {
   border: 'var(--border)',
   text: 'var(--text-primary)',
   sub: 'var(--text-secondary)',
-  green: '#1a9955',
+  green: 'var(--success)',
   greenBg: 'var(--success-bg)',
-  amber: '#c07800',
+  amber: 'var(--warning)',
   amberBg: 'var(--warning-bg)',
-  blue: '#1a6fd4',
+  blue: 'var(--text-cta)',
   blueBg: 'var(--accent-bg)',
   gray: 'var(--text-tertiary)',
   grayBg: 'var(--bg-pill)',
@@ -140,14 +141,19 @@ export default function TrainerClients() {
   const navigate = useNavigate()
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
   const [searchVal, setSearchVal] = useState('')
 
   useEffect(() => {
     if (!user?.id) return
+    setError('')
     apiFetch(`/api/trainer/clients/${user.id}`)
       .then(setClients)
-      .catch(err => console.error('Load clients error:', err))
+      .catch(err => {
+        console.error('Load clients error:', err)
+        setError('Could not load clients. Pull back and try again.')
+      })
       .finally(() => setLoading(false))
   }, [user?.id])
 
@@ -163,9 +169,16 @@ export default function TrainerClients() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.text, animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ minHeight: '100vh', background: C.bg, fontFamily: "'DM Sans', system-ui, sans-serif", paddingBottom: 80 }}>
+        <div style={{ padding: '52px 16px 0' }}>
+          <SkeletonBlock height={26} width="38%" />
+          <SkeletonBlock height={13} width="22%" style={{ marginTop: 8, marginBottom: 22 }} />
+          <SkeletonBlock height={42} width="100%" radius={12} style={{ marginBottom: 12 }} />
+          <div style={{ display: 'flex', gap: 7, marginBottom: 14 }}>
+            {[0, 1, 2].map(i => <SkeletonBlock key={i} height={30} width={i === 1 ? 112 : 64} radius={20} />)}
+          </div>
+          <ListSkeleton rows={5} />
+        </div>
       </div>
     )
   }
@@ -219,7 +232,15 @@ export default function TrainerClients() {
         </div>
 
         {/* client cards */}
-        {filteredClients.length === 0 ? (
+        {error ? (
+          <div style={{
+            background: C.card, borderRadius: 18, padding: '40px 24px',
+            border: `1px solid ${C.border}`, textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 4 }}>Clients did not load</div>
+            <div style={{ fontSize: 13, color: C.sub }}>{error}</div>
+          </div>
+        ) : filteredClients.length === 0 ? (
           <div style={{
             background: C.card, borderRadius: 18, padding: '40px 24px',
             border: `1px solid ${C.border}`, textAlign: 'center',

@@ -9,6 +9,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../utils/supabase'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
 import { CitySearchInput } from '../../components/CitySearchInput'
+import { assistantGetSettings, assistantUpdateSettings } from '../../utils/api'
 
 const GYM_TYPES = ['Commercial', 'Boutique', 'CrossFit', 'Yoga Studio', 'Other']
 
@@ -129,6 +130,10 @@ export default function GymSettings() {
   const [lockersLoading, setLockersLoading] = useState(true)
   const [showLockersOffConfirm, setShowLockersOffConfirm] = useState(false)
 
+  // ── AI Assistant settings ──────────────────────────────────────────────────
+  const [aiRevenueMetric, setAiRevenueMetric] = useState('membership_only')
+  const [aiSettingsSaving, setAiSettingsSaving] = useState(false)
+
   // ─── Fetch settings ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!gymId) { setLoading(false); return }
@@ -176,6 +181,13 @@ export default function GymSettings() {
       }
     }
     fetchLockerSettings()
+  }, [gymId])
+
+  useEffect(() => {
+    if (!gymId || import.meta.env.VITE_AI_ASSISTANT_ENABLED !== 'true') return
+    assistantGetSettings()
+      .then(s => setAiRevenueMetric(s.revenue_metric || 'membership_only'))
+      .catch(() => {})
   }, [gymId])
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -642,6 +654,65 @@ export default function GymSettings() {
             ))}
           </div>
         </div>
+
+        {/* ── AI ASSISTANT ────────────────────────────────────────────────────── */}
+        {import.meta.env.VITE_AI_ASSISTANT_ENABLED === 'true' && <div>
+          {sectionLabel('AI ASSISTANT')}
+          <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>Revenue metric</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                What the assistant reports as your gym's revenue
+              </div>
+              {[
+                { value: 'membership_only', label: 'Membership payments only', sub: 'Standard dues collected from members' },
+                { value: 'all_income',      label: 'All income sources',       sub: 'Memberships + supplement sales' },
+              ].map((opt, i) => {
+                const selected = aiRevenueMetric === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={async () => {
+                      if (selected || aiSettingsSaving) return
+                      setAiSettingsSaving(true)
+                      setAiRevenueMetric(opt.value)
+                      try {
+                        await assistantUpdateSettings({ revenue_metric: opt.value })
+                        showToastMsg('AI Assistant settings saved')
+                      } catch {
+                        setAiRevenueMetric(aiRevenueMetric) // revert
+                        showToastMsg('Failed to save', 'error')
+                      } finally {
+                        setAiSettingsSaving(false)
+                      }
+                    }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 12px',
+                      marginBottom: i === 0 ? 6 : 0,
+                      borderRadius: 10,
+                      border: selected ? '1.5px solid #7c3aed' : '1px solid rgba(0,0,0,0.1)',
+                      background: selected ? 'rgba(124,58,237,0.06)' : 'transparent',
+                      cursor: aiSettingsSaving ? 'not-allowed' : 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{
+                      width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+                      border: selected ? '5px solid #7c3aed' : '2px solid rgba(0,0,0,0.2)',
+                      background: 'transparent',
+                      transition: 'border 0.15s',
+                    }} />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{opt.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>{opt.sub}</div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>}
 
         {/* ── SECTION 4b: FEATURE MODULES ────────────────────────────────────── */}
         <div>

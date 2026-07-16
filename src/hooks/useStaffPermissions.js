@@ -8,7 +8,7 @@ function cacheKey(uid) { return `gv_staff_permissions_${uid}` }
 
 export function useStaffPermissions() {
   const { user } = useAuth()
-  const [permissions, setPermissions] = useState(null)
+  const [permissions, setPermissions] = useState({})
   const [gymId, setGymId]             = useState(null)
   const [gymName, setGymName]         = useState('')
   const [roleLabel, setRoleLabel]     = useState('')
