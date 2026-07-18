@@ -117,6 +117,7 @@ export default function App() {
             <Route path="/my-gym"                         element={<MyGym />} />
             <Route path="/my-trainer"                     element={<MyTrainer />} />
             <Route path="/client/chat"                    element={<ClientChatPage />} />
+            <Route path="/client/friends"                 element={<FriendsPage />} />
             <Route path="/chat"                           element={<Chat />} />
             <Route path="/settings"                       element={<Settings />} />
             <Route path="/xp"                             element={<XPProfile />} />
@@ -127,7 +128,6 @@ export default function App() {
             <Route path="/my-gym/orders/:orderId"            element={<SupplementOrderDetail />} />
             <Route path="/my-gym/feed"                       element={<GymFeedPage />} />
           </Route>
-            <Route path="/client/friends"                 element={<FriendsPage />} />
 
           {/* Member class browse & booking */}
           <Route path="/classes" element={<ProtectedRoute><Classes /></ProtectedRoute>} />

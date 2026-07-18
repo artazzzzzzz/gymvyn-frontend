@@ -166,13 +166,13 @@ const TRAINER_ITEMS = [
 ]
 
 const CONSUMER_ITEMS = [
+  { id: 'friends',     label: 'Friends',      sub: 'Requests and connections', path: '/client/friends', icon: <IconUsers /> },
   { id: 'community',   label: 'Community',    sub: 'Connect with others',    path: '/community',    icon: <IconCommunity /> },
   { id: 'formcoach',   label: 'Form Coach',   sub: 'AI-powered form check',  path: '/form-coach',   icon: <IconFormCoach /> },
   { id: 'chat',        label: 'Chat',         sub: 'Messages & support',     path: '/client/chat',  icon: <IconChat /> },
   { id: 'settings',    label: 'Settings',     sub: 'Account & app preferences', path: '/settings', icon: <IconSettings /> },
 ]
 
-  { id: 'friends',     label: 'Friends',      sub: 'Requests and connections', path: '/client/friends', icon: <IconUsers /> },
 // ── Component ─────────────────────────────────────────────────────────────────
 
 // Accepts both `isOpen` and `open` for backwards-compatibility with gym pages
