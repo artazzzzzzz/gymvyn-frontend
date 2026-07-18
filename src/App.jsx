@@ -56,6 +56,7 @@ import TrainerClients from './pages/TrainerClients'
 import TrainerChatPage from './pages/TrainerChatPage'
 import ClientChatPage from './pages/ClientChatPage'
 import TrainerSettings from './pages/TrainerSettings'
+import FriendsPage from './pages/FriendsPage'
 import TrainerDietBuilder from './pages/TrainerDietBuilder'
 import DirectDietPlanPage from './pages/trainer/DirectDietPlanPage'
 import TrainerAIDietPlanEditor from './pages/TrainerAIDietPlanEditor'
@@ -126,6 +127,7 @@ export default function App() {
             <Route path="/my-gym/orders/:orderId"            element={<SupplementOrderDetail />} />
             <Route path="/my-gym/feed"                       element={<GymFeedPage />} />
           </Route>
+            <Route path="/client/friends"                 element={<FriendsPage />} />
 
           {/* Member class browse & booking */}
           <Route path="/classes" element={<ProtectedRoute><Classes /></ProtectedRoute>} />

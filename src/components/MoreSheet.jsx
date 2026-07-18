@@ -172,6 +172,7 @@ const CONSUMER_ITEMS = [
   { id: 'settings',    label: 'Settings',     sub: 'Account & app preferences', path: '/settings', icon: <IconSettings /> },
 ]
 
+  { id: 'friends',     label: 'Friends',      sub: 'Requests and connections', path: '/client/friends', icon: <IconUsers /> },
 // ── Component ─────────────────────────────────────────────────────────────────
 
 // Accepts both `isOpen` and `open` for backwards-compatibility with gym pages

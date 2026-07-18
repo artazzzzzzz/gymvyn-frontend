@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
 import ChatWindow from './ChatWindow';
@@ -8,9 +8,13 @@ import { ListSkeleton, SkeletonBlock } from '../components/loading/Loading';
 export default function ClientChatPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const selectedConversationId = searchParams.get('conversationId');
+  const selectedConversationName = searchParams.get('name') || 'Chat';
   const [conversation, setConversation] = useState(null);
   const [trainerName, setTrainerName] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!selectedConversationId);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
@@ -18,12 +22,7 @@ export default function ClientChatPage() {
   const [contactsError, setContactsError] = useState(false);
   const [starting, setStarting] = useState(false);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    loadConversation();
-  }, [user?.id]);
-
-  const loadConversation = async () => {
+  async function loadConversation() {
     try {
       // Get client's trainer info
       const trainerInfo = await apiFetch(`/api/trainer/my-trainer/${user.id}`);
@@ -47,7 +46,12 @@ export default function ClientChatPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (!user?.id || selectedConversationId) return;
+    void loadConversation();
+  }, [user?.id, selectedConversationId]);
 
   const openPicker = async () => {
     setPickerOpen(true);
@@ -157,7 +161,10 @@ export default function ClientChatPage() {
     );
   }
 
-  if (!conversation) {
+  const displayedConversation = selectedConversationId ? { id: selectedConversationId } : conversation;
+  const displayedName = selectedConversationId ? selectedConversationName : trainerName;
+
+  if (!displayedConversation) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-8 text-center">
         <div className="mb-4 flex justify-center text-[var(--text-tertiary)]">
@@ -190,8 +197,8 @@ export default function ClientChatPage() {
     // viewport (h-screen pushes the input bar underneath the nav).
     <div style={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <ChatWindow
-        conversationId={conversation.id}
-        otherPersonName={trainerName}
+        conversationId={displayedConversation.id}
+        otherPersonName={displayedName}
         onBack={() => navigate('/my-trainer')}
         headerRight={(
           <button
