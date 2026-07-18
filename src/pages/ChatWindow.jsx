@@ -9,6 +9,7 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   useEffect(() => {
@@ -29,8 +30,9 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
       // server-side, so there's no separate mark-read call.
       const data = await apiFetch(`/api/chat/messages/${conversationId}`);
       setMessages(data || []);
+      setError('');
     } catch (err) {
-      console.error('Load messages error:', err);
+      setError(err.message || 'Could not load messages. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -76,11 +78,12 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
       });
       // Replace optimistic with real
       setMessages(prev => prev.map(m => m.id === optimistic.id ? { ...saved, sender: optimistic.sender } : m));
+      setError('');
     } catch (err) {
       // Remove optimistic on failure
       setMessages(prev => prev.filter(m => m.id !== optimistic.id));
       setText(content); // restore
-      console.error('Send error:', err);
+      setError(err.message || 'Could not send your message. Please try again.');
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -122,7 +125,7 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
     new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-primary)]">
+    <div className="flex min-h-0 flex-col h-full bg-[var(--bg-primary)]">
       {/* Chat header */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--border)] bg-[var(--bg-primary)]">
         {onBack && (
@@ -135,13 +138,18 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
         </div>
         <div>
           <p className="font-semibold text-sm">{otherPersonName || 'Chat'}</p>
-          <p className="text-[10px] text-[var(--success)]">Online</p>
         </div>
         {headerRight && <div className="ml-auto">{headerRight}</div>}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 space-y-1">
+        {error && (
+          <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2 text-xs text-[var(--text-secondary)]">
+            <span>{error}</span>
+            <button onClick={() => { setError(''); loadMessages(); }} className="font-semibold text-[var(--text-primary)]">Retry</button>
+          </div>
+        )}
         {loading ? (
           <MessageSkeletons />
         ) : messages.length === 0 ? (

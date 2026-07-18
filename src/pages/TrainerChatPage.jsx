@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
+import ChatWindow from './ChatWindow';
 import { ButtonSpinner, ListSkeleton, RefreshIndicator, SkeletonBlock } from '../components/loading/Loading';
 
 /* ─── palette ─── */
@@ -337,6 +338,30 @@ export default function TrainerChatPage() {
   }
 
   const clientName = getOtherPersonName(activeConvo);
+
+  // TrainerLayout owns a fixed 64px navigation bar. Keeping the shared chat
+  // inside the remaining dynamic viewport makes the composer visible above it
+  // and lets 100dvh shrink correctly when a mobile keyboard opens.
+  if (activeConvo) {
+    return (
+      <div style={{ height: 'calc(100dvh - 64px)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <ChatWindow
+          conversationId={activeConvo.id}
+          otherPersonName={clientName}
+          onBack={() => setActiveConvo(null)}
+          headerRight={(
+            <button
+              onClick={() => navigate(`/trainer/client/${activeConvo.other_user?.id}`)}
+              aria-label={`Open ${clientName}'s profile`}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.text, padding: 4 }}
+            >
+              <IcoMore />
+            </button>
+          )}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ height: '100vh', background: C.bg, display: 'flex', overflow: 'hidden', fontFamily: "'DM Sans', system-ui, sans-serif" }}>

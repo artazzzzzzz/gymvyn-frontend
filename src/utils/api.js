@@ -2,14 +2,22 @@ import { supabase } from './supabase';
 
 // Normalize the backend URL so a misconfigured env var (missing scheme, trailing
 // slash) cannot cause every API call to land on the Vercel SPA host and 405.
-function normalizeApiBase(raw) {
+export function normalizeApiBase(raw) {
   if (!raw) throw new Error('VITE_API_URL is not set');
   let url = String(raw).trim();
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
   return url.replace(/\/+$/, '');
 }
 
-const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_URL);
+// Production API traffic must not inherit a legacy API URL.
+// Vite's development env remains the source of truth locally, while production
+// has one canonical Railway origin. VITE_GYMVYN_API_URL is retained as an
+// explicit deployment override for a future non-production environment.
+export const PRODUCTION_API_URL = 'https://gymvyn-backend-production.up.railway.app';
+const configuredApiUrl = import.meta.env.PROD
+  ? (import.meta.env.VITE_GYMVYN_API_URL || PRODUCTION_API_URL)
+  : import.meta.env.VITE_API_URL;
+const BASE_URL = normalizeApiBase(configuredApiUrl);
 
 export async function apiFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
