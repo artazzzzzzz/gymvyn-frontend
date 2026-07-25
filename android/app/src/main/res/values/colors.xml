@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches public/manifest.json theme_color/background_color and
+         src/index.css's accent variable, keeping native chrome (status bar,
+         splash background) consistent with the web app's brand. -->
+    <color name="colorPrimary">#1A1613</color>
+    <color name="colorPrimaryDark">#1A1613</color>
+    <color name="colorAccent">#185FA5</color>
+</resources>
