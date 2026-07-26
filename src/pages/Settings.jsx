@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import { Check } from 'lucide-react'
 import { supabase } from '../utils/supabase'
 import { getAvatarColor, getInitials } from '../utils/avatarColor'
@@ -97,6 +98,7 @@ const SectionLabel = ({ children, color = "var(--text-tertiary)" }) => (
 export default function Settings() {
   const navigate = useNavigate()
   const { theme, setThemeMode } = useTheme()
+  const { role, effectiveRole, exitMemberMode } = useAuth()
 
   const [user, setUser] = useState(null)
   const [userId, setUserId] = useState(null)
@@ -397,7 +399,7 @@ export default function Settings() {
                   backgroundColor: 'var(--accent-bg)', color: 'var(--text-cta)',
                   fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, marginTop: 4,
                 }}>
-                  {user.role === 'trainer' ? 'Trainer' : user.gym_id ? 'Member' : 'Solo User'}
+                  {effectiveRole === 'trainer' ? 'Trainer' : user.gym_id ? 'Member' : 'Solo User'}
                 </span>
                 <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
                   Joined {formatMonthYear(user.created_at)}
@@ -671,6 +673,17 @@ export default function Settings() {
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Change Password</span>
                 <span style={{ fontSize: 16, color: "var(--text-tertiary)" }}>›</span>
               </div>
+
+              {/* Switch back to trainer — only visible to trainer accounts in member mode */}
+              {role === 'trainer' && (
+                <div
+                  onClick={() => { exitMemberMode(); navigate('/trainer/dashboard') }}
+                  style={rowStyle()}
+                >
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Switch back to Trainer Settings</span>
+                  <span style={{ fontSize: 16, color: 'var(--text-tertiary)' }}>›</span>
+                </div>
+              )}
 
               {/* Delete Account */}
               <div onClick={() => setShowDeleteSheet(true)} style={{ ...rowStyle({ borderBottom: 'none' }) }}>
