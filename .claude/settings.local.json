@@ -221,7 +221,22 @@
       "Bash(xargs sed -i '' 's/ff_role_/gv_role_/g')",
       "Bash(xargs sed -i '' 's/ff_staff_permissions_/gv_staff_permissions_/g')",
       "Bash(xargs sed -i '' 's/ff_theme/gv_theme/g')",
-      "Bash(xargs sed -i '' 's/ff-/gv-/g')"
+      "Bash(xargs sed -i '' 's/ff-/gv-/g')",
+      "Bash(pip3 show *)",
+      "Bash(corepack pnpm *)",
+      "Bash(find /Users/artazayaz/Desktop/gymvyn-frontend -maxdepth 2 -type f -not -path */node_modules/* -not -path */.git/* -not -path */dist/*)",
+      "Bash(PLUGIN_ROOT=/Users/artazayaz/.claude/plugins/cache/understand-anything/understand-anything/2.8.2 node /Users/artazayaz/.claude/plugins/cache/understand-anything/understand-anything/2.8.2/skills/understand/generate-ignore.mjs /Users/artazayaz/Desktop/gymvyn-frontend)",
+      "Bash(cd *)",
+      "Bash(PROJECT_ROOT=\"$PROJECT_ROOT\" node *)",
+      "Bash(node *)",
+      "Read(//Users/artazayaz/.claude/plugins/cache/understand-anything/understand-anything/2.8.2/**)",
+      "Bash(npx pnpm *)",
+      "Bash(GRAPH_DIR=/Users/artazayaz/Desktop/gymvyn-frontend npx vite --host 127.0.0.1)",
+      "Bash(disown)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "code-review-graph"
+  ]
 }

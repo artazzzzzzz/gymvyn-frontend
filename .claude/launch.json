@@ -5,7 +5,24 @@
       "name": "gymvyn",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5176
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "learn-it",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/Users/artazayaz/Desktop/learn-it/frontend",
+      "port": 5180,
+      "autoPort": true
+    },
+    {
+      "name": "gymvyn-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/Users/artazayaz/Desktop/gymvyn-admin",
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }
