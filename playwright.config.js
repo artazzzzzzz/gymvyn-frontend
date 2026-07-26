@@ -3,7 +3,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  testIgnore: ['**/helpers/**', '**/global-setup.js', '**/.auth/**'],
+  // *.test.js files in this same directory are the separate `node --test`
+  // suite (npm test) -- not Playwright specs. Without this, Playwright's
+  // default testMatch (**/*.@(spec|test).?(c|m)js) also picks them up and
+  // executes them as a side effect of collection.
+  testIgnore: ['**/helpers/**', '**/global-setup.js', '**/.auth/**', '**/*.test.js'],
   globalSetup: './tests/global-setup.js',
   fullyParallel: false,
   workers: 1,

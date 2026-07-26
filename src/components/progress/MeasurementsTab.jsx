@@ -7,7 +7,7 @@ import {
 } from 'recharts'
 import { supabase } from '../../utils/supabase'
 
-const API = import.meta.env.VITE_BACKEND_URL
+const API = import.meta.env.VITE_API_URL
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -227,7 +227,7 @@ function MeasurementSheet({ entry, onClose, onSave }) {
         }}>
           <div style={{
             position: 'absolute', top: 2, left: checked ? 18 : 2,
-            width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+            width: 16, height: 16, borderRadius: '50%', background: 'var(--bg-card)', transition: 'left 0.2s',
           }} />
         </div>
         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{label}</span>

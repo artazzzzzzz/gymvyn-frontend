@@ -12,14 +12,22 @@
     "test:dark-visual": "playwright test tests/dark-mode-visual.spec.js",
     "test:dark-runtime": "playwright test tests/dark-mode-runtime.spec.js",
     "test:dark-update": "playwright test tests/dark-mode-visual.spec.js --update-snapshots",
-    "test:dark": "npm run test:dark-runtime && npm run test:dark-visual"
+    "test:dark": "npm run test:dark-runtime && npm run test:dark-visual",
+    "test:e2e": "node scripts/run-e2e.cjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
+    "@capacitor/camera": "^8.2.1",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/ios": "^8.4.2",
+    "@capacitor/push-notifications": "^8.1.2",
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@mediapipe/pose": "^0.5.1675469404",
     "@supabase/supabase-js": "^2.104.0",
-    "graphify": "^1.0.0",
     "lucide-react": "^1.9.0",
     "papaparse": "^5.5.3",
     "qrcode.react": "^4.2.0",
@@ -29,6 +37,7 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4.2.4",
@@ -40,8 +49,10 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "graphify": "^1.0.0",
     "postcss": "^8.5.10",
     "tailwindcss": "^4.2.4",
+    "typescript": "^5.9.3",
     "vite": "^8.0.9"
   }
 }

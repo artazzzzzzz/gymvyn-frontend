@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gymvyn</string>
+    <string name="title_activity_main">Gymvyn</string>
+    <string name="package_name">com.gymvyn.app</string>
+    <string name="custom_url_scheme">com.gymvyn.app</string>
+</resources>

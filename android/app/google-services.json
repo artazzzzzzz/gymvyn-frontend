@@ -1,0 +1,29 @@
+{
+    "project_info": {
+        "project_number": "895079983329",
+        "project_id": "gymvyn-41c2d",
+        "storage_bucket": "gymvyn-41c2d.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:895079983329:android:da15d7f8b719dbbf1fefa0",
+                "android_client_info": {
+                    "package_name": "com.gymvyn.app"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyDQWQu2adGADPN908mAORt5elhJCc0pYe4"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}
