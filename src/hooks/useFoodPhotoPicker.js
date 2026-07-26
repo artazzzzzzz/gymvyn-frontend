@@ -1,4 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 const MAX_EDGE_PX = 1280;
 const JPEG_QUALITY = 0.85;
@@ -26,7 +28,46 @@ export function useFoodPhotoPicker() {
   const [photos, setPhotos] = useState([]); // array of { file: File, blob: Blob, preview: string }
   const inputRef = useRef(null);
 
+  const processFile = useCallback(async (file) => {
+    if (!file) return;
+    try {
+      const blob = await resizeImageClient(file);
+      const preview = URL.createObjectURL(blob);
+      setPhotos(prev => {
+        if (prev.length >= 3) return prev;
+        return [...prev, { file, blob, preview }];
+      });
+    } catch {
+      // ignore resize failures — skip this photo
+    }
+  }, []);
+
+  const addPhotoNative = useCallback(async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        quality: 90,
+      });
+      const blob = await (await fetch(photo.webPath)).blob();
+      const file = new File([blob], `photo.${photo.format || 'jpeg'}`, { type: blob.type || 'image/jpeg' });
+      await processFile(file);
+    } catch {
+      // user cancelled the native camera, or it's unavailable — no-op,
+      // matches the web input's cancel behavior (handleFiles never fires).
+    }
+  }, [processFile]);
+
+  const handleFiles = useCallback((e) => {
+    processFile(e.target.files?.[0]);
+  }, [processFile]);
+
   const addPhoto = useCallback(() => {
+    if (Capacitor.isNativePlatform()) {
+      addPhotoNative();
+      return;
+    }
+
     if (!inputRef.current) {
       const input = document.createElement('input');
       input.type = 'file';
@@ -39,26 +80,7 @@ export function useFoodPhotoPicker() {
     }
     inputRef.current.value = '';
     inputRef.current.click();
-  }, []);
-
-  async function handleFiles(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotos(prev => {
-      if (prev.length >= 3) return prev;
-      return prev; // will update after resize
-    });
-    try {
-      const blob = await resizeImageClient(file);
-      const preview = URL.createObjectURL(blob);
-      setPhotos(prev => {
-        if (prev.length >= 3) return prev;
-        return [...prev, { file, blob, preview }];
-      });
-    } catch {
-      // ignore resize failures — skip this photo
-    }
-  }
+  }, [addPhotoNative, handleFiles]);
 
   const removePhoto = useCallback((index) => {
     setPhotos(prev => {
