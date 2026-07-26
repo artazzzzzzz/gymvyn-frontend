@@ -160,6 +160,7 @@ const LOCKERS_ITEM = { id: 'lockers', label: 'Lockers', sub: 'Assign & manage lo
 const TRAINER_ITEMS = [
   { id: 'gym-feed',    label: 'Gym Feed',     sub: 'Posts & trainer tips',   path: '/trainer/feed',         icon: <IconFeed /> },
   { id: 'templates',   label: 'Templates',    sub: 'Workout plan library',   path: '/trainer/templates',    icon: <IconLayout /> },
+  { id: 'plans',       label: 'Gymvyn Plans', sub: 'Create and manage listings', path: '/trainer/plans', icon: <IconClipboard /> },
   { id: 'assign-plan',   label: 'Assign Plan',  sub: 'Send plan to client',    path: '/trainer/assign-plan',  icon: <IconClipboard /> },
   { id: 't-earnings',   label: 'Earnings',     sub: 'Your pay & session log', path: '/trainer/earnings',     icon: <IconWallet /> },
   { id: 't-settings',   label: 'Settings',     sub: 'Account & preferences',  path: '/trainer/settings',     icon: <IconSettings /> },
@@ -185,7 +186,7 @@ function badgeLabel(pending, lowStock) {
 
 export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTrainer = false, onOpenJoinGym, onOpenJoinTrainer }) {
   const navigate = useNavigate()
-  const { role } = useAuth()
+  const { effectiveRole } = useAuth()
 
   const visible = isOpen ?? open ?? false
 
@@ -194,7 +195,7 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
   const [lockersBadge, setLockersBadge] = useState(null)
 
   useEffect(() => {
-    if (!visible || role !== 'gym_owner') return
+    if (!visible || effectiveRole !== 'gym_owner') return
     async function fetchBadges() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -229,7 +230,7 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
       } catch { /* non-critical */ }
     }
     fetchBadges()
-  }, [visible, role])
+  }, [visible, effectiveRole])
 
   const gymItem = {
     id: 'my-gym',
@@ -281,8 +282,8 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
     : GYM_OWNER_BASE_ITEMS
 
   const items =
-    role === 'gym_owner' ? gymOwnerItems :
-    role === 'trainer'   ? TRAINER_ITEMS :
+    effectiveRole === 'gym_owner' ? gymOwnerItems :
+    effectiveRole === 'trainer'   ? TRAINER_ITEMS :
     [...consumerExtras, ...CONSUMER_ITEMS]
 
   useEffect(() => {

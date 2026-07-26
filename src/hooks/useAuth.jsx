@@ -11,13 +11,21 @@ export function AuthProvider({ children }) {
   const [loading, setLoading]               = useState(true)
   const [role, setRole]                     = useState(null)
   const [onboardingComplete, setOnboardingComplete] = useState(null)
+  const [viewMode, setViewMode]                     = useState(null)         // 'member' | null, session-only
+  const [memberDataComplete, setMemberDataComplete] = useState(null)         // null=unknown, true/false
   const checkedForUserId = useRef(null)
+
+  const effectiveRole   = viewMode === 'member' ? 'consumer' : role
+  const enterMemberMode = () => setViewMode('member')
+  const exitMemberMode  = () => setViewMode(null)
 
   async function checkOnboarding(userId) {
     if (!userId) {
       checkedForUserId.current = null
       setRole(null)
       setOnboardingComplete(null)
+      setMemberDataComplete(null)
+      setViewMode(null)
       return
     }
 
@@ -25,9 +33,10 @@ export function AuthProvider({ children }) {
     if (checkedForUserId.current === userId) return
 
     // Fast path: localStorage cache means token-refresh events are instant
+    // Trainers skip the fast path — need a fresh DB read to compute memberDataComplete
     const cachedDone = localStorage.getItem(lsOnboarding(userId))
     const cachedRole = localStorage.getItem(lsRole(userId))
-    if (cachedDone === 'true' && cachedRole) {
+    if (cachedDone === 'true' && cachedRole && cachedRole !== 'trainer') {
       checkedForUserId.current = userId
       setRole(cachedRole)
       setOnboardingComplete(true)
@@ -46,6 +55,7 @@ export function AuthProvider({ children }) {
 
       const userRole = data?.role ?? null
       setRole(userRole)
+      setMemberDataComplete(!!(data?.goal && data?.training_days))
 
       let done = false
       if (!userRole) {
@@ -91,6 +101,7 @@ export function AuthProvider({ children }) {
       // Timeout or network error — assume done to prevent redirect loop
       checkedForUserId.current = userId
       setOnboardingComplete(true)
+      setMemberDataComplete(true) // fail-open: don't gate member mode on network errors
     }
   }
 
@@ -156,6 +167,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user, loading, role, setRole, onboardingComplete, setOnboardingComplete,
       markOnboardingComplete, signIn, signUp, signOut,
+      viewMode, effectiveRole, memberDataComplete, setMemberDataComplete, enterMemberMode, exitMemberMode,
     }}>
       {children}
     </AuthContext.Provider>

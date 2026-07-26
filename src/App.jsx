@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import NativeAuthBridge from './components/NativeAuthBridge'
+import NativePushBridge from './components/NativePushBridge'
 import { AuthProvider } from './hooks/useAuth'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -55,12 +57,14 @@ import TrainerAssignPlan from './pages/TrainerAssignPlan'
 import TrainerClients from './pages/TrainerClients'
 import TrainerChatPage from './pages/TrainerChatPage'
 import ClientChatPage from './pages/ClientChatPage'
-import TrainerSettings from './pages/TrainerSettings'
 import FriendsPage from './pages/FriendsPage'
+import TrainerSettings from './pages/TrainerSettings'
 import TrainerDietBuilder from './pages/TrainerDietBuilder'
 import DirectDietPlanPage from './pages/trainer/DirectDietPlanPage'
 import TrainerAIDietPlanEditor from './pages/TrainerAIDietPlanEditor'
 import TrainerEarnings from './pages/trainer/TrainerEarnings'
+import TrainerPlansListings from './pages/trainer/TrainerPlansListings'
+import TrainerRoute from './components/TrainerRoute'
 import UserPlanBuilder from './pages/UserPlanBuilder'
 import Settings from './pages/Settings'
 import Chat from './pages/Chat'
@@ -94,6 +98,8 @@ export default function App() {
       <AuthProvider>
         <WorkoutSessionProvider>
         <XPToastProvider>
+        <NativeAuthBridge />
+        <NativePushBridge />
         <Routes>
           {/* Public */}
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -190,6 +196,7 @@ export default function App() {
             <Route path="/trainer/exercise/:name"   element={<ExerciseDetail />} />
             <Route path="/trainer/feed"             element={<TrainerGymFeedPage />} />
             <Route path="/trainer/earnings"         element={<TrainerEarnings />} />
+            <Route path="/trainer/plans"            element={<TrainerRoute><TrainerPlansListings /></TrainerRoute>} />
           </Route>
 
           {/* Staff routes */}

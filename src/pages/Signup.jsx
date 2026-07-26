@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 import { useAuth } from '../hooks/useAuth'
 import { OAUTH_PROVIDERS, startOAuth } from '../utils/authFlow'
 
@@ -208,6 +210,16 @@ export default function Signup() {
     setOauthLoading(provider)
     try {
       await startOAuth(provider)
+      // On native, startOAuth resolves once the in-app browser opens, not
+      // once it closes — clear the spinner if the user cancels/dismisses it
+      // without completing sign-in (a successful exchange navigates away
+      // before this can fire, so it's a no-op in that case).
+      if (Capacitor.isNativePlatform()) {
+        const sub = await Browser.addListener('browserFinished', () => {
+          setOauthLoading(null)
+          sub.remove()
+        })
+      }
     } catch (err) {
       setError(friendlyError(err?.message || 'Could not start sign up. Please try again.'))
       setOauthLoading(null)

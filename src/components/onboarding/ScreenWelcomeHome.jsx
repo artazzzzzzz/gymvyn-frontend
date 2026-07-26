@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function ScreenWelcomeHome() {
-  const { user, markOnboardingComplete } = useAuth()
+  const { user, markOnboardingComplete, setMemberDataComplete } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.email?.split('@')[0]
@@ -12,6 +13,10 @@ export default function ScreenWelcomeHome() {
 
   useEffect(() => {
     markOnboardingComplete()
+    if (location.state?.completionKey === 'member' && location.state?.returnTo) {
+      setMemberDataComplete(true) // data was just saved by ScreenProcessing; unblock ProtectedRoute
+      navigate(location.state.returnTo, { replace: true })
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

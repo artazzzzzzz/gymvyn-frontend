@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { AppLoader } from './loading/Loading'
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading, role, onboardingComplete } = useAuth()
+  const { user, loading, role, onboardingComplete, effectiveRole, memberDataComplete } = useAuth()
 
   if (loading) return <AppLoader />
 
@@ -23,6 +23,11 @@ export default function ProtectedRoute({ children }) {
     if (role === 'trainer')   return <Navigate to="/become-trainer"   replace />
     if (role === 'gym_owner') return <Navigate to="/gym-onboarding"   replace />
     return <Navigate to="/onboarding" replace />
+  }
+
+  // Trainer in member mode but member data (goal/training_days) not yet collected
+  if (effectiveRole === 'consumer' && role === 'trainer' && !memberDataComplete) {
+    return <Navigate to="/onboarding" state={{ returnTo: '/home', completionKey: 'member' }} replace />
   }
 
   return children

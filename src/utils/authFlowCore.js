@@ -1,4 +1,8 @@
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
+
 export const OAUTH_CALLBACK_PATH = '/auth/callback'
+export const NATIVE_OAUTH_CALLBACK_URL = 'gymvyn://auth/callback'
 export const OAUTH_PROVIDERS = {
   google: 'google',
   apple: 'apple',
@@ -8,6 +12,18 @@ export function getOAuthRedirectTo(origin = window.location.origin) {
   return `${String(origin).replace(/\/+$/, '')}${OAUTH_CALLBACK_PATH}`
 }
 
+// Deep-link equivalents of AuthCallback.jsx's window.location.search/hash
+// parsing, for the native flow where the callback arrives as a
+// gymvyn://auth/callback URL via appUrlOpen rather than a page navigation.
+export function getDeepLinkAuthError(url) {
+  const params = new URL(url).searchParams
+  return params.get('error_description') || params.get('error') || ''
+}
+
+export function getDeepLinkCode(url) {
+  return new URL(url).searchParams.get('code')
+}
+
 export async function startOAuth(provider, {
   client,
   origin = window.location.origin,
@@ -15,6 +31,19 @@ export async function startOAuth(provider, {
   if (!client) throw new Error('Supabase client is not available.')
   if (!Object.values(OAUTH_PROVIDERS).includes(provider)) {
     throw new Error('Unsupported sign-in provider.')
+  }
+
+  if (Capacitor.isNativePlatform()) {
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: NATIVE_OAUTH_CALLBACK_URL,
+        skipBrowserRedirect: true,
+      },
+    })
+    if (error) throw error
+    await Browser.open({ url: data.url })
+    return
   }
 
   const { error } = await client.auth.signInWithOAuth({

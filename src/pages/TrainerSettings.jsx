@@ -83,7 +83,7 @@ const SettingsRow = ({ icon, label, value, onPress, toggle, toggleValue, onToggl
 // ── Main component ──────────────────────────────────────────
 
 export default function TrainerSettings() {
-  const { user } = useAuth();
+  const { user, enterMemberMode, memberDataComplete } = useAuth();
   const navigate = useNavigate();
   const { theme, setThemeMode } = useTheme();
   const photoInputRef = useRef(null);
@@ -380,7 +380,14 @@ export default function TrainerSettings() {
         <SettingsRow
           icon="home"
           label="Switch to Member Mode"
-          onPress={() => navigate('/home')}
+          onPress={() => {
+            enterMemberMode()
+            if (!memberDataComplete) {
+              navigate('/onboarding', { state: { returnTo: '/home', completionKey: 'member' } })
+            } else {
+              navigate('/home')
+            }
+          }}
         />
         <SettingsRow
           icon="bell"
