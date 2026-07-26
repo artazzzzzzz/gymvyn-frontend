@@ -35,6 +35,7 @@ export default function TrainerAssignPlan() {
   const [customDuration, setCustomDuration] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
+  const [assignError, setAssignError] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [replacingPlanId, setReplacingPlanId] = useState(null);
 
@@ -108,31 +109,28 @@ export default function TrainerAssignPlan() {
   const filteredTemplates = templates.filter(t => t.type === planType);
 
   const handleAssign = async () => {
+    setAssigning(true);
+    setAssignError('');
     try {
-      setAssigning(true);
-      let ok = true;
-      try {
-        await apiFetch('/api/trainer/assign-plan', {
-          method: 'POST',
-          body: JSON.stringify({
-            trainer_id: user.id,
-            client_id: selectedClient.client_id,
-            template_id: selectedTemplate?.id || null,
-            type: planType,
-            name: selectedTemplate?.name || 'Custom Plan',
-            plan_data: selectedTemplate?.template_data || {},
-            starts_at: startDate.toISOString(),
-            ends_at: endDate.toISOString(),
-            notes: message,
-            replacing: replacingPlanId || null
-          })
-        });
-      } catch {
-        ok = false;
-      }
-      if (ok) setSuccess(true);
+      await apiFetch('/api/trainer/assign-plan', {
+        method: 'POST',
+        body: JSON.stringify({
+          trainerId: user.id,
+          clientId: selectedClient.client_id,
+          templateId: selectedTemplate?.id || null,
+          type: planType,
+          name: selectedTemplate?.name || 'Custom Plan',
+          planData: selectedTemplate?.template_data || {},
+          startsAt: startDate.toISOString(),
+          endsAt: endDate.toISOString(),
+          notes: message,
+          replacing: replacingPlanId || null
+        })
+      });
+      setSuccess(true);
     } catch (e) {
       console.error('Assign plan error:', e);
+      setAssignError(e.message || 'Failed to assign plan. Please try again.');
     } finally {
       setAssigning(false);
     }
@@ -482,6 +480,14 @@ export default function TrainerAssignPlan() {
         background: 'var(--bg-card)', borderTop: '0.5px solid var(--border)',
         padding: '12px 16px 28px'
       }}>
+        {assignError && (
+          <div style={{
+            background: 'var(--warning-bg)', border: '0.5px solid var(--warning)',
+            borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 12, color: 'var(--warning)'
+          }}>
+            {assignError}
+          </div>
+        )}
         {step < 3 ? (
           <button
             onClick={() => setStep(step + 1)}

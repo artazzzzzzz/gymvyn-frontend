@@ -142,13 +142,14 @@ export default function TrainerTemplateBuilder() {
       } else {
         await apiFetch('/api/trainer/templates', {
           method: 'POST',
-          body: JSON.stringify({ trainer_id: user.id, type: 'workout', name: name.trim(), description: description.trim(), tags, template_data: templateData })
+          body: JSON.stringify({ trainerId: user.id, type: 'workout', name: name.trim(), description: description.trim(), tags, templateData })
         });
       }
       navigate('/trainer/templates');
     } catch (err) {
-      alert('Failed to save template');
-      console.error(err);
+      const msg = err?.message || String(err) || 'Unknown error';
+      alert('Failed to save: ' + msg);
+      console.error('[handleSave] caught:', err);
     } finally {
       setSaving(false);
     }
