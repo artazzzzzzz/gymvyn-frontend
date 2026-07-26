@@ -5,7 +5,7 @@
  * TEST 2: No flash of unstyled content (FOUC) on dark first load
  * TEST 3: No hardcoded light backgrounds leaked into dark mode surfaces
  *         (SKIPPED — known issues in TrainerTemplates.jsx + DietSettingsSheet.jsx,
- *          see DARK_MODE_VISUAL_ISSUES.md for the full list)
+ *          see docs/DARK_MODE_VISUAL_ISSUES.md for the full list)
  */
 
 // @ts-check
@@ -21,13 +21,13 @@ test.describe('TEST 1 — theme toggle wiring', () => {
 
   // NOTE: NO addInitScript here — TEST 1 manages localStorage directly so that
   // the post-toggle reload can verify theme persistence. An addInitScript that
-  // sets ff_theme would re-run on reload and override the toggled value.
+  // sets gv_theme would re-run on reload and override the toggled value.
 
   test('toggling theme in Settings flips data-theme and persists across reload', async ({ page }) => {
     // Prime localStorage to light before first navigation (no init script so it
     // won't run again on reload).
     await page.goto('/settings');
-    await page.evaluate(() => localStorage.setItem('ff_theme', 'light'));
+    await page.evaluate(() => localStorage.setItem('gv_theme', 'light'));
     await page.reload();
     await page.waitForLoadState('networkidle').catch(() => {});
 
@@ -51,11 +51,11 @@ test.describe('TEST 1 — theme toggle wiring', () => {
     );
 
     // localStorage must reflect the change.
-    const stored = await page.evaluate(() => localStorage.getItem('ff_theme'));
+    const stored = await page.evaluate(() => localStorage.getItem('gv_theme'));
     expect(stored).toBe('dark');
 
     // Reload — theme must survive (pre-paint inline script in index.html reads
-    // ff_theme before React hydrates).
+    // gv_theme before React hydrates).
     await page.reload();
     await page.waitForLoadState('networkidle').catch(() => {});
     await page.waitForTimeout(200);
@@ -64,7 +64,7 @@ test.describe('TEST 1 — theme toggle wiring', () => {
     expect(dataTheme).toBe('dark');
 
     // Clean up — restore light so the auth cache stays neutral.
-    await page.evaluate(() => localStorage.setItem('ff_theme', 'light'));
+    await page.evaluate(() => localStorage.setItem('gv_theme', 'light'));
     await page.reload();
     await page.waitForLoadState('networkidle').catch(() => {});
     dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
@@ -81,7 +81,7 @@ test.describe('TEST 2 — no FOUC on dark first load', () => {
   test('--bg-primary resolves to dark value within first 100ms of navigation', async ({ page }) => {
     // Set dark theme in localStorage BEFORE the first navigation.
     await page.addInitScript(() => {
-      localStorage.setItem('ff_theme', 'dark');
+      localStorage.setItem('gv_theme', 'dark');
     });
 
     // Intercept the DOMContentLoaded event to read the CSS variable value
@@ -121,7 +121,7 @@ test.describe('TEST 2 — no FOUC on dark first load', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST 3 — No hardcoded light backgrounds in dark mode
-// SKIPPED — known issues exist. See DARK_MODE_VISUAL_ISSUES.md.
+// SKIPPED — known issues exist. See docs/DARK_MODE_VISUAL_ISSUES.md.
 // TODO: un-skip after cleaning up DietSettingsSheet, TrainerTemplates,
 //       TrainerTemplateBuilder, TrainerAssignPlan, LogStatsSheet.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -203,7 +203,7 @@ test.describe('TEST 3 — hardcoded light bg leak check', () => {
 
   test('consumer surfaces have no hardcoded light bg in dark mode', async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem('ff_theme', 'dark');
+      localStorage.setItem('gv_theme', 'dark');
     });
 
     const allLeaks = {};

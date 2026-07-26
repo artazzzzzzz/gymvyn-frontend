@@ -13,7 +13,7 @@ import LogStatsSheet from '../components/LogStatsSheet'
 import MeasurementsTab from '../components/progress/MeasurementsTab'
 
 
-const API = import.meta.env.VITE_BACKEND_URL
+const API = import.meta.env.VITE_API_URL
 
 const PAGE_TABS = [
   { id: 'weight',       label: 'Weight'       },
@@ -814,7 +814,7 @@ export default function Progress() {
     <div className="min-h-screen bg-[var(--bg-primary)] pb-24">
 
       {/* Fixed Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)]">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] pt-safe">
         <div className="h-14 flex items-center justify-between px-5">
           <span className="text-xl font-semibold text-[var(--text-primary)]">Progress</span>
           {activeTab === 'weight' && (

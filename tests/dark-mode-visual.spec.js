@@ -132,12 +132,12 @@ for (const theme of ['light', 'dark']) {
     test.describe(`${role.key} • ${theme} mode`, () => {
       test.use({ storageState: role.storageState });
 
-      // Set ff_theme in localStorage before every page navigation in this context.
+      // Set gv_theme in localStorage before every page navigation in this context.
       // This runs before the pre-paint inline script in index.html, ensuring
       // the correct theme is applied from first paint (no FOUC).
       test.beforeEach(async ({ page }) => {
         await page.addInitScript((t) => {
-          localStorage.setItem('ff_theme', t);
+          localStorage.setItem('gv_theme', t);
         }, theme);
       });
 

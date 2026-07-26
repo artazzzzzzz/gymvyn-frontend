@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
 import { ButtonSpinner } from '../components/loading/Loading'
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
+const BACKEND_URL = import.meta.env.VITE_API_URL
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
@@ -260,7 +260,7 @@ export default function Chat() {
       `}</style>
 
       {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5 pt-safe">
         <button onClick={() => navigate(-1)} className="text-sm font-medium text-[var(--text-tertiary)]">
           ← Back
         </button>

@@ -312,7 +312,7 @@ export default function Community() {
       )}
 
       {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5 pt-safe">
         <span className="text-xl font-semibold text-[var(--text-primary)]">Community</span>
         <button
           onClick={() => setShowCompose(true)}

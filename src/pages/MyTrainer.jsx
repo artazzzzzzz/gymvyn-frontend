@@ -152,7 +152,7 @@ export default function MyTrainer() {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
         <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5 pt-safe">
           <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
         </div>
         <div className="pt-[72px] px-5 space-y-5">
@@ -186,7 +186,7 @@ export default function MyTrainer() {
   if (loadError) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5 pt-safe">
           <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
         </div>
         <div className="pt-[72px] px-5 space-y-4">
@@ -218,7 +218,7 @@ export default function MyTrainer() {
   if (noTrainer) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] pb-36">
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5 pt-safe">
           <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
         </div>
         <div className="pt-[72px] px-5 space-y-4">
@@ -332,7 +332,7 @@ export default function MyTrainer() {
       <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
 
       {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5 gap-2">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5 gap-2 pt-safe">
         <span className="text-xl font-semibold text-[var(--text-primary)]">My Trainer</span>
         <div className="flex items-center gap-2">
           <button

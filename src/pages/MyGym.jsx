@@ -213,7 +213,7 @@ export default function MyGym() {
       .finally(() => setLoadingOcc(false))
   }
 
-  useEffect(() => { loadGym() }, [user])
+  useEffect(() => { loadGym() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function openQr() {
     if (!user?.id || !gymInfo?.gym?.id) return
@@ -266,7 +266,7 @@ export default function MyGym() {
       <style>{`@keyframes gv-pulse { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }`}</style>
 
       {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center justify-between px-5 pt-safe">
         <span className="text-xl font-semibold text-[var(--text-primary)]">My Gym</span>
         {gymInfo?.linked && (
           <div className="relative">
@@ -606,7 +606,7 @@ export default function MyGym() {
             style={{ textAlign: 'left' }}
           >
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: '#E1F5EE' }}>
+              style={{ background: 'var(--success-bg)' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                 stroke="var(--success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>

@@ -22,7 +22,7 @@ const CARD = {
 const RANK_BADGES = {
   1: { bg: 'var(--warning-bg)', border: 'var(--warning)', color: 'var(--warning)' },
   2: { bg: 'var(--bg-pill)', border: 'var(--border)', color: 'var(--text-secondary)' },
-  3: { bg: '#FAECE7', border: '#F0997B', color: '#993C1D' },
+  3: { bg: 'var(--error-bg)', border: 'var(--error)', color: 'var(--error)' },
 }
 
 function LevelPill({ level }) {

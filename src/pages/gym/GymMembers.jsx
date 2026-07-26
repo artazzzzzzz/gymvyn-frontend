@@ -238,7 +238,7 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = 'fitforge_members_sample.csv'; a.click()
+    a.href = url; a.download = 'gymvyn_members_sample.csv'; a.click()
     URL.revokeObjectURL(url)
   }
 

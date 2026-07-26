@@ -113,7 +113,7 @@ export default function TrainerGymFeedPage() {
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
           background: 'var(--bg-card)', borderBottom: '1px solid var(--border)',
-          height: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px',
+          height: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', paddingTop: 'env(safe-area-inset-top)',
         }}>
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', padding: 4 }}>
             <ArrowLeft size={20} />
@@ -134,7 +134,7 @@ export default function TrainerGymFeedPage() {
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         background: 'var(--bg-card)', borderBottom: '1px solid var(--border)',
-        height: 60, display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px',
+        height: 60, display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', paddingTop: 'env(safe-area-inset-top)',
       }}>
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', padding: 4 }}>
           <ArrowLeft size={20} />

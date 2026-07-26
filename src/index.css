@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* viewport-fit=cover (index.html) is required for these to resolve to
+   anything other than 0 — see PROJECT.md notes on native/notch handling. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 :root {
   --bg: #F7F7F5;
   --bg-primary: #F7F7F5;
@@ -7,6 +16,7 @@
   --bg-elevated: #FFFFFF;
   --bg-hover: #F1EFE8;
   --bg-input: #F1EFE8;
+  --bg-secondary: #F1EFE8;
   --bg-pill: #F1EFE8;
   --border: rgba(0, 0, 0, 0.08);
   --border-strong: rgba(0, 0, 0, 0.16);
@@ -60,6 +70,7 @@
   --bg-elevated: #2A2521;
   --bg-hover: #312B26;
   --bg-input: #2A2521;
+  --bg-secondary: #2A2521;
   --bg-pill: #2A2521;
   --border: #2F2925;
   --border-strong: #3D3631;
@@ -109,6 +120,13 @@
 html, body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
+}
+
+/* Some older inline surfaces still use translucent black borders. Keep those
+   dividers visible in dark mode while those screens are migrated to --border. */
+[data-theme="dark"] [style*="rgba(0,0,0"],
+[data-theme="dark"] [style*="rgba(0, 0, 0"] {
+  border-color: var(--border) !important;
 }
 
 .halo-decoration { display: none; }

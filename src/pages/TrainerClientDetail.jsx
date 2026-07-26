@@ -913,7 +913,7 @@ function DietTab({ data, clientId }) {
                 <button
                   onClick={handleRemovePlan}
                   disabled={removingPlan}
-                  style={{ height: 36, padding: '0 14px', border: '0.5px solid var(--border)', borderRadius: 8, background: 'transparent', fontSize: 13, cursor: 'pointer', color: '#D85A30', opacity: removingPlan ? 0.5 : 1 }}
+                  style={{ height: 36, padding: '0 14px', border: '0.5px solid var(--border)', borderRadius: 8, background: 'transparent', fontSize: 13, cursor: 'pointer', color: 'var(--error)', opacity: removingPlan ? 0.5 : 1 }}
                 >
                   {removingPlan ? '…' : 'Remove'}
                 </button>
@@ -963,13 +963,13 @@ function DietTab({ data, clientId }) {
 
             {/* pill labels */}
             <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#0C447C', background: 'var(--accent-bg)', borderRadius: 20, padding: '3px 10px' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-bg)', borderRadius: 20, padding: '3px 10px' }}>
                 Protein {avgProtein.toFixed(0)}g
               </span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#633806', background: 'var(--warning-bg)', borderRadius: 20, padding: '3px 10px' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--warning)', background: 'var(--warning-bg)', borderRadius: 20, padding: '3px 10px' }}>
                 Carbs {avgCarbs.toFixed(0)}g
               </span>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#712B13', background: '#FAECE7', borderRadius: 20, padding: '3px 10px' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--error)', background: 'var(--error-bg)', borderRadius: 20, padding: '3px 10px' }}>
                 Fat {avgFat.toFixed(0)}g
               </span>
             </div>

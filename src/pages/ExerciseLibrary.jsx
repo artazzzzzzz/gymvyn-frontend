@@ -127,7 +127,7 @@ export default function ExerciseLibrary() {
     <div className="min-h-screen bg-[var(--bg-primary)]">
 
       {/* Fixed Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-5 pt-safe">
         <button onClick={() => navigate(-1)} className="text-sm font-medium text-[var(--text-tertiary)]">← Back</button>
         <span className="absolute left-1/2 -translate-x-1/2 text-base font-medium text-[var(--text-primary)]">Exercise Library</span>
       </div>

@@ -133,7 +133,7 @@ export default function FriendsPage() {
   const actionButton = (label, key, handler, secondary = false) => <button disabled={!!actionKey} onClick={handler} className={`rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${secondary ? 'border border-[var(--border)] text-[var(--text-primary)]' : 'bg-[var(--text-primary)] text-[var(--bg-card)]'}`}>{busy(key) ? <ButtonSpinner size={12} /> : label}</button>
 
   return <div className="min-h-screen bg-[var(--bg-primary)] pb-24 text-[var(--text-primary)]">
-    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--bg-card)] px-5 py-4"><h1 className="text-xl font-semibold">Friends</h1><p className="mt-1 text-sm text-[var(--text-tertiary)]">Stay connected with people you know.</p></header>
+    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--bg-card)] px-5 py-4 pt-safe"><h1 className="text-xl font-semibold">Friends</h1><p className="mt-1 text-sm text-[var(--text-tertiary)]">Stay connected with people you know.</p></header>
     <main className="mx-auto max-w-2xl px-4 py-4">
       <div className="mb-4 grid grid-cols-3 rounded-xl bg-[var(--bg-pill)] p-1">
         {[['friends', 'Friends'], ['requests', 'Requests'], ['add', 'Add friend']].map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`rounded-lg px-2 py-2 text-sm ${tab === id ? 'bg-[var(--bg-card)] font-semibold text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'}`}>{label}</button>)}

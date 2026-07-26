@@ -156,7 +156,7 @@ export function GymCodeCard() {
       {showQR && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, paddingTop: 4 }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: 8, display: 'inline-flex' }}>
-            <QRCodeSVG value={code ? `fitforge:gym:${code}` : 'fitforge:gym'} size={112} bgColor="#ffffff" fgColor="#000000" />
+            <QRCodeSVG value={code ? `gymvyn:gym:${code}` : 'gymvyn:gym'} size={112} bgColor="#ffffff" fgColor="#000000" />
           </div>
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Scan to join</span>
         </div>

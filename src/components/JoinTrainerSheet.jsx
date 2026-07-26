@@ -236,7 +236,7 @@ export function JoinTrainerSheet({ open, onClose, onSuccess }) {
                       <button onClick={() => handleDecline(inv)} style={{ height: 30, padding: '0 12px', background: 'var(--bg-pill)', border: '1px solid var(--bg-pill)', borderRadius: 20, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>
                         Decline
                       </button>
-                      <button onClick={() => handleAccept(inv)} style={{ height: 30, padding: '0 14px', background: '#EAF3DE', border: '1px solid #EAF3DE', borderRadius: 20, color: 'var(--success)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => handleAccept(inv)} style={{ height: 30, padding: '0 14px', background: 'var(--success-bg)', border: '1px solid var(--success-bg)', borderRadius: 20, color: 'var(--success)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                         Accept
                       </button>
                     </div>

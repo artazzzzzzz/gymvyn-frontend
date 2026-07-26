@@ -101,7 +101,7 @@ export function TrainerJoinGymSheet({ open, onClose, onSuccess }) {
             </div>
           ) : status?.gym ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px 0' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#EAF3DE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--success-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>

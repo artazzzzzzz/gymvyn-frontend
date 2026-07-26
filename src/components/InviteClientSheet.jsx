@@ -81,7 +81,7 @@ export function InviteClientSheet({ open, onClose }) {
         <div style={{ padding: '0 24px' }}>
           {success ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '16px 0 4px' }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#EAF3DE', border: '1.5px solid var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--success-bg)', border: '1.5px solid var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>

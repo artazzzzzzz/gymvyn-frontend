@@ -107,7 +107,7 @@ function StaffMoreSheet({ open, onClose, overflowTabs }) {
         borderRadius: '22px 22px 0 0',
         transform: open ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 0.3s ease-out',
-        paddingBottom: 32,
+        paddingBottom: 'calc(32px + env(safe-area-inset-bottom))',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}>
         {/* Handle */}
@@ -221,6 +221,7 @@ export default function StaffBottomNav({ permissions }) {
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         height: 64,
+        paddingBottom: 'env(safe-area-inset-bottom)',
         backgroundColor: 'var(--bg-elevated)',
         borderTop: '1px solid var(--border)',
         display: 'grid',

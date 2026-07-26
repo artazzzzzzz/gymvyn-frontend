@@ -59,7 +59,7 @@ function RestTimerBar({ restTimer, restDuration, onSkip, onChangeDuration }) {
 
   return (
     <div className={[
-      'fixed top-0 inset-x-0 z-40 bg-gray-900 border-b border-white/[0.08] transition-transform duration-200',
+      'fixed top-0 inset-x-0 z-40 bg-gray-900 border-b border-white/[0.08] transition-transform duration-200 pt-safe',
       active ? 'translate-y-0' : '-translate-y-full',
     ].join(' ')}>
       <div className="max-w-lg mx-auto px-5 pt-3 pb-3 space-y-2">

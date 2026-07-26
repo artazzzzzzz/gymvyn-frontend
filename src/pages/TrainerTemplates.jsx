@@ -210,7 +210,7 @@ export default function TrainerTemplates() {
                     {template.fat_g ? ` · F:${template.fat_g}g` : ''}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 12 }}>Created {created}</div>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                     <button
                       onClick={() => navigate(`/trainer/diet-templates/${template.id}/edit`)}
                       style={{ flex: 1, height: 34, border: '0.5px solid var(--border)', borderRadius: 8, background: 'transparent', fontSize: 13, fontWeight: 500, cursor: 'pointer', color: 'var(--text-primary)' }}
@@ -257,7 +257,7 @@ export default function TrainerTemplates() {
                 <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 0 }}>
                   Assigned {template.times_assigned || 0}× · Last used {lastUsed}
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12, marginBottom: 8 }}>
                   <button
                     onClick={() => navigate(`/trainer/templates/${template.id}/edit`)}
                     style={{ flex: 1, height: 36, border: '0.5px solid var(--border)', borderRadius: 8, background: 'transparent', fontSize: 13, fontWeight: 500, cursor: 'pointer', color: 'var(--text-primary)' }}

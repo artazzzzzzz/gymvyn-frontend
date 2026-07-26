@@ -174,7 +174,7 @@ export default function SupplementCatalog() {
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         background: "var(--bg-card)", borderBottom: '1px solid var(--border)',
-        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', paddingTop: 'env(safe-area-inset-top)',
       }}>
         <button onClick={() => navigate('/my-gym')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
           <ChevronLeft size={22} color="var(--text-primary)" />

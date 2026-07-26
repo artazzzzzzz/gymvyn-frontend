@@ -348,7 +348,7 @@ export default function WorkoutSummary() {
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)',
-        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 'env(safe-area-inset-top)',
       }}>
         {!fromPostWorkout && (
           <button

@@ -35,7 +35,7 @@ export default function ConsumerLayout() {
     setHasGym(!!gym?.linked)
     setGymId(gym?.gym?.id || null)
     setHasTrainer(!!t?.trainer_id)
-  }, [user])
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchLinks()

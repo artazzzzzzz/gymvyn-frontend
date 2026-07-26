@@ -678,7 +678,7 @@ export default function GymTrainers() {
                         <button
                           onClick={() => handleAcceptRequest(req)}
                           disabled={busy}
-                          style={{ height: 30, padding: '0 14px', background: '#EAF3DE', border: '1px solid #EAF3DE', borderRadius: 20, color: 'var(--success)', fontSize: 13, fontWeight: 600, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}
+                          style={{ height: 30, padding: '0 14px', background: 'var(--success-bg)', border: '1px solid var(--success-bg)', borderRadius: 20, color: 'var(--success)', fontSize: 13, fontWeight: 600, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}
                         >Accept</button>
                       </div>
                     </div>

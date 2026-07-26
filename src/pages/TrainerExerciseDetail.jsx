@@ -188,7 +188,7 @@ export default function TrainerExerciseDetail() {
       )}
 
       {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-[var(--bg-pill)] flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+      <div className="sticky top-0 z-10 bg-[var(--bg-pill)] flex items-center justify-between px-4 py-3 border-b border-[var(--border)] pt-safe">
         <button onClick={() => navigate(-1)} className="p-1 -ml-1">
           <ChevronLeft size={24} strokeWidth={2} className="text-[var(--text-primary)]" />
         </button>

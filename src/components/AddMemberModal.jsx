@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 import {
   X, Loader2, Check, AlertCircle, Info, UserPlus, Share2,
   Copy, MessageCircle, Calendar, Phone, IndianRupee,
@@ -179,8 +181,12 @@ export default function AddMemberModal({
     }
   }
 
-  function shareViaWhatsApp() {
+  async function shareViaWhatsApp() {
     const url = `https://wa.me/?text=${encodeURIComponent(inviteMessage)}`
+    if (Capacitor.isNativePlatform()) {
+      await Browser.open({ url })
+      return
+    }
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
@@ -541,7 +547,7 @@ function InviteTab({ gymName, joinCode, inviteMessage, copied, copyToClipboard, 
       <div className="bg-[var(--bg-card)]/[0.03] border border-white/[0.06] rounded-2xl p-5 flex flex-col items-center">
         <div className="bg-[var(--bg-card)] p-2.5 rounded-xl">
           <QRCodeSVG
-            value={code || 'fitforge'}
+            value={code || 'gymvyn'}
             size={148}
             level="M"
             includeMargin={false}

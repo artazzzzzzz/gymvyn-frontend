@@ -102,7 +102,7 @@ export default function SupplementOrderDetail() {
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         background: "var(--bg-card)", borderBottom: '1px solid rgba(0,0,0,0.06)',
-        height: 56, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12,
+        height: 56, display: 'flex', alignItems: 'center', padding: '0 16px', paddingTop: 'env(safe-area-inset-top)', gap: 12,
       }}>
         <button onClick={() => navigate('/my-gym/orders')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}>
           <ChevronLeft size={22} color="var(--text-primary)" />
