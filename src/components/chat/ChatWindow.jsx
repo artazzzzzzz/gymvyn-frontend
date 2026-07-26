@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 import { ChevronLeft, SendHorizontal } from 'lucide-react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../hooks/useAuth'
@@ -66,7 +67,6 @@ export default function ChatWindow({ conversationId, otherUser, onBack }) {
 
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
-  const channelRef = useRef(null)
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
     bottomRef.current?.scrollIntoView({ behavior })
@@ -88,7 +88,42 @@ export default function ChatWindow({ conversationId, otherUser, onBack }) {
       })
       .catch(() => setLoading(false))
 
-    // Realtime: INSERT on messages filtered by this conversation
+    async function refetchMessages() {
+      try {
+        const data = await chatFetch(`/api/chat/messages/${conversationId}`)
+        setMessages(prev => {
+          if (!data || data.length <= prev.length) return prev
+          scrollToBottom()
+          return data
+        })
+      } catch {}
+    }
+
+    // Native (Capacitor WebView) only: poll instead of Supabase realtime.
+    // On cold start / app-resume, the native WebView's WebSocket layer can
+    // still be spinning up when the Realtime client tries to join, which
+    // throws "tried to push ... before joining" (a documented Capacitor/
+    // WKWebView timing issue, not something we've seen on plain web — see
+    // GAPS.md). A push notification for this conversation (NativePushBridge)
+    // triggers an immediate refetch below instead of waiting for the next
+    // tick — polling stays as the fallback when push isn't available/denied.
+    if (Capacitor.isNativePlatform()) {
+      const interval = setInterval(refetchMessages, 3000)
+
+      function onPushReceived(e) {
+        if (e.detail?.data?.type === 'chat_message' && e.detail.data.conversationId === conversationId) {
+          refetchMessages()
+        }
+      }
+      window.addEventListener('gv:push-received', onPushReceived)
+
+      return () => {
+        clearInterval(interval)
+        window.removeEventListener('gv:push-received', onPushReceived)
+      }
+    }
+
+    // Web: Supabase realtime — INSERT on messages filtered by this conversation.
     const channel = supabase
       .channel(`chat:${conversationId}`)
       .on(
@@ -110,8 +145,6 @@ export default function ChatWindow({ conversationId, otherUser, onBack }) {
         }
       )
       .subscribe()
-
-    channelRef.current = channel
 
     return () => {
       supabase.removeChannel(channel)

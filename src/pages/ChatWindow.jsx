@@ -16,7 +16,22 @@ export default function ChatWindow({ conversationId, otherPersonName, onBack, he
     if (!conversationId || !user?.id) return;
     loadMessages();
     const cleanup = subscribeRealtime();
-    return cleanup;
+
+    // A push notification for this conversation (see NativePushBridge)
+    // triggers an immediate reload instead of waiting for the next poll
+    // tick — polling above stays as the fallback when push isn't
+    // available/denied.
+    function onPushReceived(e) {
+      if (e.detail?.data?.type === 'chat_message' && e.detail.data.conversationId === conversationId) {
+        loadMessages();
+      }
+    }
+    window.addEventListener('gv:push-received', onPushReceived);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('gv:push-received', onPushReceived);
+    };
   }, [conversationId, user?.id]);
 
   // Auto-scroll on new messages

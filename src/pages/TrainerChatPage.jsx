@@ -162,7 +162,20 @@ export default function TrainerChatPage() {
     if (!user?.id) return;
     loadConversations();
     const interval = setInterval(loadConversations, 5000);
-    return () => clearInterval(interval);
+
+    // A push notification for any conversation (see NativePushBridge)
+    // triggers an immediate list reload instead of waiting for the next
+    // poll tick — polling above stays as the fallback when push isn't
+    // available/denied.
+    function onPushReceived(e) {
+      if (e.detail?.data?.type === 'chat_message') loadConversations();
+    }
+    window.addEventListener('gv:push-received', onPushReceived);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('gv:push-received', onPushReceived);
+    };
   }, [user?.id]);
 
   useEffect(() => {

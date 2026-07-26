@@ -420,6 +420,21 @@ export default function Classes() {
     }
   }, [gymId, selectedDate, loadClasses, loadBookings])
 
+  // A booking-confirmed/promoted push (see NativePushBridge) means this
+  // screen's state is stale — reload both bookings and the visible class
+  // list (capacity/waitlist counts may have shifted) rather than waiting
+  // for the user to navigate away and back.
+  useEffect(() => {
+    function onPushReceived(e) {
+      const type = e.detail?.data?.type
+      if (type !== 'class_booking_confirmed' && type !== 'class_booking_promoted') return
+      loadBookings()
+      if (gymId) loadClasses(gymId, selectedDate)
+    }
+    window.addEventListener('gv:push-received', onPushReceived)
+    return () => window.removeEventListener('gv:push-received', onPushReceived)
+  }, [gymId, selectedDate, loadClasses, loadBookings])
+
   function openClassSheet(cls) {
     const booking = bookingByClass[cls.id]
     setSheet({ cls, booking, state: classState(cls, booking) })
@@ -504,7 +519,7 @@ export default function Classes() {
       <Toast message={toast} />
 
       {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-3">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-b border-[var(--border)] h-14 flex items-center px-3 pt-safe">
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl flex items-center justify-center">
           <ChevronLeft size={22} color="var(--text-primary)" />
         </button>
