@@ -9,15 +9,9 @@ export function normalizeApiBase(raw) {
   return url.replace(/\/+$/, '');
 }
 
-// Production API traffic must not inherit a legacy API URL.
-// Vite's development env remains the source of truth locally, while production
-// has one canonical Railway origin. VITE_GYMVYN_API_URL is retained as an
-// explicit deployment override for a future non-production environment.
-export const PRODUCTION_API_URL = 'https://gymvyn-backend-production.up.railway.app';
-const configuredApiUrl = import.meta.env.PROD
-  ? (import.meta.env.VITE_GYMVYN_API_URL || PRODUCTION_API_URL)
-  : import.meta.env.VITE_API_URL;
-const BASE_URL = normalizeApiBase(configuredApiUrl);
+// VITE_API_URL is the single canonical backend origin var across the app —
+// every environment (Vercel web build, native Capacitor build) must set it.
+const BASE_URL = normalizeApiBase(import.meta.env.VITE_API_URL);
 
 export async function apiFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -33,6 +27,28 @@ export async function apiFetch(path, options = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || data.message || `API error ${res.status}`);
   return data;
+}
+
+// ── Gymvyn Plans (trainer seller tooling only) ───────────────────────────────
+
+export function getTrainerPlansListings() {
+  return apiFetch('/api/plans/trainer/listings');
+}
+
+export function createPlansListing(payload) {
+  return apiFetch('/api/plans/trainer/listings', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export function updatePlansListing(listingId, payload) {
+  return apiFetch(`/api/plans/trainer/listings/${listingId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+}
+
+export function publishPlansListing(listingId) {
+  return apiFetch(`/api/plans/trainer/listings/${listingId}/publish`, { method: 'POST' });
+}
+
+export function unpublishPlansListing(listingId) {
+  return apiFetch(`/api/plans/trainer/listings/${listingId}/unpublish`, { method: 'POST' });
 }
 
 // ── Gym owner ────────────────────────────────────────────────────────────────
@@ -514,6 +530,17 @@ export const getMacros = (userId) =>
 export const searchFood = (query) =>
   dietRequest(`/api/food-search?q=${encodeURIComponent(query)}`);
 
+export const getFoodbaseFood = (foodId) =>
+  dietRequest(`/api/nutrition/foods/${encodeURIComponent(foodId)}`);
+
+export const previewMealNutrition = (ingredients) =>
+  dietRequest('/api/nutrition/meal-preview', { method: 'POST', body: { ingredients } });
+
+export const getNutritionRecipes = () => dietRequest('/api/nutrition/recipes');
+
+export const saveNutritionRecipe = (recipe) =>
+  dietRequest('/api/nutrition/recipes', { method: 'POST', body: recipe });
+
 export async function getFoodByBarcode(barcode) {
   const cleanBarcode = String(barcode || '').replace(/\D/g, '');
   const { data: { session } } = await supabase.auth.getSession();
@@ -602,6 +629,14 @@ export const deleteCustomMeal = (mealId) =>
 // PostgREST schema-cache error on workout_logs.exercises (JSONB column).
 export const finishWorkout = (data) =>
   apiFetch('/api/workout/finish', { method: 'POST', body: JSON.stringify(data) });
+
+// ── Push notifications ───────────────────────────────────────────────────────
+
+export const registerDeviceToken = (platform, token) =>
+  apiFetch('/api/device-tokens', { method: 'POST', body: JSON.stringify({ platform, token }) });
+
+export const unregisterDeviceToken = (token) =>
+  apiFetch('/api/device-tokens', { method: 'DELETE', body: JSON.stringify({ token }) });
 
 // ── XP / Gamification ────────────────────────────────────────────────────────
 
