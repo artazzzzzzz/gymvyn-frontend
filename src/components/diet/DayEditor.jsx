@@ -68,10 +68,10 @@ export default function DayEditor({ day, dayNumber, detailLevel, onChange, defau
             fat={day.fat_g ?? defaultMacros?.fat ?? ''}
             onChange={v => onChange({
               ...day,
-              calories_target: v.calories || null,
-              protein_g: v.protein || null,
-              carbs_g: v.carbs || null,
-              fat_g: v.fat || null,
+              calories_target: v.calories === '' ? null : v.calories,
+              protein_g: v.protein === '' ? null : v.protein,
+              carbs_g: v.carbs === '' ? null : v.carbs,
+              fat_g: v.fat === '' ? null : v.fat,
             })}
           />
         </div>
@@ -103,7 +103,7 @@ export default function DayEditor({ day, dayNumber, detailLevel, onChange, defau
               meal={meal}
               onChange={updated => updateMeal(idx, updated)}
               onDelete={() => deleteMeal(idx)}
-              showFoods={detailLevel === 'full'}
+              showFoods={detailLevel !== 'macros'}
             />
           ))}
           <button

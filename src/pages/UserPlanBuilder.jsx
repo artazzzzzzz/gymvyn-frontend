@@ -156,7 +156,7 @@ export default function UserPlanBuilder() {
         position: 'fixed', top: 0, left: 0, right: 0, height: 52,
         background: "var(--bg-card)", borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', zIndex: 50
+        padding: '0 16px', paddingTop: 'env(safe-area-inset-top)', zIndex: 50
       }}>
         <button
           onClick={() => navigate(-1)}

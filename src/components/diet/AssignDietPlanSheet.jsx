@@ -238,13 +238,13 @@ export default function AssignDietPlanSheet({ isOpen, onClose, template, onAssig
           />
 
           {error && (
-            <p style={{ fontSize: 13, color: '#D85A30', marginBottom: 10 }}>{error}</p>
+            <p style={{ fontSize: 13, color: 'var(--error)', marginBottom: 10 }}>{error}</p>
           )}
 
           {toast && (
             <div style={{
-              background: '#E8F5E9', borderRadius: 10, padding: '10px 14px',
-              fontSize: 13, color: '#1D9E75', fontWeight: 500, marginBottom: 10, textAlign: 'center',
+              background: 'var(--success-bg)', borderRadius: 10, padding: '10px 14px',
+              fontSize: 13, color: 'var(--success)', fontWeight: 500, marginBottom: 10, textAlign: 'center',
             }}>
               {toast}
             </div>

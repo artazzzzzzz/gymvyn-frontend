@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DayEditor from '../DayEditor';
+import { validateNutritionTarget } from '../../../utils/nutritionTargetValidator';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -13,6 +14,13 @@ export default function StepDays({ data, onChange, onNext, onBack }) {
   };
 
   const handleNext = () => {
+    const invalidDay = data.days.find(day => !validateNutritionTarget({
+      calories: day.calories_target, protein: day.protein_g, carbs: day.carbs_g, fat: day.fat_g,
+    }).valid);
+    if (invalidDay) {
+      setError(`Day ${invalidDay.day_number} has an inconsistent nutrition target. Adjust calories or macros before continuing.`);
+      return;
+    }
     if (data.detail_level !== 'macros') {
       const hasMeal = data.days.some(d => (d.meals || []).length > 0);
       if (!hasMeal) {

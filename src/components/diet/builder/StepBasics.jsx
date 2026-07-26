@@ -1,32 +1,36 @@
 import { Target, Utensils, List } from 'lucide-react';
 import MacroInputRow from '../MacroInputRow';
+import { validateNutritionTarget } from '../../../utils/nutritionTargetValidator';
 
 const DETAIL_LEVELS = [
   {
     value: 'macros',
     icon: Target,
-    title: 'Macro Targets',
-    sub: 'Daily protein, carbs, and fat targets only',
-    best: 'Flexible eating — client hits numbers their way',
+    title: 'Nutrition summary',
+    sub: 'A flexible daily target range for planning',
+    best: 'Members choose how to build meals within their own context',
   },
   {
     value: 'meals',
     icon: Utensils,
     title: 'Meal Plan',
-    sub: 'Meal-by-meal breakdown with macros per meal',
-    best: 'Structured eating — client knows what to eat when',
+    sub: 'Planned meals built from Foodbase ingredients',
+    best: 'A practical starting point that can be adjusted with guidance',
   },
   {
     value: 'full',
     icon: List,
-    title: 'Full Plan',
-    sub: 'Specific foods with exact quantities per meal',
-    best: 'Precise dieting — every gram accounted for',
+    title: 'Recipe details',
+    sub: 'Foodbase ingredients, servings, and preparation notes',
+    best: 'Useful when ingredient context matters',
   },
 ];
 
 export default function StepBasics({ data, onChange, onNext }) {
-  const canNext = data.name.trim() && data.detail_level;
+  const targetValidation = validateNutritionTarget({
+    calories: data.calories_target, protein: data.protein_g, carbs: data.carbs_g, fat: data.fat_g,
+  });
+  const canNext = data.name.trim() && data.detail_level && targetValidation.valid;
 
   return (
     <div>
@@ -38,7 +42,7 @@ export default function StepBasics({ data, onChange, onNext }) {
       <div style={{ marginBottom: 16 }}>
         <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 6px' }}>Template name *</p>
         <input
-          placeholder="e.g. Cut Phase Week 1"
+          placeholder="e.g. Weekday meal ideas"
           value={data.name}
           onChange={e => onChange({ ...data, name: e.target.value })}
           style={{
@@ -72,7 +76,7 @@ export default function StepBasics({ data, onChange, onNext }) {
 
       {/* Detail level */}
       <div style={{ marginBottom: 20 }}>
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 10px' }}>Detail level *</p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 10px' }}>Plan detail *</p>
         {DETAIL_LEVELS.map(({ value, icon: Icon, title, sub, best }) => {
           const selected = data.detail_level === value;
           return (
@@ -106,7 +110,7 @@ export default function StepBasics({ data, onChange, onNext }) {
 
       {/* Macro targets */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 10px' }}>Daily macro targets</p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 10px' }}>Optional daily target range</p>
         <MacroInputRow
           calories={data.calories_target}
           protein={data.protein_g}

@@ -1,12 +1,8 @@
 import { useState } from 'react';
-import { Trash2, Plus, ChevronDown } from 'lucide-react';
-import MacroInputRow from './MacroInputRow';
+import { Trash2, ChevronDown } from 'lucide-react';
+import MealBuilder from './MealBuilder';
 
 const MEAL_PRESETS = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Pre-workout', 'Post-workout', 'Custom'];
-
-function newFood() {
-  return { id: crypto.randomUUID(), food_name: '', quantity_g: '', calories: '', protein_g: '', carbs_g: '', fat_g: '' };
-}
 
 const inputStyle = {
   background: 'var(--bg-elevated)',
@@ -35,19 +31,15 @@ export default function MealRow({ meal, onChange, onDelete, showFoods }) {
     }
   };
 
-  const addFood = () => {
-    onChange({ ...meal, foods: [...(meal.foods || []), newFood()] });
-  };
-
-  const updateFood = (foodId, field, val) => {
-    onChange({
-      ...meal,
-      foods: meal.foods.map(f => f.id === foodId ? { ...f, [field]: val } : f),
-    });
-  };
-
-  const deleteFood = (foodId) => {
-    onChange({ ...meal, foods: meal.foods.filter(f => f.id !== foodId) });
+  const updateFoods = (foods) => {
+    const totals = foods.reduce((sum, food) => ({
+      calories: sum.calories + (Number(food.calories) || 0),
+      protein_g: sum.protein_g + (Number(food.protein_g) || 0),
+      carbs_g: sum.carbs_g + (Number(food.carbs_g) || 0),
+      fat_g: sum.fat_g + (Number(food.fat_g) || 0),
+      fiber_g: sum.fiber_g + (Number(food.fiber_g) || 0),
+    }), { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 });
+    onChange({ ...meal, foods, ...totals });
   };
 
   return (
@@ -74,7 +66,7 @@ export default function MealRow({ meal, onChange, onDelete, showFoods }) {
         </span>
         <button
           onClick={e => { e.stopPropagation(); onDelete(); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#D85A30' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)' }}
         >
           <Trash2 size={14} />
         </button>
@@ -116,20 +108,11 @@ export default function MealRow({ meal, onChange, onDelete, showFoods }) {
             />
           )}
 
-          {/* Meal macros */}
-          <div style={{ marginBottom: 8 }}>
-            <MacroInputRow
-              calories={meal.calories}
-              protein={meal.protein_g}
-              carbs={meal.carbs_g}
-              fat={meal.fat_g}
-              onChange={v => onChange({ ...meal, calories: v.calories, protein_g: v.protein, carbs_g: v.carbs, fat_g: v.fat })}
-            />
-          </div>
+          <p style={{ margin: '2px 0 10px', fontSize: 12, color: 'var(--text-secondary)' }}>Nutrition is calculated from the Foodbase ingredients below.</p>
 
           {/* Notes */}
           <input
-            placeholder="Notes…"
+            placeholder="Notes for this planned meal…"
             value={meal.notes || ''}
             onChange={e => update('notes', e.target.value)}
             style={{ ...inputStyle, marginBottom: showFoods ? 10 : 0 }}
@@ -138,68 +121,7 @@ export default function MealRow({ meal, onChange, onDelete, showFoods }) {
           {/* Foods (full detail level only) */}
           {showFoods && (
             <div>
-              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Foods
-              </p>
-              {(meal.foods || []).map(food => (
-                <div key={food.id} style={{ marginBottom: 8, background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 8, padding: 10 }}>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                    <input
-                      placeholder="Food name"
-                      value={food.food_name}
-                      onChange={e => updateFood(food.id, 'food_name', e.target.value)}
-                      style={{ ...inputStyle, flex: 2 }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <input
-                        inputMode="numeric"
-                        type="number"
-                        placeholder="g"
-                        value={food.quantity_g || ''}
-                        onChange={e => updateFood(food.id, 'quantity_g', e.target.value)}
-                        style={inputStyle}
-                      />
-                    </div>
-                    <button
-                      onClick={() => deleteFood(food.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D85A30', padding: '0 4px', flexShrink: 0 }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 4 }}>
-                    {[
-                      { key: 'calories',  label: 'Cal' },
-                      { key: 'protein_g', label: 'P (g)' },
-                      { key: 'carbs_g',   label: 'C (g)' },
-                      { key: 'fat_g',     label: 'F (g)' },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <p style={{ fontSize: 9, color: 'var(--text-tertiary)', margin: '0 0 2px 2px' }}>{label}</p>
-                        <input
-                          inputMode="numeric"
-                          type="number"
-                          placeholder="0"
-                          value={food[key] || ''}
-                          onChange={e => updateFood(food.id, key, e.target.value)}
-                          style={{ ...inputStyle, padding: '6px 8px', fontSize: 12, textAlign: 'center' }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <button
-                onClick={addFood}
-                style={{
-                  width: '100%', padding: '8px', borderRadius: 8,
-                  border: '1px dashed var(--border)', background: 'none',
-                  color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-                }}
-              >
-                <Plus size={13} /> Add Food
-              </button>
+              <MealBuilder foods={meal.foods || []} onChange={updateFoods} />
             </div>
           )}
         </div>

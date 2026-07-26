@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabase';
 import StepBasics from '../components/diet/builder/StepBasics';
 import StepDays   from '../components/diet/builder/StepDays';
 import StepReview from '../components/diet/builder/StepReview';
+import { validateNutritionTarget } from '../utils/nutritionTargetValidator';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -93,6 +94,13 @@ export default function TrainerDietBuilder({ directClientId } = {}) {
   };
 
   const handleNext = () => {
+    const targetValidation = validateNutritionTarget({
+      calories: formData.calories_target, protein: formData.protein_g, carbs: formData.carbs_g, fat: formData.fat_g,
+    });
+    if (!targetValidation.valid) {
+      setError(targetValidation.error);
+      return;
+    }
     if (step === 1 && formData.detail_level === 'macros') {
       setStep(3);
     } else {
@@ -112,6 +120,20 @@ export default function TrainerDietBuilder({ directClientId } = {}) {
     setSaving(true);
     setError('');
     try {
+      const targetValidation = validateNutritionTarget({
+        calories: formData.calories_target, protein: formData.protein_g, carbs: formData.carbs_g, fat: formData.fat_g,
+      });
+      if (!targetValidation.valid) {
+        setError(targetValidation.error);
+        return;
+      }
+      const invalidDay = formData.days.find(day => !validateNutritionTarget({
+        calories: day.calories_target, protein: day.protein_g, carbs: day.carbs_g, fat: day.fat_g,
+      }).valid);
+      if (invalidDay) {
+        setError(`Day ${invalidDay.day_number} has an inconsistent nutrition target. Adjust calories or macros before saving.`);
+        return;
+      }
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -202,7 +224,7 @@ export default function TrainerDietBuilder({ directClientId } = {}) {
       </div>
 
       {error && (
-        <div style={{ margin: '0 16px 12px', padding: '10px 14px', background: '#FEF2F2', borderRadius: 10, fontSize: 13, color: '#D85A30' }}>
+        <div style={{ margin: '0 16px 12px', padding: '10px 14px', background: 'var(--error-bg)', borderRadius: 10, fontSize: 13, color: 'var(--error)' }}>
           {error}
         </div>
       )}

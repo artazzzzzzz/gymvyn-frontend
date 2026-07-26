@@ -5,8 +5,8 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const LEVEL_BADGE = {
   macros: { label: 'Macro Targets', bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
-  meals:  { label: 'Meal Plan',     bg: '#FFF3E0',            color: '#BA7517' },
-  full:   { label: 'Full Plan',     bg: '#E8F5E9',            color: '#1D9E75' },
+  meals:  { label: 'Planned meals', bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
+  full:   { label: 'Recipe details', bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
 };
 
 const CARD = {
@@ -64,7 +64,7 @@ function MealCard({ meal, expandable, defaultExpanded }) {
           {meal.foods.map((f, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: i < meal.foods.length - 1 ? '0.5px solid var(--border)' : 'none' }}>
               <span style={{ fontSize: 13, flex: 1, color: 'var(--text-primary)' }}>{f.food_name || 'Food'}</span>
-              {f.quantity_g ? <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{f.quantity_g}g</span> : null}
+              {(f.serving_quantity && f.serving_unit) ? <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{f.serving_quantity} {f.serving_unit}</span> : f.quantity_g ? <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{f.quantity_g}g</span> : null}
               {f.calories   ? <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{f.calories} kcal</span> : null}
             </div>
           ))}
@@ -104,9 +104,9 @@ export default function AssignedDietPlanView({ plan }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
           {[
             { label: 'Calories', value: plan.calories_target, unit: 'kcal', color: 'var(--text-primary)' },
-            { label: 'Protein',  value: plan.protein_g,       unit: 'g',    color: 'var(--text-cta)' },
-            { label: 'Carbs',    value: plan.carbs_g,         unit: 'g',    color: '#BA7517' },
-            { label: 'Fat',      value: plan.fat_g,           unit: 'g',    color: '#D85A30' },
+            { label: 'Protein',  value: plan.protein_g,       unit: 'g',    color: 'var(--text-primary)' },
+            { label: 'Carbs',    value: plan.carbs_g,         unit: 'g',    color: 'var(--text-primary)' },
+            { label: 'Fat',      value: plan.fat_g,           unit: 'g',    color: 'var(--text-primary)' },
           ].map(({ label, value, unit, color }) => (
             <div key={label} style={{
               ...CARD, padding: '14px 12px', textAlign: 'center',
@@ -196,7 +196,7 @@ export default function AssignedDietPlanView({ plan }) {
       {/* Meals */}
       {activeMeals.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 0' }}>
-          Rest day — no meals planned
+          No planned meals for this day
         </p>
       ) : (
         activeMeals.map((meal, idx) => (

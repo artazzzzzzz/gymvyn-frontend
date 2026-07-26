@@ -5,8 +5,8 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const LEVEL_BADGE = {
   macros: { label: 'Macro Targets', bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
-  meals:  { label: 'Meal Plan',     bg: '#FFF3E0',            color: '#BA7517' },
-  full:   { label: 'Full Plan',     bg: '#E8F5E9',            color: '#1D9E75' },
+  meals:  { label: 'Planned meals', bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
+  full:   { label: 'Recipe details', bg: 'var(--bg-elevated)', color: 'var(--text-secondary)' },
 };
 
 function StatChip({ label, value }) {
