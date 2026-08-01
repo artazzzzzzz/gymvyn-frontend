@@ -15,7 +15,7 @@ async function reportsFetch(path) {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await res.json();
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
   return data;
 }
