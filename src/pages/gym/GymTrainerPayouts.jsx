@@ -25,7 +25,7 @@ async function apiFetch(path, opts = {}) {
     },
     ...opts,
   })
-  const data = await res.json().catch(() => ({}))
+  const data = await res.json()
   if (!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`)
   return data
 }
@@ -536,6 +536,7 @@ export default function GymTrainerPayouts({ embedded = false, topOffset = 0 } = 
   const [toast, setToast] = useState(null)
   const [trainers, setTrainers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   // Period
   const [periodKey, setPeriodKey] = useState('this_month')
@@ -558,12 +559,13 @@ export default function GymTrainerPayouts({ embedded = false, topOffset = 0 } = 
     if (!gymId) return
     const { start, end } = getPeriod(periodKey, customStart, customEnd)
     setLoading(true)
+    setFetchError(null)
     try {
       const data = await apiFetch(`/api/trainer-earnings/owner/${gymId}/summary?start=${start}&end=${end}`)
       setTrainers(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('GymTrainerPayouts fetch error:', err)
-      showToast('Failed to load earnings', 'error')
+      setFetchError(err)
     } finally {
       setLoading(false)
     }
@@ -585,6 +587,15 @@ export default function GymTrainerPayouts({ embedded = false, topOffset = 0 } = 
 
   const totalOutstanding = trainers.reduce((s, t) => s + (t.outstanding || 0), 0)
   const totalSessions = trainers.reduce((s, t) => s + (t.sessions_count || 0), 0)
+
+  if (fetchError) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+      <div>
+        <p style={{ color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError.message || 'Failed to load trainer payouts'}</p>
+        <button onClick={refresh} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
+    </div>
+  )
 
   return (
     <>

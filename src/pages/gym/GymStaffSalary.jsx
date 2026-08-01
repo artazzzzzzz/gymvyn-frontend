@@ -25,7 +25,7 @@ async function apiFetch(path, opts = {}) {
     },
     ...opts,
   })
-  const data = await res.json().catch(() => ({}))
+  const data = await res.json()
   if (!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`)
   return data
 }
@@ -542,6 +542,7 @@ export default function GymStaffSalary({ embedded = false, topOffset = 0 } = {})
   const [toast, setToast] = useState(null)
   const [staffList, setStaffList] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   // Period
   const [periodKey, setPeriodKey] = useState('this_month')
@@ -564,12 +565,13 @@ export default function GymStaffSalary({ embedded = false, topOffset = 0 } = {})
     if (!gymId) return
     const { start, end } = getPeriod(periodKey, customStart, customEnd)
     setLoading(true)
+    setFetchError(null)
     try {
       const data = await apiFetch(`/api/staff-earnings/owner/${gymId}/summary?start=${start}&end=${end}`)
       setStaffList(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('GymStaffSalary fetch error:', err)
-      showToast('Failed to load staff salary data', 'error')
+      setFetchError(err)
     } finally {
       setLoading(false)
     }
@@ -591,6 +593,15 @@ export default function GymStaffSalary({ embedded = false, topOffset = 0 } = {})
 
   const totalOutstanding = staffList.reduce((s, x) => s + (x.outstanding || 0), 0)
   const totalPaid = staffList.reduce((s, x) => s + (x.paid_amount || 0), 0)
+
+  if (fetchError) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+      <div>
+        <p style={{ color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError.message || 'Failed to load staff salary data'}</p>
+        <button onClick={refresh} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
+    </div>
+  )
 
   return (
     <>

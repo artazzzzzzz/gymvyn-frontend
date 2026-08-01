@@ -30,7 +30,7 @@ async function apiFetch(path, opts = {}) {
     },
     ...opts,
   })
-  const data = await res.json().catch(() => ({}))
+  const data = await res.json()
   if (!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`)
   return data
 }
@@ -461,6 +461,7 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   const [expenses, setExpenses] = useState([])
   const [monthly,  setMonthly]  = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   // Date range
   const [dateRange,    setDateRange]    = useState('this_month')
@@ -488,6 +489,7 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   const refresh = useCallback(async (range, cStart, cEnd) => {
     const { start, end } = getDateRange(range, cStart, cEnd)
     setLoading(true)
+    setFetchError(null)
     try {
       const qs = start && end ? `?startDate=${start}&endDate=${end}` : ''
       const [summaryData, expenseData, monthlyData] = await Promise.all([
@@ -500,7 +502,7 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
       setMonthly(Array.isArray(monthlyData) ? monthlyData : [])
     } catch (err) {
       console.error('GymExpenses fetch error:', err)
-      showToast('Failed to load expenses', 'error')
+      setFetchError(err)
     } finally {
       setLoading(false)
     }
@@ -606,6 +608,15 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   })
 
   // ── Render ────────────────────────────────────────────────────────────────
+
+  if (fetchError) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+      <div>
+        <p style={{ color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError.message || 'Failed to load expenses'}</p>
+        <button onClick={() => refresh(dateRange, customStart, customEnd)} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
+    </div>
+  )
 
   return (
     <>
