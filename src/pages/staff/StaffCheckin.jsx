@@ -40,9 +40,14 @@ export default function StaffCheckin() {
       const res = await fetch(`${API}/api/gym-occupancy/${gymId}`, {
         headers: { Authorization: `Bearer ${session?.access_token}` },
       })
+      if (!res.ok) throw new Error(`Occupancy request failed (${res.status})`)
       const data = await res.json()
       if (isMountedRef.current) setOccupancy(data)
-    } catch {}
+    } catch (err) {
+      // Keep the last-known-good occupancy on failure rather than overwriting it
+      // with an error body that would crash members_inside.length reads below.
+      if (isMountedRef.current) console.error('Occupancy fetch failed:', err)
+    }
   }, [gymId])
 
   useEffect(() => {

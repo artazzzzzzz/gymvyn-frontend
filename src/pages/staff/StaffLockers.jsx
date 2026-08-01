@@ -274,6 +274,7 @@ export default function StaffLockers() {
   const { permissions, gymId, loading: permsLoading } = useStaffPermissions()
   const [lockers, setLockers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [filter, setFilter] = useState('all')
   const [selectedLocker, setSelectedLocker] = useState(null)
   const [showAssignSheet, setShowAssignSheet] = useState(null)
@@ -287,6 +288,7 @@ export default function StaffLockers() {
   const fetchLockers = useCallback(async () => {
     if (!gymId) return
     setLoading(true)
+    setFetchError(null)
     try {
       const res = await staffApiFetch('/api/staff/lockers')
       if (!res.ok) throw new Error('Failed')
@@ -294,6 +296,7 @@ export default function StaffLockers() {
       setLockers(Array.isArray(data) ? data : [])
     } catch {
       showToast('error', 'Failed to load lockers')
+      setFetchError('Failed to load lockers')
     } finally {
       setLoading(false)
     }
@@ -354,6 +357,18 @@ export default function StaffLockers() {
 
         {loading ? (
           <LoadingSpinner />
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+            <button
+              onClick={fetchLockers}
+              style={{
+                height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border)', borderRadius: 20,
+                fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer',
+              }}
+            >Try again</button>
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>
             No lockers found

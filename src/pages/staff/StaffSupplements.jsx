@@ -151,6 +151,7 @@ export default function StaffSupplements() {
   const { permissions, gymId, loading: permsLoading } = useStaffPermissions()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [filter, setFilter] = useState('all')
   const [toast, setToast] = useState(null)
 
@@ -162,6 +163,7 @@ export default function StaffSupplements() {
   const fetchOrders = useCallback(async () => {
     if (!gymId) return
     setLoading(true)
+    setFetchError(null)
     try {
       const statusParam = filter !== 'all' ? `?status=${filter}` : ''
       const res = await staffApiFetch(`/api/staff/supplements/orders${statusParam}`)
@@ -170,6 +172,7 @@ export default function StaffSupplements() {
       setOrders(Array.isArray(data) ? data : [])
     } catch {
       showToast('error', 'Failed to load orders')
+      setFetchError('Failed to load orders')
     } finally {
       setLoading(false)
     }
@@ -226,6 +229,18 @@ export default function StaffSupplements() {
       <div style={{ padding: '16px 20px 0' }}>
         {loading ? (
           <LoadingSpinner />
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+            <button
+              onClick={fetchOrders}
+              style={{
+                height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border)', borderRadius: 20,
+                fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer',
+              }}
+            >Try again</button>
+          </div>
         ) : orders.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>

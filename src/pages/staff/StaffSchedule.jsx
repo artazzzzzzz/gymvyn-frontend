@@ -54,10 +54,12 @@ export default function StaffSchedule() {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay())
   const [schedule, setSchedule] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   const fetchSchedule = useCallback(async () => {
     if (!gymId) return
     setLoading(true)
+    setFetchError(null)
     try {
       const ws = weekStart.toISOString().split('T')[0]
       const { data: { session } } = await supabase.auth.getSession()
@@ -68,6 +70,7 @@ export default function StaffSchedule() {
       setSchedule(Array.isArray(data) ? data : [])
     } catch {
       setSchedule([])
+      setFetchError('Failed to load schedule')
     } finally {
       setLoading(false)
     }
@@ -178,6 +181,18 @@ export default function StaffSchedule() {
       <div style={{ padding: '16px 20px 0' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-tertiary)', fontSize: 13 }}>Loading...</div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+            <button
+              onClick={fetchSchedule}
+              style={{
+                height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border)', borderRadius: 20,
+                fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer',
+              }}
+            >Try again</button>
+          </div>
         ) : dayClasses.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)' }}>

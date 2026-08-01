@@ -21,6 +21,8 @@ export default function StaffChatPage() {
   const [activeConvo, setActiveConvo] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [fetchError, setFetchError] = useState(null);
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
@@ -50,8 +52,14 @@ export default function StaffChatPage() {
     try {
       const data = await apiFetch('/api/chat/conversations');
       setConversations(data || []);
+      setFetchError(null);
     } catch (err) {
       console.error('Load conversations error:', err);
+      // Only surface the error when nothing is loaded yet — a background
+      // poll failure with existing conversations visible stays silent.
+      if (conversations.length === 0) {
+        setFetchError('Failed to load messages');
+      }
     } finally {
       setLoading(false);
     }
@@ -136,6 +144,18 @@ export default function StaffChatPage() {
       {loading ? (
         <div style={{ padding: '20px' }}>
           <ListSkeleton rows={6} />
+        </div>
+      ) : fetchError && conversations.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 32px' }}>
+          <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+          <button
+            onClick={loadConversations}
+            style={{
+              height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border)', borderRadius: 20,
+              fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer',
+            }}
+          >Try again</button>
         </div>
       ) : conversations.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 32px' }}>

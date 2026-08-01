@@ -275,6 +275,7 @@ export default function StaffPayments() {
   const [summary, setSummary] = useState(null)
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [showCollect, setShowCollect] = useState(false)
   const [toast, setToast] = useState(null)
 
@@ -286,6 +287,7 @@ export default function StaffPayments() {
   const fetchPayments = useCallback(async () => {
     if (!gymId) return
     setLoading(true)
+    setFetchError(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const authHeaders = { Authorization: `Bearer ${session?.access_token}` }
@@ -299,6 +301,7 @@ export default function StaffPayments() {
       setPayments(Array.isArray(listData) ? listData : (listData.payments || []))
     } catch {
       showToast('error', 'Failed to load payments')
+      setFetchError('Failed to load payments')
     } finally {
       setLoading(false)
     }
@@ -391,6 +394,18 @@ export default function StaffPayments() {
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-tertiary)', fontSize: 13 }}>Loading...</div>
+          ) : fetchError ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+              <button
+                onClick={fetchPayments}
+                style={{
+                  height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)',
+                  border: '1px solid var(--border)', borderRadius: 20,
+                  fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer',
+                }}
+              >Try again</button>
+            </div>
           ) : payments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>No payments found</div>
           ) : (
