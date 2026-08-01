@@ -26,26 +26,31 @@ export default function ExerciseDetail() {
   const [bookmarked, setBookmarked] = useState(false)
   const [bmLoading,  setBmLoading]  = useState(false)
   const [added,      setAdded]      = useState(false)
+  const [fetchError, setFetchError] = useState(null)
+  const [bookmarkError, setBookmarkError] = useState(null)
+
+  async function loadBookmark() {
+    setFetchError(null)
+    const token = await getToken()
+    if (!token) return
+    const res = await fetch(`${API}/api/exercises/${encodeURIComponent(name)}/bookmark`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Bookmark request failed')
+    const json = await res.json()
+    setBookmarked(json.bookmarked ?? false)
+  }
 
   useEffect(() => {
     let cancelled = false
-    ;(async () => {
-      const token = await getToken()
-      if (!token || cancelled) return
-      try {
-        const res  = await fetch(`${API}/api/exercises/${encodeURIComponent(name)}/bookmark`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const json = await res.json()
-        if (!cancelled) setBookmarked(json.bookmarked ?? false)
-      } catch { /* no auth */ }
-    })()
+    loadBookmark().catch(error => { if (!cancelled) { console.error('Load bookmark error:', error); setFetchError('Failed to load exercise details') } })
     return () => { cancelled = true }
   }, [name])
 
   async function toggleBookmark() {
     if (bmLoading) return
     setBmLoading(true)
+    setBookmarkError(null)
     try {
       const token = await getToken()
       if (!token) return
@@ -53,8 +58,12 @@ export default function ExerciseDetail() {
       const res  = await fetch(`${API}/api/exercises/${encodeURIComponent(name)}/bookmark`, {
         method, headers: { Authorization: `Bearer ${token}` },
       })
+      if (!res.ok) throw new Error('Bookmark update failed')
       const json = await res.json()
       setBookmarked(json.bookmarked ?? !bookmarked)
+    } catch (error) {
+      console.error('Update bookmark error:', error)
+      setBookmarkError('Could not update bookmark. Try again.')
     } finally {
       setBmLoading(false)
     }
@@ -98,6 +107,8 @@ export default function ExerciseDetail() {
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {fetchError && <div style={{ margin: '16px 16px 0', padding: 14, borderRadius: 12, background: 'var(--error-bg)', color: 'var(--error)', textAlign: 'center', fontSize: 13, fontWeight: 500 }}>{fetchError}<button onClick={() => loadBookmark().catch(error => { console.error('Load bookmark error:', error); setFetchError('Failed to load exercise details') })} style={{ display: 'block', margin: '10px auto 0', height: 34, padding: '0 16px', borderRadius: 17, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer' }}>Try again</button></div>}
+        {bookmarkError && <div style={{ margin: '12px 16px 0', color: 'var(--error)', fontSize: 13, textAlign: 'center' }}>{bookmarkError}</div>}
         <ExerciseDetailContent name={name} />
       </div>
 

@@ -95,7 +95,7 @@ export default function Workout() {
   const { user } = useAuth()
   const {
     recentWorkouts, personalRecords, totalWorkouts, totalVolume,
-    thisWeekWorkouts, longestStreak, loading, error,
+    thisWeekWorkouts, longestStreak, loading, error: historyError,
   } = useWorkoutHistory()
 
   // ── Existing state ────────────────────────────────────────────────────────
@@ -109,6 +109,11 @@ export default function Workout() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showAIBuilder, setShowAIBuilder] = useState(false)
   const [workoutLogs,  setWorkoutLogs]  = useState([])
+  const [fetchError, setFetchError] = useState(null)
+
+  useEffect(() => {
+    if (historyError) setFetchError('Failed to load workouts')
+  }, [historyError])
 
   // ── Existing fetch logic ──────────────────────────────────────────────────
   useEffect(() => {
@@ -117,13 +122,13 @@ export default function Workout() {
       try {
         const plans = await apiFetch(`/api/trainer/assigned-plans/${user.id}?type=workout&status=active`)
         if (plans?.length > 0) setTrainerPlan(plans[0])
-      } catch { /* non-critical */ }
+      } catch (error) { console.error('Load trainer plan error:', error); setFetchError('Failed to load workouts') }
     }
     const fetchUserPlans = async () => {
       try {
         const plans = await apiFetch(`/api/user-plans/${user.id}`)
         setUserPlans(plans || [])
-      } catch (err) { console.error(err) }
+      } catch (err) { console.error(err); setFetchError('Failed to load workouts') }
     }
     const fetchWeekLogs = async () => {
       try {
@@ -133,7 +138,7 @@ export default function Workout() {
           .eq('user_id', user.id)
           .gte('started_at', startOfWeek().toISOString())
         setWeekLogs(data || [])
-      } catch { /* non-critical */ }
+      } catch (error) { console.error('Load workout week error:', error); setFetchError('Failed to load workouts') }
     }
     fetchTrainerPlan()
     fetchUserPlans()
@@ -149,15 +154,19 @@ export default function Workout() {
   useEffect(() => {
     if (!user?.id) return
     const fetchRecentWorkoutLogs = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('workout_logs')
         .select('*')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
         .limit(5)
+      if (error) throw error
       setWorkoutLogs(data || [])
     }
-    fetchRecentWorkoutLogs()
+    fetchRecentWorkoutLogs().catch(error => {
+      console.error('Load recent workouts error:', error)
+      setFetchError('Failed to load workouts')
+    })
   }, [user?.id])
 
   const topPRs = useMemo(() =>
@@ -196,6 +205,8 @@ export default function Workout() {
       alert('Failed to delete plan. Please try again.')
     }
   }
+
+  if (fetchError) return <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}><div><p style={{ fontSize: 14, color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError}</p><button onClick={() => window.location.reload()} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button></div></div>
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', overflowX: 'hidden', paddingBottom: 128 }}>
