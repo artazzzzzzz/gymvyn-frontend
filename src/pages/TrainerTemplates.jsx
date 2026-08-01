@@ -41,6 +41,7 @@ export default function TrainerTemplates() {
   const [templates, setTemplates] = useState([]);
   const [dietTemplatesNew, setDietTemplatesNew] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [tab, setTab] = useState('workout');
   const [sort, setSort] = useState('recent');
@@ -52,15 +53,18 @@ export default function TrainerTemplates() {
   }, [user?.id]);
 
   const loadAll = async () => {
+    setLoading(true);
+    setFetchError(null);
     try {
       const [workout, diet] = await Promise.all([
-        apiFetch(`/api/trainer/templates/${user.id}`).catch(() => []),
-        dietFetch('/api/diet-plans/templates').catch(() => []),
+        apiFetch(`/api/trainer/templates/${user.id}`),
+        dietFetch('/api/diet-plans/templates'),
       ]);
       setTemplates(workout || []);
       setDietTemplatesNew(diet || []);
     } catch (err) {
       console.error('Load templates error:', err);
+      setFetchError('Failed to load templates');
     } finally {
       setLoading(false);
     }
@@ -110,6 +114,17 @@ export default function TrainerTemplates() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</p>
+          <button onClick={loadAll} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button>
+        </div>
       </div>
     );
   }

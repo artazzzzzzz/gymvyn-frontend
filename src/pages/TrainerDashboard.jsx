@@ -181,7 +181,7 @@ export default function TrainerDashboard() {
   const [profile, setProfile] = useState(null);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
   const [copied, setCopied] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchVal, setSearchVal] = useState('');
@@ -193,7 +193,7 @@ export default function TrainerDashboard() {
 
   const loadData = async () => {
     setLoading(true);
-    setLoadError(false);
+    setFetchError(null);
     try {
       const [profileRes, clientsRes] = await Promise.all([
         apiFetch(`/api/trainer/profile/${user.id}`),
@@ -206,7 +206,7 @@ export default function TrainerDashboard() {
       // profile / no clients" — that's indistinguishable from a genuinely
       // empty trainer account.
       console.error('Load dashboard error:', err);
-      setLoadError(true);
+      setFetchError('Failed to load your dashboard');
     } finally {
       setLoading(false);
     }
@@ -264,11 +264,11 @@ export default function TrainerDashboard() {
     );
   }
 
-  if (loadError) {
+  if (fetchError) {
     return (
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div style={{ textAlign: 'center', maxWidth: 320 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>Couldn't load your dashboard</h2>
+          <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>{fetchError}</h2>
           <p style={{ fontSize: 13, color: C.sub, marginBottom: 20, lineHeight: 1.5 }}>
             Something went wrong loading this page. Your profile and clients are unaffected — try again.
           </p>

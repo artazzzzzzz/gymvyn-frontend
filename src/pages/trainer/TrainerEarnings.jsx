@@ -304,6 +304,7 @@ export default function TrainerEarnings() {
   const [sessions, setSessions] = useState([])
   const [payouts, setPayouts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   const [expandedSession, setExpandedSession] = useState(null)
   const [logOpen, setLogOpen] = useState(false)
@@ -319,6 +320,7 @@ export default function TrainerEarnings() {
     if (!user) return
     const { start, end } = getPeriod(periodKey)
     setLoading(true)
+    setFetchError(null)
     try {
       const [sum, sess, pays] = await Promise.all([
         apiFetch(`/api/trainer-earnings/me?start=${start}&end=${end}`),
@@ -331,6 +333,7 @@ export default function TrainerEarnings() {
     } catch (err) {
       console.error('TrainerEarnings fetch error:', err)
       showToast('Failed to load earnings', 'error')
+      setFetchError('Failed to load earnings')
     } finally {
       setLoading(false)
     }
@@ -398,6 +401,12 @@ export default function TrainerEarnings() {
         </div>
 
         <div style={{ padding: '16px 16px 0' }}>
+          {fetchError && (
+            <div style={{ textAlign: 'center', padding: '24px 20px', marginBottom: 14, background: 'var(--error-bg)', border: '1px solid var(--error)', borderRadius: 12 }}>
+              <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+              <button onClick={refresh} style={{ height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button>
+            </div>
+          )}
 
           {/* Hero summary card */}
           <div style={{ ...card, padding: 20, marginBottom: 14 }}>

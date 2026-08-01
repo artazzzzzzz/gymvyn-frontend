@@ -138,8 +138,10 @@ export default function TrainerChatPage() {
 
   /* ── existing state (preserved) ── */
   const [conversations, setConversations] = useState([]);
+  const conversationsRef = useRef([]);
   const [activeConvo, setActiveConvo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
   /* ── new UI state ── */
   const [search, setSearch] = useState('');
@@ -203,13 +205,18 @@ export default function TrainerChatPage() {
   const loadConversations = async () => {
     try {
       const data = await apiFetch('/api/chat/conversations');
-      setConversations(data || []);
+      const nextConversations = data || [];
+      conversationsRef.current = nextConversations;
+      setConversations(nextConversations);
+      setFetchError(null);
       if (data?.length > 0 && !activeConvo && preselectedConvoId) {
         const found = data.find(c => c.id === preselectedConvoId);
         if (found) setActiveConvo(found);
       }
     } catch (err) {
       console.error('Load conversations error:', err);
+      // Keep active conversations visible when a background poll fails.
+      if (conversationsRef.current.length === 0) setFetchError('Failed to load messages');
     } finally {
       setLoading(false);
     }
@@ -466,7 +473,12 @@ export default function TrainerChatPage() {
 
         {/* Conversation rows */}
         <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
-          {filteredConvos.length === 0 ? (
+          {fetchError && conversations.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '80px 32px' }}>
+              <div style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</div>
+              <button onClick={loadConversations} style={{ height: 40, padding: '0 20px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button>
+            </div>
+          ) : filteredConvos.length === 0 ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
               <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center', color: C.sub }}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>

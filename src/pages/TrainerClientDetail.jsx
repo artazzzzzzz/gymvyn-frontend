@@ -1754,6 +1754,7 @@ export default function TrainerClientDetail() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   // new UI state
@@ -1766,11 +1767,14 @@ export default function TrainerClientDetail() {
   }, [user?.id, clientId]);
 
   const loadClientData = async () => {
+    setLoading(true);
+    setFetchError(null);
     try {
       const res = await apiFetch(`/api/trainer/client-progress/${user.id}/${clientId}`);
       setData(res);
     } catch (err) {
       console.error('Load client data error:', err);
+      setFetchError('Failed to load client details');
     } finally {
       setLoading(false);
     }
@@ -1781,6 +1785,17 @@ export default function TrainerClientDetail() {
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', border: `3px solid ${C.grayBg}`, borderTopColor: C.text, animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', padding: 24 }}>
+          <p style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</p>
+          <button onClick={loadClientData} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button>
+        </div>
       </div>
     );
   }

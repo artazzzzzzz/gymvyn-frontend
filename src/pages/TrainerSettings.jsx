@@ -91,7 +91,7 @@ export default function TrainerSettings() {
   const [profile, setProfile] = useState(null);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -109,7 +109,7 @@ export default function TrainerSettings() {
 
   const loadData = async () => {
     setLoading(true);
-    setLoadError(false);
+    setFetchError(null);
     try {
       const [p, c] = await Promise.all([
         apiFetch(`/api/trainer/profile/${userId}`),
@@ -241,6 +241,17 @@ export default function TrainerSettings() {
     );
   }
 
+  if (fetchError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: 14, color: 'var(--error)', marginBottom: 16, fontWeight: 500 }}>{fetchError}</p>
+          <button onClick={loadData} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button>
+        </div>
+      </div>
+    );
+  }
+
   const initials = profile?.full_name
     ?.split(' ')
     .map(n => n[0])
@@ -360,11 +371,11 @@ export default function TrainerSettings() {
           icon="building"
           label="Gym"
           value={
-            loadError
+            fetchError
               ? "Couldn't load"
               : profile?.gym_id ? 'Linked' : (profile?.pending_gym_id ? 'Pending approval' : 'Not linked')
           }
-          onPress={() => (loadError ? loadData() : setJoinGymOpen(true))}
+          onPress={() => (fetchError ? loadData() : setJoinGymOpen(true))}
         />
       </div>
 
