@@ -351,6 +351,7 @@ export default function GymPayments({ embedded = false, topOffset = 0 } = {}) {
   const [payments,         setPayments]         = useState([])
   const [activeFilter,     setActiveFilter]     = useState('all')
   const [loading,          setLoading]          = useState(true)
+  const [fetchError,       setFetchError]       = useState(null)
   const [page,             setPage]             = useState(1)
   const [hasMore,          setHasMore]          = useState(true)
   const [showCollectModal, setShowCollectModal] = useState(false)
@@ -365,36 +366,36 @@ export default function GymPayments({ embedded = false, topOffset = 0 } = {}) {
   }, [user])
 
   // ── Initial data load ─────────────────────────────────────────────────────
-  useEffect(() => {
+  const loadPayments = async () => {
     if (!gymId) return
-    let cancelled = false
     setLoading(true)
-
-    async function load() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const authHeaders = { Authorization: `Bearer ${session?.access_token}` }
-        const [sumRes, payRes] = await Promise.all([
-          fetch(`${BASE}/api/gym-payments/${gymId}/summary`, { headers: authHeaders }),
-          fetch(`${BASE}/api/gym-payments/${gymId}?page=1&limit=${LIMIT}`, { headers: authHeaders }),
-        ])
-        const sumData = await sumRes.json().catch(() => null)
-        const payData = await payRes.json().catch(() => [])
-        if (cancelled) return
-        setSummary(sumData)
-        const list = Array.isArray(payData) ? payData : (payData?.payments ?? [])
-        setPayments(list)
-        setHasMore(list.length === LIMIT)
-        setPage(1)
-      } catch (err) {
-        console.error('GymPayments load error:', err)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+    setFetchError(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const authHeaders = { Authorization: `Bearer ${session?.access_token}` }
+      const [sumRes, payRes] = await Promise.all([
+        fetch(`${BASE}/api/gym-payments/${gymId}/summary`, { headers: authHeaders }),
+        fetch(`${BASE}/api/gym-payments/${gymId}?page=1&limit=${LIMIT}`, { headers: authHeaders }),
+      ])
+      const sumData = await sumRes.json()
+      const payData = await payRes.json()
+      if (!sumRes.ok || !payRes.ok) throw new Error('Payments request failed')
+      setSummary(sumData)
+      const list = Array.isArray(payData) ? payData : (payData?.payments ?? [])
+      setPayments(list)
+      setHasMore(list.length === LIMIT)
+      setPage(1)
+    } catch (err) {
+      console.error('GymPayments load error:', err)
+      setFetchError(err)
+    } finally {
+      setLoading(false)
     }
 
-    load()
-    return () => { cancelled = true }
+  }
+
+  useEffect(() => {
+    loadPayments()
   }, [gymId])
 
   // ── Filter ─────────────────────────────────────────────────────────────────
@@ -467,6 +468,7 @@ export default function GymPayments({ embedded = false, topOffset = 0 } = {}) {
   }
 
   // ── Chart helpers ──────────────────────────────────────────────────────────
+  if (fetchError) return <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}><div><p style={{ color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError.message || 'Failed to load payments'}</p><button onClick={loadPayments} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button></div></div>
   const maxChartVal = Math.max(...(summary?.monthly_chart?.map(m => m.total) ?? [1]), 1)
   const currentMonthKey = new Date().toISOString().slice(0, 7)
   const change = summary?.month_change || 0
