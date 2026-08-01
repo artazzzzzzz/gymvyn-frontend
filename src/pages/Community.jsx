@@ -66,6 +66,7 @@ export default function Community() {
   // Feed
   const [posts, setPosts] = useState([])
   const [postsLoading, setPostsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   // Leaderboard
   const [leaderboard, setLeaderboard] = useState([])
@@ -97,13 +98,21 @@ export default function Community() {
   const loadFeed = useCallback(async () => {
     if (!userId) return
     setPostsLoading(true)
-    const { data } = await supabase
-      .from('posts')
-      .select('*, users:user_id(full_name), post_likes(user_id), post_comments(id)')
-      .order('created_at', { ascending: false })
-      .limit(20)
-    setPosts(data ?? [])
-    setPostsLoading(false)
+    setFetchError(null)
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*, users:user_id(full_name), post_likes(user_id), post_comments(id)')
+        .order('created_at', { ascending: false })
+        .limit(20)
+      if (error) throw error
+      setPosts(data ?? [])
+    } catch (error) {
+      console.error('Load community feed error:', error)
+      setFetchError('Failed to load community feed')
+    } finally {
+      setPostsLoading(false)
+    }
   }, [userId])
 
   const loadLeaderboard = useCallback(async () => {
@@ -356,6 +365,8 @@ export default function Community() {
           <div className="px-5 mt-4 space-y-3">
             {postsLoading
               ? <Spinner />
+              : fetchError
+                ? <div className="text-center py-12"><p className="text-sm text-[var(--error)] font-medium mb-4">{fetchError}</p><button onClick={loadFeed} className="px-5 py-2 rounded-full text-sm font-semibold border border-[var(--border)] text-[var(--text-primary)]">Try again</button></div>
               : posts.length === 0
                 ? <EmptyState message="No posts yet. Be the first to share something!" />
                 : posts.map(p => <PostCard key={p.id} post={p} />)

@@ -140,16 +140,22 @@ export default function SupplementCatalog() {
   const { addItem, totalItems } = useCart()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [toast, setToast] = useState('')
 
-  useEffect(() => {
+  const loadCatalog = () => {
+    setLoading(true)
+    setFetchError(null)
     authFetch('/api/supplements/catalog')
       .then(setProducts)
-      .catch(err => console.error('Catalog load error:', err))
+      .catch(err => { console.error('Catalog load error:', err); setFetchError('Failed to load supplements') })
       .finally(() => setLoading(false))
+  }
+  useEffect(() => {
+    loadCatalog()
   }, [])
 
   const categories = ['All', ...new Set(products.map(p => p.category).filter(Boolean))]
@@ -248,6 +254,8 @@ export default function SupplementCatalog() {
               </div>
             ))}
           </div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}><p style={{ fontSize: 14, color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError}</p><button onClick={loadCatalog} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button></div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: "var(--text-tertiary)", fontSize: 14 }}>
             {search ? 'No products match your search' : 'No supplements available'}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetch } from '../utils/api';
@@ -15,18 +15,27 @@ export default function ClientChatPage() {
   const [conversation, setConversation] = useState(null);
   const [trainerName, setTrainerName] = useState('');
   const [loading, setLoading] = useState(!selectedConversationId);
+  const [fetchError, setFetchError] = useState(null);
+  const loadRequest = useRef(0);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
   const [contactsError, setContactsError] = useState(false);
+  const [startError, setStartError] = useState(null);
   const [starting, setStarting] = useState(false);
 
-  async function loadConversation() {
+  async function loadConversation(request = ++loadRequest.current) {
+    setFetchError(null);
     try {
-      // Get client's trainer info
+      // Get client's trainer info. A genuine "no trainer linked" case comes
+      // back as a successful null response (not a thrown error) — only a
+      // real failure (network/5xx) lands in the catch below, so it must
+      // never be treated as if there's simply no trainer.
       const trainerInfo = await apiFetch(`/api/trainer/my-trainer/${user.id}`);
+      if (request !== loadRequest.current) return;
       if (!trainerInfo?.trainer?.id) {
+        setConversation(null);
         setLoading(false);
         return;
       }
@@ -40,17 +49,26 @@ export default function ClientChatPage() {
         method: 'POST',
         body: JSON.stringify({ targetUserId: trainerInfo.trainer.id }),
       });
+      if (request !== loadRequest.current) return;
       setConversation(conversationId ? { id: conversationId } : null);
     } catch (err) {
+      if (request !== loadRequest.current) return;
       console.error('Load client chat error:', err);
+      setFetchError('Failed to load your chat');
     } finally {
-      setLoading(false);
+      if (request === loadRequest.current) setLoading(false);
     }
   }
 
   useEffect(() => {
     if (!user?.id || selectedConversationId) return;
-    void loadConversation();
+    // Clear prior-account state before resolving the new user's trainer.
+    setLoading(true);
+    setConversation(null);
+    setTrainerName('');
+    const request = ++loadRequest.current;
+    void loadConversation(request);
+    return () => { loadRequest.current += 1; };
   }, [user?.id, selectedConversationId]);
 
   const openPicker = async () => {
@@ -72,6 +90,7 @@ export default function ClientChatPage() {
   const startConversationWith = async (contact) => {
     if (starting) return;
     setStarting(true);
+    setStartError(null);
     try {
       // POST /api/chat/start get-or-creates: a repeat call with the same
       // targetUserId returns the same conversationId, so this never
@@ -85,6 +104,7 @@ export default function ClientChatPage() {
       setPickerOpen(false);
     } catch (err) {
       console.error('Start conversation error:', err);
+      setStartError('Could not start this chat. Try again.');
     } finally {
       setStarting(false);
     }
@@ -125,7 +145,7 @@ export default function ClientChatPage() {
             </div>
           ) : contacts.length === 0 ? (
             <p className="text-center text-sm text-[var(--text-secondary)] py-10">No contacts available</p>
-          ) : (
+              ) : (
             contacts.map((c) => (
               <button
                 key={c.id}
@@ -144,8 +164,9 @@ export default function ClientChatPage() {
                 </div>
               </button>
             ))
-          )}
-        </div>
+              )}
+              {startError && <p className="px-4 pb-3 text-center text-sm text-[var(--error)]">{startError}</p>}
+            </div>
       </div>
     </div>
   );
@@ -157,6 +178,28 @@ export default function ClientChatPage() {
           <SkeletonBlock height={48} width="100%" radius={14} style={{ marginBottom: 16 }} />
           <ListSkeleton rows={4} />
         </div>
+      </div>
+    );
+  }
+
+  if (fetchError && !selectedConversationId) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-8 text-center">
+        <div className="mb-4 flex justify-center text-[var(--error)]">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 className="text-lg font-semibold mb-2">{fetchError}</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-6">
+          Something went wrong loading this conversation. Try again.
+        </p>
+        <button
+          onClick={() => { setLoading(true); loadConversation(); }}
+          className="px-6 py-3 bg-[var(--success)] rounded-xl font-semibold text-sm"
+        >
+          Try again
+        </button>
       </div>
     );
   }

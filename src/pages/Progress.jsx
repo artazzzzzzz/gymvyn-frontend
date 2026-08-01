@@ -39,6 +39,7 @@ function PhotosTab({ userId }) {
   const [photos, setPhotos]       = useState([])
   const [loading, setLoading]     = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
   const [lightbox, setLightbox]   = useState(null)
   const [comparing, setComparing] = useState(false)   // selection mode
   const [selected, setSelected]   = useState([])      // up to 2 photo ids
@@ -66,6 +67,7 @@ function PhotosTab({ userId }) {
   async function handleFileChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
+    setUploadError(null)
     setUploading(true)
     try {
       const form = new FormData()
@@ -81,7 +83,7 @@ function PhotosTab({ userId }) {
       if (!res.ok) throw new Error()
       await fetchPhotos()
     } catch {
-      // silently fail — user sees no new photo
+      setUploadError('Could not upload photo. Try again.')
     } finally {
       setUploading(false)
       e.target.value = ''
@@ -201,6 +203,7 @@ function PhotosTab({ userId }) {
           </>
         )}
       </div>
+      {uploadError && <p className="mb-4 text-sm text-[var(--error-text)]">{uploadError}</p>}
 
       {/* Grid */}
       {loading ? (
@@ -282,6 +285,7 @@ function WeightTab({ userId }) {
   const [entries, setEntries]   = useState([])
   const [weight, setWeight]     = useState('')
   const [saving, setSaving]     = useState(false)
+  const [saveError, setSaveError] = useState(null)
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => { fetchEntries() }, [userId])
@@ -301,6 +305,7 @@ function WeightTab({ userId }) {
   async function handleSave() {
     const val = parseFloat(weight)
     if (!val || val <= 0) return
+    setSaveError(null)
     setSaving(true)
     const { error } = await supabase.from('progress_entries').insert({
       user_id: userId,
@@ -310,6 +315,8 @@ function WeightTab({ userId }) {
     if (!error) {
       setWeight('')
       await fetchEntries()
+    } else {
+      setSaveError('Could not save your weight. Try again.')
     }
     setSaving(false)
   }
@@ -350,6 +357,7 @@ function WeightTab({ userId }) {
             Log
           </button>
         </div>
+        {saveError && <p className="text-sm text-[var(--error-text)]">{saveError}</p>}
       </div>
 
       {/* Stats row */}
@@ -423,6 +431,7 @@ function PRsTab({ userId }) {
   const [prs, setPrs]         = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
+  const [saveError, setSaveError] = useState(null)
   const [form, setForm]       = useState({ exercise: '', weight: '', reps: '' })
 
   useEffect(() => { fetchPRs() }, [userId])
@@ -440,6 +449,7 @@ function PRsTab({ userId }) {
 
   async function handleSave() {
     if (!form.exercise || !form.weight || !form.reps) return
+    setSaveError(null)
     setSaving(true)
     const weight = parseFloat(form.weight)
     const reps   = parseInt(form.reps, 10)
@@ -478,6 +488,8 @@ function PRsTab({ userId }) {
           }).catch(() => {})
         }
       } catch (_) {}
+    } else {
+      setSaveError('Could not save your PR. Try again.')
     }
     setSaving(false)
   }
@@ -532,6 +544,7 @@ function PRsTab({ userId }) {
           {saving ? <Loader2 size={16} className="animate-spin" /> : null}
           Save PR
         </button>
+        {saveError && <p className="text-sm text-[var(--error-text)]">{saveError}</p>}
       </div>
 
       {/* PR list */}
@@ -643,6 +656,7 @@ export default function Progress() {
   const [activeTab, setActiveTab]   = useState('weight')
   const [timeRange, setTimeRange]   = useState('3M')
   const [loading, setLoading]       = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [showLogSheet, setShowLogSheet] = useState(false)
   const [toast, setToast]           = useState('')
   const loadRef = useRef(null) // call loadRef.current() to trigger a manual refetch
@@ -662,6 +676,8 @@ export default function Progress() {
 
     async function load() {
       setLoading(true)
+      setFetchError(null)
+      try {
 
       const cutoff = new Date()
       if (timeRange === '3M') cutoff.setMonth(cutoff.getMonth() - 3)
@@ -671,12 +687,12 @@ export default function Progress() {
       fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28)
 
       const [
-        { data: entriesData },
-        { data: latestStatsData },
-        { data: firstEntryData },
-        { data: userData },
-        { data: prsData },
-        { data: wlogs },
+        { data: entriesData, error: entriesError },
+        { data: latestStatsData, error: latestStatsError },
+        { data: firstEntryData, error: firstEntryError },
+        { data: userData, error: userError },
+        { data: prsData, error: prsError },
+        { data: wlogs, error: workoutLogsError },
       ] = await Promise.all([
         supabase
           .from('progress_entries')
@@ -719,6 +735,7 @@ export default function Progress() {
           .not('completed_at', 'is', null)
           .gte('started_at', fourWeeksAgo.toISOString()),
       ])
+      if ([entriesError, latestStatsError, firstEntryError, userError, prsError, workoutLogsError].some(Boolean)) throw new Error('Progress data request failed')
 
       if (cancelled) return
 
@@ -732,17 +749,25 @@ export default function Progress() {
       // All-time worked dates for calendar (re-query without cutoff)
       const today = new Date()
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString()
-      const { data: calLogs } = await supabase
+      const { data: calLogs, error: calendarError } = await supabase
         .from('workout_logs')
         .select('started_at')
         .eq('user_id', userId)
         .not('completed_at', 'is', null)
         .gte('started_at', monthStart)
+      if (calendarError) throw calendarError
       if (!cancelled) {
         setWorkedDates(new Set((calLogs ?? []).map(l => l.started_at?.slice(0, 10)).filter(Boolean)))
       }
 
-      setLoading(false)
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Load progress error:', error)
+          setFetchError('Failed to load progress')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
 
     loadRef.current = load
@@ -809,6 +834,8 @@ export default function Progress() {
   const todayNum = today.getDate()
   const moStr    = `${yr}-${String(mo + 1).padStart(2, '0')}`
   const daysThisMonth = [...workedDates].filter(d => d.startsWith(moStr)).length
+
+  if (fetchError) return <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-6 text-center"><div><p className="text-sm font-medium text-[var(--error)] mb-4">{fetchError}</p><button onClick={() => loadRef.current?.()} className="h-10 px-5 rounded-full border border-[var(--border)] text-[var(--text-primary)] text-sm font-semibold">Try again</button></div></div>
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pb-24">

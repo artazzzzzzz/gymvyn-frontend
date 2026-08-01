@@ -346,6 +346,7 @@ export default function Classes() {
 
   const [gymId, setGymId] = useState(null)
   const [gymLoaded, setGymLoaded] = useState(false)
+  const [fetchError, setFetchError] = useState(null)
 
   const [tab, setTab] = useState('browse') // 'browse' | 'bookings'
   const days = useMemo(() => next7Days(), [])
@@ -367,6 +368,21 @@ export default function Classes() {
     setTimeout(() => setToast(''), 2600)
   }, [])
 
+  const retryLoad = useCallback(() => {
+    setFetchError(null)
+    setGymLoaded(false)
+    setGymId(null)
+    if (user) {
+      supabase.from('users').select('gym_id').eq('id', user.id).maybeSingle()
+        .then(({ data, error }) => {
+          if (error) throw error
+          setGymId(data?.gym_id || null)
+          setGymLoaded(true)
+        })
+        .catch(error => { console.error('Load class gym error:', error); setFetchError('Failed to load classes'); setGymLoaded(true) })
+    }
+  }, [user])
+
   // Map of class_id → normalized booking, for annotating browse cards.
   const bookingByClass = useMemo(() => {
     const m = {}
@@ -379,11 +395,13 @@ export default function Classes() {
     if (!user) return
     let cancelled = false
     supabase.from('users').select('gym_id').eq('id', user.id).maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) throw error
         if (cancelled) return
         setGymId(data?.gym_id || null)
         setGymLoaded(true)
       })
+      .catch(error => { if (!cancelled) { console.error('Load class gym error:', error); setFetchError('Failed to load classes'); setGymLoaded(true) } })
     return () => { cancelled = true }
   }, [user])
 
@@ -394,8 +412,7 @@ export default function Classes() {
       const arr = Array.isArray(data) ? data : (data?.bookings ?? [])
       setBookings(arr.map(normalizeBooking))
     } catch {
-      // Endpoint may not exist yet — treat as no bookings.
-      setBookings([])
+      setFetchError('Failed to load classes')
     } finally {
       setLoadingBookings(false)
     }
@@ -407,7 +424,7 @@ export default function Classes() {
       const data = await getClassesByDate(gId, date)
       setClasses(Array.isArray(data?.classes) ? data.classes : [])
     } catch {
-      setClasses([])
+      setFetchError('Failed to load classes')
     } finally {
       setLoadingClasses(false)
     }
@@ -513,6 +530,8 @@ export default function Classes() {
   }, [bookings])
 
   // ── Render ──────────────────────────────────────────────────────────────
+
+  if (fetchError) return <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-6 text-center"><div><p className="text-sm font-medium text-[var(--error)] mb-4">{fetchError}</p><button onClick={retryLoad} className="h-10 px-5 rounded-full border border-[var(--border)] text-[var(--text-primary)] text-sm font-semibold">Try again</button></div></div>
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pb-24">

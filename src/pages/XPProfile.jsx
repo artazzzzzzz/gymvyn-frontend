@@ -92,15 +92,15 @@ export default function XPProfile() {
   const [challenges, setChallenges] = useState([])
   const [balance,    setBalance]    = useState(null)
   const [loading,    setLoading]    = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [freezeOpen, setFreezeOpen] = useState(false)
 
   const loadAll = async () => {
+    setLoading(true)
+    setFetchError(null)
     try {
       const [p, e, c, m] = await Promise.all([
-        getXPProfile().catch(() => null),
-        getXPEvents(1, 30).catch(() => ({ events: [] })),
-        getXPChallenges().catch(() => ({ challenges: [] })),
-        getMuscleBalance().catch(() => null),
+        getXPProfile(), getXPEvents(1, 30), getXPChallenges(), getMuscleBalance(),
       ])
       setProfile(p)
       setEvents(e?.events || [])
@@ -108,6 +108,7 @@ export default function XPProfile() {
       setBalance(m)
     } catch (err) {
       console.error('[XPProfile] load error:', err)
+      setFetchError('Failed to load XP profile')
     } finally {
       setLoading(false)
     }
@@ -170,6 +171,7 @@ export default function XPProfile() {
       </div>
     )
   }
+  if (fetchError) return <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}><div><p style={{ fontSize: 14, color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError}</p><button onClick={loadAll} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button></div></div>
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', paddingTop: 56, paddingBottom: 96 }}>

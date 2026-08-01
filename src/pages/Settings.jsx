@@ -104,6 +104,7 @@ export default function Settings() {
   const [userId, setUserId] = useState(null)
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   const [form, setForm] = useState({
     full_name: '', age: '', gender: '', city: '', phone: '',
@@ -132,6 +133,7 @@ export default function Settings() {
   useEffect(() => {
     const loadUser = async () => {
       setLoading(true)
+      setFetchError(null)
       try {
         const { data: { user: authUser } } = await supabase.auth.getUser()
         if (!authUser) { navigate('/'); return }
@@ -163,6 +165,7 @@ export default function Settings() {
         })
       } catch (err) {
         console.error('Load user failed:', err)
+        setFetchError('Failed to load settings')
       } finally {
         setLoading(false)
       }
@@ -343,6 +346,7 @@ export default function Settings() {
       <span style={{ fontSize: 14, color: "var(--text-tertiary)" }}>Loading...</span>
     </div>
   )
+  if (fetchError) return <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}><div><p style={{ fontSize: 14, color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError}</p><button onClick={() => window.location.reload()} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button></div></div>
 
   return (
     <div style={{

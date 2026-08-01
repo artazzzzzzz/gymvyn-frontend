@@ -65,12 +65,15 @@ export default function SupplementOrders() {
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [activeFilter, setActiveFilter] = useState('all')
   const [toast, setToast] = useState('')
   const intervalRef = useRef(null)
   const lastKnownStatusesRef = useRef({})
 
   function loadOrders() {
+    setLoading(true)
+    setFetchError(null)
     authFetch('/api/supplements/orders/mine')
       .then(newOrders => {
         const prev = lastKnownStatusesRef.current
@@ -90,7 +93,7 @@ export default function SupplementOrders() {
         lastKnownStatusesRef.current = map
         setOrders(newOrders)
       })
-      .catch(err => console.error('Orders load error:', err))
+      .catch(err => { console.error('Orders load error:', err); setFetchError('Failed to load orders') })
       .finally(() => setLoading(false))
   }
 
@@ -152,6 +155,8 @@ export default function SupplementOrders() {
               </div>
             ))}
           </div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}><p style={{ fontSize: 14, color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError}</p><button onClick={loadOrders} style={{ height: 40, padding: '0 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer' }}>Try again</button></div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <Package size={40} color="var(--text-tertiary)" style={{ marginBottom: 12 }} />
