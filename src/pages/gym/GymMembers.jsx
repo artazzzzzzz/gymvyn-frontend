@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Papa from 'papaparse'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
@@ -642,36 +642,26 @@ export default function GymMembers() {
   // ── Fetch members (re-runs when gymId or page changes) ────────────────────
   useEffect(() => {
     if (!gymId) return
-    let cancelled = false
-
-    async function load() {
-      if (page === 1) setLoading(true)
-      try {
-        const base = import.meta.env.VITE_API_URL
-        const url  = `${base}/api/gym-members?gymId=${encodeURIComponent(gymId)}&page=${page}&limit=${LIMIT}`
-        const { data: { session } } = await supabase.auth.getSession()
-        const res  = await fetch(url, {
-          headers: { Authorization: `Bearer ${session?.access_token}` },
-        })
-        const data = await res.json().catch(() => [])
-        if (cancelled) return
-
-        const list = Array.isArray(data) ? data : (data?.members ?? [])
-        setMembers(prev => page === 1 ? list : [...prev, ...list])
-        setHasMore(list.length === LIMIT)
-      } catch (err) {
-        console.error('GymMembers load error:', err)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
-    return () => { cancelled = true }
+    if (page === 1) setLoading(true)
+    setLoadError(null)
+    try {
+      const base = import.meta.env.VITE_API_URL
+      const url  = `${base}/api/gym-members?gymId=${encodeURIComponent(gymId)}&page=${page}&limit=${LIMIT}`
+      const { data: { session } } = await supabase.auth.getSession()
+      const res  = await fetch(url, { headers: { Authorization: `Bearer ${session?.access_token}` } })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.message || `Failed to load members (${res.status})`)
+      const list = Array.isArray(data) ? data : (data?.members ?? [])
+      setMembers(prev => page === 1 ? list : [...prev, ...list])
+      setHasMore(list.length === LIMIT)
+    } catch (err) {
+      console.error('GymMembers load error:', err)
+      setLoadError(err)
+    } finally { setLoading(false) }
   }, [gymId, page])
 
   // ── Filter + search ───────────────────────────────────────────────────────
-  useEffect(() => {
+  const loadMembers = useCallback(async () => {
     let result = members
 
     if (activeFilter !== 'all') {
@@ -814,6 +804,7 @@ export default function GymMembers() {
           ) : filtered.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 20px' }}>
               <svg width="48" height="48" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+  const [loadError,    setLoadError]    = useState(null)
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
