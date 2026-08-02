@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useOwnerGymId } from '../../hooks/useOwnerGymId';
 import { useReportDateRange } from '../../hooks/useReportDateRange';
 import {
@@ -36,19 +36,25 @@ function SectionHeader({ title, sublabel }) {
 export default function GymReports({ embedded = false } = {}) {
   const gymId = useOwnerGymId();
   const { preset, setPreset, customFrom, setCustomFrom, customTo, setCustomTo, range } = useReportDateRange();
+  const reportFrom = range?.from;
+  const reportTo = range?.to;
   const [moreOpen, setMoreOpen] = useState(false);
 
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
 
   const [trend, setTrend] = useState([]);
   const [trendLoading, setTrendLoading] = useState(true);
+  const [trendError, setTrendError] = useState(null);
 
   const [topMembers, setTopMembers] = useState([]);
   const [topLoading, setTopLoading] = useState(true);
+  const [topError, setTopError] = useState(null);
 
   const [trainers, setTrainers] = useState([]);
   const [trainersLoading, setTrainersLoading] = useState(true);
+  const [trainersError, setTrainersError] = useState(null);
 
   const [attendance, setAttendance] = useState([]);
   const [attendanceLoading, setAttendanceLoading] = useState(true);
@@ -56,37 +62,72 @@ export default function GymReports({ embedded = false } = {}) {
   const [churn, setChurn] = useState([]);
   const [churnLoading, setChurnLoading] = useState(true);
 
-  useEffect(() => {
-    if (!gymId || !range?.from || !range?.to) return;
-
-    const { from, to } = range;
-
+  const loadSummary = useCallback(async () => {
+    if (!gymId || !reportFrom || !reportTo) return;
     setSummaryLoading(true);
-    fetchSummary(gymId, from, to)
-      .then(setSummary)
-      .catch(err => console.error('summary:', err))
-      .finally(() => setSummaryLoading(false));
+    setSummaryError(null);
+    try {
+      setSummary(await fetchSummary(gymId, reportFrom, reportTo));
+    } catch (err) {
+      console.error('summary:', err);
+      setSummaryError(err);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [gymId, reportFrom, reportTo]);
 
+  const loadRevenueTrend = useCallback(async () => {
+    if (!gymId || !reportFrom || !reportTo) return;
     setTrendLoading(true);
-    fetchRevenueTrend(gymId, from, to)
-      .then(setTrend)
-      .catch(err => console.error('trend:', err))
-      .finally(() => setTrendLoading(false));
+    setTrendError(null);
+    try {
+      setTrend(await fetchRevenueTrend(gymId, reportFrom, reportTo));
+    } catch (err) {
+      console.error('trend:', err);
+      setTrendError(err);
+    } finally {
+      setTrendLoading(false);
+    }
+  }, [gymId, reportFrom, reportTo]);
 
+  const loadTopMembers = useCallback(async () => {
+    if (!gymId || !reportFrom || !reportTo) return;
     setTopLoading(true);
-    fetchTopMembers(gymId, from, to)
-      .then(setTopMembers)
-      .catch(err => console.error('topMembers:', err))
-      .finally(() => setTopLoading(false));
+    setTopError(null);
+    try {
+      setTopMembers(await fetchTopMembers(gymId, reportFrom, reportTo));
+    } catch (err) {
+      console.error('topMembers:', err);
+      setTopError(err);
+    } finally {
+      setTopLoading(false);
+    }
+  }, [gymId, reportFrom, reportTo]);
 
+  const loadTrainerPerformance = useCallback(async () => {
+    if (!gymId || !reportFrom || !reportTo) return;
     setTrainersLoading(true);
-    fetchTrainerPerformance(gymId, from, to)
-      .then(setTrainers)
-      .catch(err => console.error('trainers:', err))
-      .finally(() => setTrainersLoading(false));
+    setTrainersError(null);
+    try {
+      setTrainers(await fetchTrainerPerformance(gymId, reportFrom, reportTo));
+    } catch (err) {
+      console.error('trainers:', err);
+      setTrainersError(err);
+    } finally {
+      setTrainersLoading(false);
+    }
+  }, [gymId, reportFrom, reportTo]);
+
+  useEffect(() => {
+    if (!gymId || !reportFrom || !reportTo) return;
+
+    loadSummary();
+    loadRevenueTrend();
+    loadTopMembers();
+    loadTrainerPerformance();
 
     setAttendanceLoading(true);
-    fetchAttendance(gymId, from, to)
+    fetchAttendance(gymId, reportFrom, reportTo)
       .then(setAttendance)
       .catch(err => console.error('attendance:', err))
       .finally(() => setAttendanceLoading(false));
@@ -96,7 +137,7 @@ export default function GymReports({ embedded = false } = {}) {
       .then(setChurn)
       .catch(err => console.error('churn:', err))
       .finally(() => setChurnLoading(false));
-  }, [gymId, range?.from, range?.to]);
+  }, [gymId, reportFrom, reportTo, loadSummary, loadRevenueTrend, loadTopMembers, loadTrainerPerformance]);
 
   const inputStyle = {
     background: 'var(--bg-elevated)',
@@ -178,7 +219,7 @@ export default function GymReports({ embedded = false } = {}) {
       <div style={{ padding: '24px 16px 0', display: 'flex', flexDirection: 'column', gap: 32 }}>
         {/* Summary tiles */}
         <div>
-          <SummaryTiles data={summary} loading={summaryLoading} />
+          <SummaryTiles data={summary} loading={summaryLoading} error={summaryError} onRetry={loadSummary} />
         </div>
 
         {/* Revenue Trend */}
@@ -190,7 +231,7 @@ export default function GymReports({ embedded = false } = {}) {
             borderRadius: 12,
             padding: '16px 8px 8px',
           }}>
-            <RevenueTrendChart data={trend} loading={trendLoading} />
+            <RevenueTrendChart data={trend} loading={trendLoading} error={trendError} onRetry={loadRevenueTrend} />
           </div>
         </div>
 
@@ -203,14 +244,14 @@ export default function GymReports({ embedded = false } = {}) {
             borderRadius: 12,
             padding: 16,
           }}>
-            <TopMembersList data={topMembers} loading={topLoading} />
+            <TopMembersList data={topMembers} loading={topLoading} error={topError} onRetry={loadTopMembers} />
           </div>
         </div>
 
         {/* Trainer Performance */}
         <div>
           <SectionHeader title="Trainer Performance" sublabel={range?.label} />
-          <TrainerPerformanceTable data={trainers} loading={trainersLoading} />
+          <TrainerPerformanceTable data={trainers} loading={trainersLoading} error={trainersError} onRetry={loadTrainerPerformance} />
         </div>
 
         {/* Download Reports */}

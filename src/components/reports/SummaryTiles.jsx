@@ -44,7 +44,16 @@ function Tile({ icon, iconColor, title, children }) {
   );
 }
 
-export default function SummaryTiles({ data, loading }) {
+export default function SummaryTiles({ data, loading, error, onRetry }) {
+  if (error) {
+    return (
+      <div style={{ ...tile, textAlign: 'center', padding: 24 }}>
+        <p style={{ color: 'var(--error)', fontWeight: 500, margin: '0 0 16px' }}>{error.message || 'Unable to load summary'}</p>
+        <button onClick={onRetry} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

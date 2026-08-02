@@ -4,7 +4,16 @@ import {
 } from 'recharts';
 import ReportSkeleton from './ReportSkeleton';
 
-export default function RevenueTrendChart({ data, loading }) {
+export default function RevenueTrendChart({ data, loading, error, onRetry }) {
+  if (error) {
+    return (
+      <div style={{ height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <span style={{ color: 'var(--error)', fontWeight: 500 }}>{error.message || 'Unable to load revenue trend'}</span>
+        <button onClick={onRetry} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
+    );
+  }
+
   if (loading) return <ReportSkeleton height={220} />;
 
   if (!data || data.length === 0) {

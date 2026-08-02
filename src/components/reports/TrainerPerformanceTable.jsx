@@ -10,7 +10,16 @@ const pill = {
   fontWeight: 500,
 };
 
-export default function TrainerPerformanceTable({ data, loading }) {
+export default function TrainerPerformanceTable({ data, loading, error, onRetry }) {
+  if (error) {
+    return (
+      <div style={{ padding: '16px 0', textAlign: 'center' }}>
+        <p style={{ color: 'var(--error)', fontWeight: 500, margin: '0 0 16px' }}>{error.message || 'Unable to load trainer performance'}</p>
+        <button onClick={onRetry} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
