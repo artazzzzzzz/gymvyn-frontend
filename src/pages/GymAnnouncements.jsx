@@ -324,13 +324,12 @@ export default function GymAnnouncements() {
           </button>
         </header>
 
-        {error && (
-          <div className="mb-5 px-4 py-3 rounded-xl bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
-            {error}
+        {error ? (
+          <div className="bg-[var(--error-bg)] border border-[var(--error)] rounded-2xl p-8 text-center">
+            <p className="text-sm text-[var(--error)] mb-4">{error}</p>
+            <button onClick={loadAll} className="px-4 py-2 rounded-xl text-sm font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)]">Try again</button>
           </div>
-        )}
-
-        {loading ? (
+        ) : loading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 space-y-3">
