@@ -58,9 +58,11 @@ export default function GymReports({ embedded = false } = {}) {
 
   const [attendance, setAttendance] = useState([]);
   const [attendanceLoading, setAttendanceLoading] = useState(true);
+  const [attendanceError, setAttendanceError] = useState(null);
 
   const [churn, setChurn] = useState([]);
   const [churnLoading, setChurnLoading] = useState(true);
+  const [churnError, setChurnError] = useState(null);
 
   const loadSummary = useCallback(async () => {
     if (!gymId || !reportFrom || !reportTo) return;
@@ -118,6 +120,36 @@ export default function GymReports({ embedded = false } = {}) {
     }
   }, [gymId, reportFrom, reportTo]);
 
+  const loadAttendance = useCallback(async () => {
+    if (!gymId || !reportFrom || !reportTo) return;
+    setAttendanceLoading(true);
+    setAttendanceError(null);
+    setAttendance([]);
+    try {
+      setAttendance(await fetchAttendance(gymId, reportFrom, reportTo));
+    } catch (err) {
+      console.error('attendance:', err);
+      setAttendanceError(err);
+    } finally {
+      setAttendanceLoading(false);
+    }
+  }, [gymId, reportFrom, reportTo]);
+
+  const loadChurnRisk = useCallback(async () => {
+    if (!gymId || !reportFrom || !reportTo) return;
+    setChurnLoading(true);
+    setChurnError(null);
+    setChurn([]);
+    try {
+      setChurn(await fetchChurnRisk(gymId));
+    } catch (err) {
+      console.error('churn:', err);
+      setChurnError(err);
+    } finally {
+      setChurnLoading(false);
+    }
+  }, [gymId, reportFrom, reportTo]);
+
   useEffect(() => {
     if (!gymId || !reportFrom || !reportTo) return;
 
@@ -125,19 +157,9 @@ export default function GymReports({ embedded = false } = {}) {
     loadRevenueTrend();
     loadTopMembers();
     loadTrainerPerformance();
-
-    setAttendanceLoading(true);
-    fetchAttendance(gymId, reportFrom, reportTo)
-      .then(setAttendance)
-      .catch(err => console.error('attendance:', err))
-      .finally(() => setAttendanceLoading(false));
-
-    setChurnLoading(true);
-    fetchChurnRisk(gymId)
-      .then(setChurn)
-      .catch(err => console.error('churn:', err))
-      .finally(() => setChurnLoading(false));
-  }, [gymId, reportFrom, reportTo, loadSummary, loadRevenueTrend, loadTopMembers, loadTrainerPerformance]);
+    loadAttendance();
+    loadChurnRisk();
+  }, [loadSummary, loadRevenueTrend, loadTopMembers, loadTrainerPerformance, loadAttendance, loadChurnRisk]);
 
   const inputStyle = {
     background: 'var(--bg-elevated)',
@@ -264,8 +286,11 @@ export default function GymReports({ embedded = false } = {}) {
             churnData={churn}
             trainerData={trainers}
             attendanceLoading={attendanceLoading}
+            attendanceError={attendanceError}
             churnLoading={churnLoading}
+            churnError={churnError}
             trainerLoading={trainersLoading}
+            trainerError={trainersError}
           />
         </div>
       </div>

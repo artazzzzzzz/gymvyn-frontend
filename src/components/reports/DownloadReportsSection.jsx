@@ -58,13 +58,19 @@ export default function DownloadReportsSection({
   gymId,
   range,
   attendanceData,
+  attendanceError,
   churnData,
+  churnError,
   trainerData,
   attendanceLoading,
   churnLoading,
   trainerLoading,
+  trainerError,
 }) {
   const [pdfLoading, setPdfLoading] = useState(false);
+  const attendanceUnavailable = attendanceLoading || attendanceError;
+  const churnUnavailable = churnLoading || churnError;
+  const trainerUnavailable = trainerLoading || trainerError;
 
   const handlePDF = async () => {
     if (!gymId || pdfLoading) return;
@@ -117,12 +123,14 @@ export default function DownloadReportsSection({
         sublabel={range?.label || ''}
       >
         <button
-          style={attendanceLoading ? btnDisabled : btnBase}
-          disabled={attendanceLoading}
+          style={attendanceUnavailable ? btnDisabled : btnBase}
+          disabled={attendanceUnavailable}
+          title={attendanceError ? 'Attendance data is unavailable for this report range.' : undefined}
           onClick={() => downloadAttendanceCSV(attendanceData, range?.label)}
         >
-          {attendanceLoading ? 'Loading…' : 'Download CSV'}
+          {attendanceLoading ? 'Loading…' : attendanceError ? 'Unavailable' : 'Download CSV'}
         </button>
+        {attendanceError && <div role="alert" style={{ color: 'var(--error)', fontSize: 11 }}>Attendance data could not be loaded for this report range.</div>}
       </DownloadCard>
 
       {/* Churn Risk CSV */}
@@ -133,12 +141,14 @@ export default function DownloadReportsSection({
         sublabel="Members at risk"
       >
         <button
-          style={churnLoading ? btnDisabled : btnBase}
-          disabled={churnLoading}
+          style={churnUnavailable ? btnDisabled : btnBase}
+          disabled={churnUnavailable}
+          title={churnError ? 'Churn-risk data is unavailable for this report range.' : undefined}
           onClick={() => downloadChurnCSV(churnData, range?.label)}
         >
-          {churnLoading ? 'Loading…' : 'Download CSV'}
+          {churnLoading ? 'Loading…' : churnError ? 'Unavailable' : 'Download CSV'}
         </button>
+        {churnError && <div role="alert" style={{ color: 'var(--error)', fontSize: 11 }}>Churn-risk data could not be loaded for this report range.</div>}
       </DownloadCard>
 
       {/* Trainer Performance CSV */}
@@ -149,12 +159,14 @@ export default function DownloadReportsSection({
         sublabel={range?.label || ''}
       >
         <button
-          style={trainerLoading ? btnDisabled : btnBase}
-          disabled={trainerLoading}
+          style={trainerUnavailable ? btnDisabled : btnBase}
+          disabled={trainerUnavailable}
+          title={trainerError ? 'Trainer-performance data is unavailable for this report range.' : undefined}
           onClick={() => downloadTrainerCSV(trainerData, range?.label)}
         >
-          {trainerLoading ? 'Loading…' : 'Download CSV'}
+          {trainerLoading ? 'Loading…' : trainerError ? 'Unavailable' : 'Download CSV'}
         </button>
+        {trainerError && <div role="alert" style={{ color: 'var(--error)', fontSize: 11 }}>Trainer-performance data could not be loaded. Retry the Trainer Performance section above.</div>}
       </DownloadCard>
     </div>
   );
