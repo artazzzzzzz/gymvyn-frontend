@@ -16,7 +16,7 @@ async function authReq(API, method, path, body) {
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
-  const data = await res.json().catch(() => ({}))
+  const data = await res.json()
   if (!res.ok) throw new Error(data.error || data.message || `Error ${res.status}`)
   return data
 }
@@ -59,6 +59,7 @@ export default function GymTrainers() {
   const fetchTrainers = async () => {
     if (!gymId) return
     setLoading(true)
+    setError(null)
     try {
       const data = await authReq(API, 'GET', `/api/gym-trainers/${gymId}`)
       setTrainers(Array.isArray(data) ? data : (data?.trainers ?? []))
@@ -309,7 +310,8 @@ export default function GymTrainers() {
         {/* ERROR */}
         {error && (
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--error)', fontSize: 14 }}>
-            {error}
+            <p style={{ margin: '0 0 16px' }}>{error}</p>
+            <button onClick={fetchTrainers} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
           </div>
         )}
 
@@ -337,7 +339,7 @@ export default function GymTrainers() {
         )}
 
         {/* TRAINER CARDS */}
-        {!loading && trainers.map(trainer => {
+        {!loading && !error && trainers.map(trainer => {
           const { bg, text } = getAvatarColor(trainer.full_name)
           const initials = getInitials(trainer.full_name)
           const status = statusConfig[trainer.status] || statusConfig.manual

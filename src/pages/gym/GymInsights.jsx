@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
@@ -90,27 +90,32 @@ export default function GymInsights({ embedded = false, topOffset = 0 } = {}) {
   const [stats, setStats] = useState(null)
   const [insights, setInsights] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
+
+  const loadInsights = useCallback(async () => {
+    if (!gymId) return
+    setLoading(true)
+    setFetchError(null)
+    try {
+      const [statsData, insightsData] = await Promise.all([
+        apiFetch(`/api/gym-stats/${gymId}`),
+        getGymInsights(gymId),
+      ])
+      setStats(statsData)
+      setInsights(insightsData)
+    } catch (err) {
+      console.error('Insights fetch failed:', err)
+      setFetchError(err)
+    } finally {
+      setLoading(false)
+    }
+  }, [gymId])
 
   useEffect(() => {
     if (!gymId) { setLoading(false); return }
-    const fetchAll = async () => {
-      setLoading(true)
-      try {
-        const [statsData, insightsData] = await Promise.all([
-          apiFetch(`/api/gym-stats/${gymId}`),
-          getGymInsights(gymId),
-        ])
-        setStats(statsData)
-        setInsights(insightsData)
-      } catch (err) {
-        console.error('Insights fetch failed:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchAll()
-  }, [gymId])
+    loadInsights()
+  }, [gymId, loadInsights])
 
   if (loading) return (
     <div style={{
@@ -119,6 +124,15 @@ export default function GymInsights({ embedded = false, topOffset = 0 } = {}) {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>Loading insights...</span>
+    </div>
+  )
+
+  if (fetchError) return (
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+      <div>
+        <p style={{ color: 'var(--error)', fontWeight: 500, marginBottom: 16 }}>{fetchError.message || 'Failed to load insights'}</p>
+        <button onClick={loadInsights} style={{ height: 40, padding: '0 20px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600 }}>Try again</button>
+      </div>
     </div>
   )
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -224,73 +224,72 @@ export default function GymDashboard() {
   // null = loading, number = resolved, 'error' = failed
   const [revenue, setRevenue] = useState(null)
 
-  useEffect(() => {
+  const loadDashboard = useCallback(async (isCancelled = () => false) => {
     if (!user) return
-    let cancelled = false
+    setLoading(true)
+    setGymLoadError(false)
+    setMembersError(false)
+    setOccupancyError(false)
+    setChurnError(false)
+    try {
+      const gymData = await getGymByUserId(user.id)
+      if (isCancelled()) return
+      setGym(gymData)
+      // Cache for owner pages that read via useOwnerGymId.
+      try { if (gymData?.id) localStorage.setItem('gymId', gymData.id) } catch {}
 
-    async function load() {
-      setLoading(true)
-      setGymLoadError(false)
-      setMembersError(false)
-      setOccupancyError(false)
-      setChurnError(false)
-      try {
-        const gymData = await getGymByUserId(user.id)
-        if (cancelled) return
-        setGym(gymData)
-        // Cache for owner pages that read via useOwnerGymId.
-        try { if (gymData?.id) localStorage.setItem('gymId', gymData.id) } catch {}
+      const ERR = Symbol('error')
+      const [membersRes, occupancyRes, churnRes, revenueRes] = await Promise.all([
+        getGymMembers(gymData.id).catch(() => ERR),
+        getGymOccupancy(gymData.id).catch(() => ERR),
+        getChurnScores(gymData.id).catch(() => ERR),
+        getGymRevenue(gymData.id).catch(() => ERR),
+      ])
+      if (isCancelled()) return
 
-        const ERR = Symbol('error')
-        const [membersRes, occupancyRes, churnRes, revenueRes] = await Promise.all([
-          getGymMembers(gymData.id).catch(() => ERR),
-          getGymOccupancy(gymData.id).catch(() => ERR),
-          getChurnScores(gymData.id).catch(() => ERR),
-          getGymRevenue(gymData.id).catch(() => ERR),
-        ])
-        if (cancelled) return
-
-        // Each stat gets its own distinct error flag — a 401/500/network
-        // failure must never render identically to "this gym genuinely
-        // has 0 members / 0 occupancy / 0 churn risk".
-        if (membersRes === ERR) {
-          setMembersError(true)
-        } else {
-          const memberList = Array.isArray(membersRes)
-            ? membersRes
-            : membersRes?.members ?? []
-          setMembers(memberList)
-        }
-
-        if (occupancyRes === ERR) {
-          setOccupancyError(true)
-        } else {
-          setOccupancy(occupancyRes || { current: 0, capacity: 0 })
-        }
-
-        if (churnRes === ERR) {
-          setChurnError(true)
-        } else {
-          setChurnCount(churnRes?.summary?.high_risk_count ?? 0)
-        }
-
-        setRevenue(
-          revenueRes !== ERR && typeof revenueRes?.revenue === 'number' ? revenueRes.revenue : 'error'
-        )
-      } catch (err) {
-        // A failure fetching the gym itself (401/403/500/network) must not
-        // fall through to the default "Your Gym" / 0-everything render —
-        // that looks identical to a brand-new, empty gym.
-        console.error('GymDashboard load error:', err)
-        if (!cancelled) setGymLoadError(true)
-      } finally {
-        if (!cancelled) setLoading(false)
+      // Each stat gets its own distinct error flag — a 401/500/network
+      // failure must never render identically to "this gym genuinely
+      // has 0 members / 0 occupancy / 0 churn risk".
+      if (membersRes === ERR) {
+        setMembersError(true)
+      } else {
+        const memberList = Array.isArray(membersRes)
+          ? membersRes
+          : membersRes?.members ?? []
+        setMembers(memberList)
       }
-    }
 
-    load()
-    return () => { cancelled = true }
+      if (occupancyRes === ERR) {
+        setOccupancyError(true)
+      } else {
+        setOccupancy(occupancyRes || { current: 0, capacity: 0 })
+      }
+
+      if (churnRes === ERR) {
+        setChurnError(true)
+      } else {
+        setChurnCount(churnRes?.summary?.high_risk_count ?? 0)
+      }
+
+      setRevenue(
+        revenueRes !== ERR && typeof revenueRes?.revenue === 'number' ? revenueRes.revenue : 'error'
+      )
+    } catch (err) {
+      // A failure fetching the gym itself (401/403/500/network) must not
+      // fall through to the default "Your Gym" / 0-everything render —
+      // that looks identical to a brand-new, empty gym.
+      console.error('GymDashboard load error:', err)
+      if (!isCancelled()) setGymLoadError(true)
+    } finally {
+      if (!isCancelled()) setLoading(false)
+    }
   }, [user])
+
+  useEffect(() => {
+    let cancelled = false
+    loadDashboard(() => cancelled)
+    return () => { cancelled = true }
+  }, [loadDashboard])
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
@@ -337,7 +336,7 @@ export default function GymDashboard() {
             Something went wrong loading this page. Your gym data is unaffected — try again.
           </p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={loadDashboard}
             style={{
               padding: '12px 24px', borderRadius: 12, border: '1px solid var(--text-primary)',
               background: 'var(--cta-bg)', color: 'var(--cta-text)', fontWeight: 600, fontSize: 14, cursor: 'pointer',

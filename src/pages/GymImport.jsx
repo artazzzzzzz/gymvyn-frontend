@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import Papa from 'papaparse'
 import { useAuth } from '../hooks/useAuth'
@@ -138,41 +138,41 @@ export default function GymImport() {
   const [resultSearch, setResultSearch] = useState('')
   const fileInputRef = useRef(null)
 
-  useEffect(() => {
-    let cancelled = false
-    async function loadGym() {
-      if (!user) return
-      try {
-        if (isStaff) {
-          if (staffContext.loading) return
-          if (!staffContext.permissions?.manage_members) {
-            setGymError('You need member management permission to import members.')
-            return
-          }
-          if (!staffContext.gymId) {
-            setGymError('No active gym found for this staff account.')
-            return
-          }
-          setGym({ id: staffContext.gymId, name: staffContext.gymName || 'your gym' })
+  const loadGym = useCallback(async () => {
+    if (!user) return
+    setGymError('')
+    setGym(null)
+    try {
+      if (isStaff) {
+        if (staffContext.loading) return
+        if (!staffContext.permissions?.manage_members) {
+          setGymError('You need member management permission to import members.')
           return
         }
-        const { data, error } = await supabase
-          .from('gyms')
-          .select('id, name')
-          .eq('owner_id', user.id)
-          .eq('is_active', true)
-          .maybeSingle()
-        if (cancelled) return
-        if (error) throw error
-        if (!data) setGymError('No active gym found for this owner.')
-        else setGym(data)
-      } catch (err) {
-        if (!cancelled) setGymError(err.message || 'Failed to load gym.')
+        if (!staffContext.gymId) {
+          setGymError('No active gym found for this staff account.')
+          return
+        }
+        setGym({ id: staffContext.gymId, name: staffContext.gymName || 'your gym' })
+        return
       }
+      const { data, error } = await supabase
+        .from('gyms')
+        .select('id, name')
+        .eq('owner_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle()
+      if (error) throw error
+      if (!data) setGymError('No active gym found for this owner.')
+      else setGym(data)
+    } catch (err) {
+      setGymError(err.message || 'Failed to load gym.')
     }
-    loadGym()
-    return () => { cancelled = true }
   }, [user, isStaff, staffContext.gymId, staffContext.gymName, staffContext.loading, staffContext.permissions?.manage_members])
+
+  useEffect(() => {
+    loadGym()
+  }, [loadGym])
 
   const mappingConflicts = useMemo(() => hasConflictingMappings(mapping), [mapping])
   const validatedRows = useMemo(() => validateImportRows(rawRows, mapping), [rawRows, mapping])
@@ -334,7 +334,14 @@ export default function GymImport() {
           </Button>
         </header>
 
-        {gymError && <Card style={{ borderColor: 'var(--error)', color: 'var(--error)', marginBottom: 14 }}>{gymError}</Card>}
+        {gymError && (
+          <Card style={{ borderColor: 'var(--error)', color: 'var(--error)', marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <span>{gymError}</span>
+              <Button variant="secondary" onClick={loadGym}>Try again</Button>
+            </div>
+          </Card>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 14 }}>
           <Card>
