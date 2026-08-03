@@ -1,35 +1,16 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../../utils/supabase'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import PrimaryButton from '../../components/PrimaryButton'
-import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
+import {
+  createGymEquipment,
+  deleteGymEquipment,
+  getGymEquipment,
+  updateGymEquipment,
+} from '../../utils/api'
 import { Dumbbell, Plus, X, Trash2, ChevronLeft, Wrench } from 'lucide-react'
-
-const BASE = import.meta.env.VITE_API_URL
-
-// ── API helpers ───────────────────────────────────────────────────────────────
-
-async function getToken() {
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.access_token || null
-}
-
-async function apiFetch(path, opts = {}) {
-  const token = await getToken()
-  const res = await fetch(`${BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...opts.headers,
-    },
-    ...opts,
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw Object.assign(new Error(data.error || data.message || `Request failed (${res.status})`), { status: res.status })
-  return data
-}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -247,26 +228,20 @@ function EquipmentSheet({ gymId, item, onClose, onSaved, onDeleted }) {
     try {
       let data
       if (isEdit) {
-        data = await apiFetch(`/api/equipment/${gymId}/${item.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({
-            ...form,
-            quantity: Number(form.quantity) || 1,
-            purchase_date:    form.purchase_date    || null,
-            last_serviced:    form.last_serviced    || null,
-            next_service_due: form.next_service_due || null,
-          }),
+        data = await updateGymEquipment(gymId, item.id, {
+          ...form,
+          quantity: Number(form.quantity) || 1,
+          purchase_date:    form.purchase_date    || null,
+          last_serviced:    form.last_serviced    || null,
+          next_service_due: form.next_service_due || null,
         })
       } else {
-        data = await apiFetch(`/api/equipment/${gymId}`, {
-          method: 'POST',
-          body: JSON.stringify({
-            ...form,
-            quantity: Number(form.quantity) || 1,
-            purchase_date:    form.purchase_date    || null,
-            last_serviced:    form.last_serviced    || null,
-            next_service_due: form.next_service_due || null,
-          }),
+        data = await createGymEquipment(gymId, {
+          ...form,
+          quantity: Number(form.quantity) || 1,
+          purchase_date:    form.purchase_date    || null,
+          last_serviced:    form.last_serviced    || null,
+          next_service_due: form.next_service_due || null,
         })
       }
       onSaved(data, isEdit)
@@ -281,7 +256,7 @@ function EquipmentSheet({ gymId, item, onClose, onSaved, onDeleted }) {
   async function handleDelete() {
     setDeleting(true)
     try {
-      await apiFetch(`/api/equipment/${gymId}/${item.id}`, { method: 'DELETE' })
+      await deleteGymEquipment(gymId, item.id)
       onDeleted(item.id)
       onClose()
     } catch (err) {
@@ -469,7 +444,7 @@ function EquipmentCard({ item, onClick }) {
 
 export default function GymEquipment() {
   const navigate  = useNavigate()
-  const gymId     = useOwnerGymId()
+  const { activeGymId, loading: gymLoading } = useActiveGym()
 
   const [items,     setItems]     = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -478,24 +453,53 @@ export default function GymEquipment() {
   const [sheet,     setSheet]     = useState(null) // null | 'add' | item object
   const [moreOpen,  setMoreOpen]  = useState(false)
   const [toast,     setToast]     = useState(null)
+  const loadRequest = useRef(0)
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (gymId) => {
     if (!gymId) return
+    const requestId = ++loadRequest.current
     setLoading(true)
     setError('')
     try {
-      const data = await apiFetch(`/api/equipment/${gymId}`)
-      setItems(Array.isArray(data) ? data : [])
+      const data = await getGymEquipment(gymId)
+      if (requestId === loadRequest.current) setItems(Array.isArray(data) ? data : [])
     } catch (err) {
-      setError(err.message)
+      if (requestId === loadRequest.current) {
+        setItems([])
+        setError(err.message)
+      }
     } finally {
-      setLoading(false)
+      if (requestId === loadRequest.current) setLoading(false)
     }
-  }, [gymId])
+  }, [])
 
-  useEffect(() => { load() }, [load])
+  // Re-fetch whenever the active gym changes (mount, switcher selection,
+  // logout/login) — clears the old list first so another gym's equipment
+  // never flashes on screen during the transition. State updates are routed
+  // through a promise callback (never called synchronously in the effect
+  // body) to satisfy react-hooks/set-state-in-effect.
+  useEffect(() => {
+    loadRequest.current += 1
+    const requestId = loadRequest.current
+
+    Promise.resolve().then(() => {
+      if (requestId !== loadRequest.current) return
+      setItems([])
+      setSheet(null)
+      setError('')
+
+      if (activeGymId) {
+        load(activeGymId)
+      } else {
+        // Still resolving gyms, or the owner has multiple gyms and hasn't
+        // picked one yet — GymSwitcher prompts for that at the route level,
+        // so this page just waits instead of fetching with no gym id.
+        setLoading(gymLoading)
+      }
+    })
+  }, [activeGymId, gymLoading, load])
 
   // ── Sheet callbacks ────────────────────────────────────────────────────────
 
@@ -582,13 +586,15 @@ export default function GymEquipment() {
             <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Equipment</span>
           </div>
           <button
-            onClick={() => setSheet('add')}
+            onClick={() => activeGymId && setSheet('add')}
+            disabled={!activeGymId}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '8px 16px', borderRadius: 10,
               border: '1.5px solid var(--cta-border)',
               background: 'var(--cta-bg)', color: 'var(--cta-text)',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              fontSize: 14, fontWeight: 600, cursor: activeGymId ? 'pointer' : 'not-allowed',
+              opacity: activeGymId ? 1 : 0.6,
             }}
           >
             <Plus size={16} />
@@ -727,7 +733,7 @@ export default function GymEquipment() {
       {/* ── Add / edit sheet ──────────────────────────────────────────────── */}
       {sheet && (
         <EquipmentSheet
-          gymId={gymId}
+          gymId={activeGymId}
           item={sheet === 'add' ? null : sheet}
           onClose={() => setSheet(null)}
           onSaved={handleSaved}

@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import {
-  getGymByUserId,
   getGymMembers,
   getGymOccupancy,
   getChurnScores,
@@ -209,10 +209,10 @@ function IconWarning() {
 
 export default function GymDashboard() {
   const { user } = useAuth()
+  const { activeGym, activeGymId, loading: gymLoading } = useActiveGym()
   const navigate = useNavigate()
   const [moreOpen, setMoreOpen] = useState(false)
 
-  const [gym, setGym] = useState(null)
   const [members, setMembers] = useState([])
   const [membersError, setMembersError] = useState(false)
   const [occupancy, setOccupancy] = useState({ current: 0, capacity: 0 })
@@ -224,26 +224,20 @@ export default function GymDashboard() {
   // null = loading, number = resolved, 'error' = failed
   const [revenue, setRevenue] = useState(null)
 
-  const loadDashboard = useCallback(async (isCancelled = () => false) => {
-    if (!user) return
+  const loadDashboard = useCallback(async (gymId, isCancelled = () => false) => {
+    if (!gymId) return
     setLoading(true)
     setGymLoadError(false)
     setMembersError(false)
     setOccupancyError(false)
     setChurnError(false)
     try {
-      const gymData = await getGymByUserId(user.id)
-      if (isCancelled()) return
-      setGym(gymData)
-      // Cache for owner pages that read via useOwnerGymId.
-      try { if (gymData?.id) localStorage.setItem('gymId', gymData.id) } catch {}
-
       const ERR = Symbol('error')
       const [membersRes, occupancyRes, churnRes, revenueRes] = await Promise.all([
-        getGymMembers(gymData.id).catch(() => ERR),
-        getGymOccupancy(gymData.id).catch(() => ERR),
-        getChurnScores(gymData.id).catch(() => ERR),
-        getGymRevenue(gymData.id).catch(() => ERR),
+        getGymMembers(gymId).catch(() => ERR),
+        getGymOccupancy(gymId).catch(() => ERR),
+        getChurnScores(gymId).catch(() => ERR),
+        getGymRevenue(gymId).catch(() => ERR),
       ])
       if (isCancelled()) return
 
@@ -275,21 +269,35 @@ export default function GymDashboard() {
         revenueRes !== ERR && typeof revenueRes?.revenue === 'number' ? revenueRes.revenue : 'error'
       )
     } catch (err) {
-      // A failure fetching the gym itself (401/403/500/network) must not
-      // fall through to the default "Your Gym" / 0-everything render —
-      // that looks identical to a brand-new, empty gym.
+      // An unexpected failure fetching the dashboard stats must not fall
+      // through to the default 0-everything render — that looks identical
+      // to a brand-new, empty gym.
       console.error('GymDashboard load error:', err)
       if (!isCancelled()) setGymLoadError(true)
     } finally {
       if (!isCancelled()) setLoading(false)
     }
-  }, [user])
+  }, [])
 
+  // Re-fetch whenever the active gym changes (mount, switcher selection,
+  // logout/login) — mirrors GymEquipment.jsx's pattern. State updates are
+  // routed through a promise callback (never called synchronously in the
+  // effect body) to satisfy react-hooks/set-state-in-effect.
   useEffect(() => {
     let cancelled = false
-    loadDashboard(() => cancelled)
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      if (activeGymId) {
+        loadDashboard(activeGymId, () => cancelled)
+      } else {
+        // Still resolving gyms, or the owner has multiple gyms and hasn't
+        // picked one yet — GymSwitcher prompts for that at the route level,
+        // so this page just waits instead of fetching with no gym id.
+        setLoading(gymLoading)
+      }
+    })
     return () => { cancelled = true }
-  }, [loadDashboard])
+  }, [activeGymId, gymLoading, loadDashboard])
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
@@ -299,7 +307,7 @@ export default function GymDashboard() {
     || 'there'
   )
 
-  const gymName = gym?.name || 'Your Gym'
+  const gymName = activeGym?.name || 'Your Gym'
 
   const occupancyPct = occupancy.capacity > 0
     ? Math.min(100, Math.round((occupancy.current / occupancy.capacity) * 100))
@@ -336,7 +344,7 @@ export default function GymDashboard() {
             Something went wrong loading this page. Your gym data is unaffected — try again.
           </p>
           <button
-            onClick={loadDashboard}
+            onClick={() => loadDashboard(activeGymId)}
             style={{
               padding: '12px 24px', borderRadius: 12, border: '1px solid var(--text-primary)',
               background: 'var(--cta-bg)', color: 'var(--cta-text)', fontWeight: 600, fontSize: 14, cursor: 'pointer',
