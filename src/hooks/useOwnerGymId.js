@@ -1,30 +1,22 @@
-import { useEffect, useState } from 'react'
-import { useAuth } from './useAuth'
-import { getGymByUserId } from '../utils/api'
+import { useActiveGym } from '../contexts/ActiveGymContext'
 
-// Resolve the owner's gym id from localStorage when available, otherwise fetch
-// it via /api/gyms/:userId and cache the result. Until v7 several owner pages
-// read localStorage directly and silently rendered empty state when the value
-// was missing (e.g. fresh device, cleared storage, or seeded test user that
-// skipped onboarding).
+// Kept for existing call sites — Phase 2c/2d/2e will migrate them to
+// useActiveGym() directly. Now delegates entirely to ActiveGymContext
+// instead of its own fetch + localStorage logic.
 export function useOwnerGymId() {
-  const { user } = useAuth()
-  const [gymId, setGymId] = useState(() => {
-    try { return localStorage.getItem('gymId') } catch { return null }
-  })
+  const { activeGymId } = useActiveGym()
+  return activeGymId
+}
 
-  useEffect(() => {
-    if (gymId || !user) return
-    let cancelled = false
-    getGymByUserId(user.id)
-      .then((gym) => {
-        if (cancelled || !gym?.id) return
-        try { localStorage.setItem('gymId', gym.id) } catch {}
-        setGymId(gym.id)
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [user, gymId])
+// Used by GymOwnerRoute to detect a deactivated gym. GET /api/gyms/mine
+// (which ActiveGymContext fetches) only ever returns active gyms, so "no
+// gyms after loading finished" is exactly the deactivated-gym case that
+// this used to detect via a dedicated fetch. Returns the same
+// { gymId, gymResolved, gymDeactivated } shape as before.
+export function useOwnerGymStatus() {
+  const { gyms, activeGymId, loading } = useActiveGym()
+  const gymResolved = !loading
+  const gymDeactivated = !loading && gyms.length === 0
 
-  return gymId
+  return { gymId: activeGymId, gymResolved, gymDeactivated }
 }

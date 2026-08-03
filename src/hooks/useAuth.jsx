@@ -147,7 +147,11 @@ export function AuthProvider({ children }) {
     if (uid) {
       localStorage.removeItem(lsOnboarding(uid))
       localStorage.removeItem(lsRole(uid))
+      localStorage.removeItem(`gv_active_gym_${uid}`)
     }
+    // One-time cleanup of the legacy non-namespaced gym-id cache (superseded
+    // by gv_active_gym_${uid} in ActiveGymContext) — was never cleared here before.
+    localStorage.removeItem('gymId')
     await supabase.auth.signOut()
   }
 
