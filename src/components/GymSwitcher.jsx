@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useActiveGym } from '../contexts/ActiveGymContext'
 
 // Slim gym-context strip at the top of every owner screen.
@@ -8,6 +9,7 @@ import { useActiveGym } from '../contexts/ActiveGymContext'
 // Visual language: --bg-card / 0.5px border-bottom / CSS vars only.
 export default function GymSwitcher() {
   const { gyms, activeGym, activeGymId, loading, needsGymSelection, setActiveGym } = useActiveGym()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -149,6 +151,22 @@ export default function GymSwitcher() {
               </button>
             )
           })}
+          {/* Add another gym — separator + action row */}
+          <button
+            onClick={() => { setOpen(false); navigate('/gym-onboarding?mode=add') }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              width: '100%', textAlign: 'left',
+              background: 'transparent', border: 'none',
+              borderTop: '0.5px solid rgba(0,0,0,0.08)',
+              padding: '12px 16px', cursor: 'pointer',
+            }}
+          >
+            <PlusIcon />
+            <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)' }}>
+              Add another gym
+            </span>
+          </button>
         </div>
       )}
     </div>
@@ -198,6 +216,18 @@ function CheckIcon() {
       strokeLinecap="round" strokeLinejoin="round"
       style={{ flexShrink: 0 }}>
       <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="var(--text-secondary)" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ flexShrink: 0 }}>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   )
 }

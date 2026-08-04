@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { CitySearchInput } from '../../components/CitySearchInput'
 
 const GYM_TYPES = ['Commercial', 'Boutique', 'CrossFit', 'Yoga Studio', 'Boxing', 'Other']
@@ -56,7 +57,14 @@ const inputStyle = {
 
 export default function GymOnboarding() {
   const { user: authUser, setRole, markOnboardingComplete } = useAuth()
+  // ActiveGymProvider is only mounted inside GymOwnerRoute; GymOnboarding can
+  // also render under AuthRoute (first-time, no provider). Read the context
+  // safely — refreshGyms is called only when available (add-mode path).
+  const activeGymCtx = useActiveGym()
+  const refreshGyms = activeGymCtx?.refreshGyms ?? null
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isAddMode = searchParams.get('mode') === 'add'
   const API = import.meta.env.VITE_API_URL || ''
   const logoInputRef = useRef(null)
 
@@ -78,8 +86,9 @@ export default function GymOnboarding() {
   const [error, setError] = useState(null)
 
   // ─── Re-entry guard ───────────────────────────────────────────────────────
+  // Skipped in add-mode (?mode=add) so existing owners can create a second gym.
   useEffect(() => {
-    if (!authUser) return
+    if (!authUser || isAddMode) return
     const checkExisting = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -96,7 +105,7 @@ export default function GymOnboarding() {
       }
     }
     checkExisting()
-  }, [authUser])
+  }, [authUser, isAddMode])
 
   const canContinueStep1 = gymName.trim() && city.trim() && gymType
 
@@ -210,6 +219,12 @@ export default function GymOnboarding() {
       markOnboardingComplete()
 
       if (data.needs_reauth) await supabase.auth.refreshSession()
+
+      // Refresh the ActiveGymContext gym list so GymSwitcher shows the new
+      // gym immediately when the user clicks through to the dashboard —
+      // no page reload needed. Only available in add-mode (provider in scope).
+      if (refreshGyms) await refreshGyms()
+
       setCreatedGym(data.gym)
       setStep('success')
     } catch (err) {
@@ -240,7 +255,7 @@ export default function GymOnboarding() {
         <div style={{ backgroundColor: "var(--bg-card)", borderBottom: '0.5px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', justifyContent: 'space-between' }}>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate(isAddMode ? '/gym/dashboard' : '/home')}
               style={{ background: 'none', border: 'none', fontSize: 22, color: 'var(--text-tertiary)', cursor: 'pointer', padding: 0 }}
             >×</button>
             <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>Set Up Your Gym</span>
