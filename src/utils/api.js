@@ -710,13 +710,13 @@ export const assistantGetConversations = () =>
 export const assistantGetConversation = (id) =>
   apiFetch(`/api/assistant/conversations/${id}`);
 
-export const assistantGetSettings = () =>
-  apiFetch('/api/assistant/settings');
+export const assistantGetSettings = (gymId) =>
+  apiFetch(`/api/assistant/settings?gym_id=${gymId}`);
 
-export const assistantUpdateSettings = (updates) =>
+export const assistantUpdateSettings = (gymId, updates) =>
   apiFetch('/api/assistant/settings', {
     method: 'PATCH',
-    body: JSON.stringify(updates),
+    body: JSON.stringify({ gym_id: gymId, ...updates }),
   });
 
 export const assistantUpdateActionLog = (id, status) =>

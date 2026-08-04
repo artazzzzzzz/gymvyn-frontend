@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { supabase } from '../../utils/supabase'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
@@ -178,7 +179,7 @@ function BottomSheet({ open, onClose, title, children }) {
 
 // ── Product Form Sheet ───────────────────────────────────────────────────────
 
-function ProductFormSheet({ open, onClose, product, onSaved, onToast }) {
+function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
   const isEdit = !!product
   const [name, setName]                     = useState('')
   const [description, setDescription]       = useState('')
@@ -224,7 +225,7 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast }) {
     try {
       let saved
       if (isEdit) {
-        saved = await apiFetch(`/api/supplements/products/${product.id}`, {
+        saved = await apiFetch(`/api/supplements/products/${product.id}?gym_id=${gymId}`, {
           method: 'PATCH',
           body: JSON.stringify({
             name: name.trim(),
@@ -239,6 +240,7 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast }) {
         saved = await apiFetch('/api/supplements/products', {
           method: 'POST',
           body: JSON.stringify({
+            gym_id: gymId,
             name: name.trim(),
             description: description.trim() || null,
             category,
@@ -251,7 +253,7 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast }) {
 
       if (imageFile && saved?.id) {
         try {
-          const imgRes = await apiUpload(`/api/supplements/products/${saved.id}/upload-image`, imageFile)
+          const imgRes = await apiUpload(`/api/supplements/products/${saved.id}/upload-image?gym_id=${gymId}`, imageFile)
           saved.image_url = imgRes.image_url
         } catch (imgErr) {
           onToast('Product saved but image upload failed: ' + imgErr.message, 'error')
@@ -713,6 +715,7 @@ function DeleteConfirmSheet({ open, onClose, product, onConfirm }) {
 export default function GymSupplements() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { activeGymId } = useActiveGym()
 
   const [moreOpen, setMoreOpen]         = useState(false)
   const [tab, setTab]                   = useState('products')
@@ -739,12 +742,14 @@ export default function GymSupplements() {
 
   // ── Load products ────────────────────────────────────────────────────────
   const loadProducts = useCallback(async () => {
+    if (!activeGymId) return
     setProductsLoading(true)
     try {
+      const qs = `?gym_id=${activeGymId}`
       const [allProducts, lowStock, pendingOrders] = await Promise.all([
-        apiFetch('/api/supplements/products'),
-        apiFetch('/api/supplements/products/low-stock'),
-        apiFetch('/api/supplements/orders?status=pending'),
+        apiFetch(`/api/supplements/products${qs}`),
+        apiFetch(`/api/supplements/products/low-stock${qs}`),
+        apiFetch(`/api/supplements/orders?status=pending&gym_id=${activeGymId}`),
       ])
       setProducts(Array.isArray(allProducts) ? allProducts : [])
       setLowStockCount(Array.isArray(lowStock) ? lowStock.length : 0)
@@ -754,14 +759,16 @@ export default function GymSupplements() {
     } finally {
       setProductsLoading(false)
     }
-  }, [])
+  }, [activeGymId])
 
   // ── Load orders ──────────────────────────────────────────────────────────
   const loadOrders = useCallback(async (filter) => {
+    if (!activeGymId) return
     setOrdersLoading(true)
     try {
-      const qs = filter && filter !== 'all' ? `?status=${filter}` : ''
-      const data = await apiFetch(`/api/supplements/orders${qs}`)
+      const params = new URLSearchParams({ gym_id: activeGymId })
+      if (filter && filter !== 'all') params.set('status', filter)
+      const data = await apiFetch(`/api/supplements/orders?${params.toString()}`)
       setOrders(Array.isArray(data) ? data : [])
       if (filter === 'pending') setPendingOrderCount(Array.isArray(data) ? data.length : 0)
     } catch (err) {
@@ -769,18 +776,32 @@ export default function GymSupplements() {
     } finally {
       setOrdersLoading(false)
     }
-  }, [])
+  }, [activeGymId])
 
   // Initial load
   useEffect(() => {
-    loadProducts()
-  }, [loadProducts])
+    let cancelled = false
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      if (!activeGymId) {
+        setProducts([]); setLowStockCount(0); setPendingOrderCount(0); setProductsLoading(false)
+        return
+      }
+      loadProducts()
+    })
+    return () => { cancelled = true }
+  }, [activeGymId, loadProducts])
 
   useEffect(() => {
-    if (tab === 'orders') {
+    if (tab !== 'orders') return
+    let cancelled = false
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      if (!activeGymId) { setOrders([]); setOrdersLoading(false); return }
       loadOrders(orderFilter)
-    }
-  }, [tab, orderFilter, loadOrders])
+    })
+    return () => { cancelled = true }
+  }, [tab, orderFilter, activeGymId, loadOrders])
 
   // Poll orders every 30s while on Orders tab
   useEffect(() => {
@@ -798,7 +819,7 @@ export default function GymSupplements() {
 
   async function handleToggleActive(product) {
     try {
-      await apiFetch(`/api/supplements/products/${product.id}`, {
+      await apiFetch(`/api/supplements/products/${product.id}?gym_id=${activeGymId}`, {
         method: 'PATCH',
         body: JSON.stringify({ is_active: !product.is_active }),
       })
@@ -811,7 +832,7 @@ export default function GymSupplements() {
 
   async function handleDeleteProduct(product) {
     try {
-      await apiFetch(`/api/supplements/products/${product.id}`, { method: 'DELETE' })
+      await apiFetch(`/api/supplements/products/${product.id}?gym_id=${activeGymId}`, { method: 'DELETE' })
       showToast('Product deleted')
       loadProducts()
     } catch (err) {
@@ -822,7 +843,7 @@ export default function GymSupplements() {
 
   // ── Order actions ────────────────────────────────────────────────────────
   async function handleStatusChange(orderId, newStatus) {
-    await apiFetch(`/api/supplements/orders/${orderId}/status`, {
+    await apiFetch(`/api/supplements/orders/${orderId}/status?gym_id=${activeGymId}`, {
       method: 'PATCH',
       body: JSON.stringify({ status: newStatus }),
     })
@@ -831,7 +852,7 @@ export default function GymSupplements() {
   }
 
   async function handlePaymentChange(orderId, method) {
-    await apiFetch(`/api/supplements/orders/${orderId}/payment`, {
+    await apiFetch(`/api/supplements/orders/${orderId}/payment?gym_id=${activeGymId}`, {
       method: 'PATCH',
       body: JSON.stringify({ payment_method: method }),
     })
@@ -998,6 +1019,7 @@ export default function GymSupplements() {
         product={editProduct}
         onSaved={handleProductSaved}
         onToast={showToast}
+        gymId={activeGymId}
       />
 
       {/* Delete confirmation */}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
-import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { supabase } from '../../utils/supabase'
 
 async function authReq(API, method, path, body) {
@@ -34,7 +34,7 @@ const formatSpecializations = (specs) => {
 
 export default function GymTrainers() {
   const navigate = useNavigate()
-  const gymId = useOwnerGymId()
+  const { activeGymId: gymId } = useActiveGym()
   const API = import.meta.env.VITE_API_URL || ''
 
   const [trainers, setTrainers] = useState([])
@@ -71,8 +71,9 @@ export default function GymTrainers() {
   }
 
   const fetchPendingRequests = async () => {
+    if (!gymId) return
     try {
-      const data = await authReq(API, 'GET', '/api/gym/trainer-join-requests')
+      const data = await authReq(API, 'GET', `/api/gym/trainer-join-requests?gym_id=${gymId}`)
       setPendingRequests(Array.isArray(data) ? data : [])
     } catch {
       setPendingRequests([])
@@ -80,9 +81,10 @@ export default function GymTrainers() {
   }
 
   const fetchTrainerJoinCode = async () => {
+    if (!gymId) return
     setJoinCodeLoading(true)
     try {
-      const data = await authReq(API, 'GET', '/api/gym/trainer-join-code')
+      const data = await authReq(API, 'GET', `/api/gym/trainer-join-code?gym_id=${gymId}`)
       setTrainerJoinCode(data.trainer_join_code || null)
     } catch {
       setTrainerJoinCode(null)
@@ -99,7 +101,7 @@ export default function GymTrainers() {
   const handleAcceptRequest = async (req) => {
     setRequestActionId(req.id)
     try {
-      await authReq(API, 'PATCH', `/api/gym/trainer-join-requests/${req.id}/accept`)
+      await authReq(API, 'PATCH', `/api/gym/trainer-join-requests/${req.id}/accept?gym_id=${gymId}`)
       setPendingRequests(prev => prev.filter(r => r.id !== req.id))
       fetchTrainers()
     } catch (err) {
@@ -112,7 +114,7 @@ export default function GymTrainers() {
   const handleDeclineRequest = async (req) => {
     setRequestActionId(req.id)
     try {
-      await authReq(API, 'DELETE', `/api/gym/trainer-join-requests/${req.id}`)
+      await authReq(API, 'DELETE', `/api/gym/trainer-join-requests/${req.id}?gym_id=${gymId}`)
       setPendingRequests(prev => prev.filter(r => r.id !== req.id))
     } catch (err) {
       alert(err.message || 'Failed to decline request')

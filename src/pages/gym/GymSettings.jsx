@@ -188,7 +188,7 @@ export default function GymSettings() {
 
   useEffect(() => {
     if (!gymId || import.meta.env.VITE_AI_ASSISTANT_ENABLED !== 'true') return
-    assistantGetSettings()
+    assistantGetSettings(gymId)
       .then(s => setAiRevenueMetric(s.revenue_metric || 'membership_only'))
       .catch(() => {})
   }, [gymId])
@@ -680,7 +680,7 @@ export default function GymSettings() {
                       setAiSettingsSaving(true)
                       setAiRevenueMetric(opt.value)
                       try {
-                        await assistantUpdateSettings({ revenue_metric: opt.value })
+                        await assistantUpdateSettings(gymId, { revenue_metric: opt.value })
                         showToastMsg('AI Assistant settings saved')
                       } catch {
                         setAiRevenueMetric(aiRevenueMetric) // revert
