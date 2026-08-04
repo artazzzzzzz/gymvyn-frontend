@@ -164,23 +164,26 @@ export default function GymSettings() {
   }, [gymId])
 
   useEffect(() => {
-    if (!gymId) { setLockersLoading(false); return }
-    const fetchLockerSettings = async () => {
+    let cancelled = false
+    Promise.resolve().then(async () => {
+      if (cancelled) return
+      if (!gymId) { setLockersLoading(false); return }
       try {
         const { data: { session } } = await supabase.auth.getSession()
         const token = session?.access_token
-        const res = await fetch(`${API}/api/lockers/settings`, {
+        const res = await fetch(`${API}/api/lockers/settings?gym_id=${gymId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (cancelled) return
         if (res.ok) {
           const data = await res.json()
           setLockersEnabled(data.lockers_enabled ?? false)
         }
       } catch { /* non-critical */ } finally {
-        setLockersLoading(false)
+        if (!cancelled) setLockersLoading(false)
       }
-    }
-    fetchLockerSettings()
+    })
+    return () => { cancelled = true }
   }, [gymId])
 
   useEffect(() => {
@@ -337,7 +340,7 @@ export default function GymSettings() {
       const res = await fetch(`${API}/api/lockers/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ lockers_enabled: true }),
+        body: JSON.stringify({ gym_id: gymId, lockers_enabled: true }),
       })
       if (!res.ok) throw new Error('Failed')
       showToastMsg('Locker Management enabled')
@@ -356,7 +359,7 @@ export default function GymSettings() {
       const res = await fetch(`${API}/api/lockers/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ lockers_enabled: false }),
+        body: JSON.stringify({ gym_id: gymId, lockers_enabled: false }),
       })
       if (!res.ok) throw new Error('Failed')
       showToastMsg('Locker Management disabled')

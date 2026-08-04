@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import PrimaryButton from '../../components/PrimaryButton'
@@ -452,6 +453,7 @@ function ChartTooltip({ active, payload, label }) {
 
 export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   const navigate = useNavigate()
+  const { activeGymId } = useActiveGym()
 
   const [moreOpen,  setMoreOpen]  = useState(false)
   const [toast,     setToast]     = useState(null)
@@ -487,15 +489,18 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   // ── Data fetching ─────────────────────────────────────────────────────────
 
   const refresh = useCallback(async (range, cStart, cEnd) => {
+    if (!activeGymId) return
     const { start, end } = getDateRange(range, cStart, cEnd)
     setLoading(true)
     setFetchError(null)
     try {
-      const qs = start && end ? `?startDate=${start}&endDate=${end}` : ''
+      const params = new URLSearchParams({ gym_id: activeGymId })
+      if (start && end) { params.set('startDate', start); params.set('endDate', end) }
+      const qs = `?${params.toString()}`
       const [summaryData, expenseData, monthlyData] = await Promise.all([
         apiFetch(`/api/expenses/summary${qs}`),
         apiFetch(`/api/expenses${qs}`),
-        apiFetch('/api/expenses/summary/monthly'),
+        apiFetch(`/api/expenses/summary/monthly?gym_id=${activeGymId}`),
       ])
       setSummary(summaryData)
       setExpenses(Array.isArray(expenseData) ? expenseData : [])
@@ -506,11 +511,27 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [activeGymId])
 
+  // Re-fetch whenever the active gym changes (mount, switcher selection,
+  // logout/login) — not on dateRange/customStart/customEnd changes, those
+  // are handled directly by applyRange/applyCustomRange. State updates are
+  // routed through a promise callback to satisfy react-hooks/set-state-in-effect.
   useEffect(() => {
-    refresh(dateRange, customStart, customEnd)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    let cancelled = false
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      if (activeGymId) {
+        refresh(dateRange, customStart, customEnd)
+      } else {
+        setSummary(null)
+        setExpenses([])
+        setMonthly([])
+        setLoading(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [activeGymId, refresh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function applyRange(range) {
     setDateRange(range)
@@ -526,11 +547,12 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   // ── Actions ───────────────────────────────────────────────────────────────
 
   async function handleLog(fields) {
+    if (!activeGymId) return
     setSaving(true)
     try {
       await apiFetch('/api/expenses', {
         method: 'POST',
-        body: JSON.stringify(fields),
+        body: JSON.stringify({ ...fields, gym_id: activeGymId }),
       })
       setLogOpen(false)
       showToast('Expense logged')
@@ -543,10 +565,10 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   }
 
   async function handleEdit(fields) {
-    if (!editExpense) return
+    if (!editExpense || !activeGymId) return
     setSaving(true)
     try {
-      await apiFetch(`/api/expenses/${editExpense.id}`, {
+      await apiFetch(`/api/expenses/${editExpense.id}?gym_id=${activeGymId}`, {
         method: 'PATCH',
         body: JSON.stringify(fields),
       })
@@ -562,9 +584,10 @@ export default function GymExpenses({ embedded = false, topOffset = 0 } = {}) {
   }
 
   async function handleDelete(id) {
+    if (!activeGymId) return
     setDeleting(true)
     try {
-      await apiFetch(`/api/expenses/${id}`, { method: 'DELETE' })
+      await apiFetch(`/api/expenses/${id}?gym_id=${activeGymId}`, { method: 'DELETE' })
       setDeleteTarget(null)
       setEditOpen(false)
       setEditExpense(null)

@@ -5,7 +5,7 @@ import { KeyRound, Plus, X, ChevronLeft } from 'lucide-react'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import PrimaryButton from '../../components/PrimaryButton'
-import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 
 const BASE = import.meta.env.VITE_API_URL
 
@@ -149,7 +149,7 @@ function Toast({ toast }) {
 
 // ── AddLockerSheet ─────────────────────────────────────────────────────────────
 
-function AddLockerSheet({ onClose, onAdded }) {
+function AddLockerSheet({ gymId, onClose, onAdded }) {
   const [label, setLabel] = useState('')
   const [isPaid, setIsPaid] = useState(false)
   const [price, setPrice] = useState('')
@@ -166,7 +166,7 @@ function AddLockerSheet({ onClose, onAdded }) {
     try {
       const data = await apiFetch('/api/lockers', {
         method: 'POST',
-        body: JSON.stringify({ label: label.trim(), is_paid: isPaid, price: isPaid ? Number(price) : undefined }),
+        body: JSON.stringify({ gym_id: gymId, label: label.trim(), is_paid: isPaid, price: isPaid ? Number(price) : undefined }),
       })
       onAdded(data)
       onClose()
@@ -246,9 +246,9 @@ function AssignSheet({ locker, gymId, onClose, onAssigned }) {
     setSaving(true)
     setError(null)
     try {
-      await apiFetch(`/api/lockers/${locker.id}/assign`, {
+      await apiFetch(`/api/lockers/${locker.id}/assign?gym_id=${gymId}`, {
         method: 'POST',
-        body: JSON.stringify({ member_id: selectedMember.user_id, duration_days: effectiveDays }),
+        body: JSON.stringify({ member_id: selectedMember.id, duration_days: effectiveDays }),
       })
       onAssigned()
     } catch (err) {
@@ -398,7 +398,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
     setLabelError(null)
     setError(null)
     try {
-      await apiFetch(`/api/lockers/${locker.id}`, {
+      await apiFetch(`/api/lockers/${locker.id}?gym_id=${gymId}`, {
         method: 'PATCH',
         body: JSON.stringify({
           label: editLabel.trim(),
@@ -422,7 +422,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
   const handleEndAssignment = async () => {
     setBusy(true)
     try {
-      await apiFetch(`/api/lockers/${locker.id}/end-assignment`, { method: 'PATCH' })
+      await apiFetch(`/api/lockers/${locker.id}/end-assignment?gym_id=${gymId}`, { method: 'PATCH' })
       onRefresh()
       onClose()
     } catch (err) {
@@ -439,7 +439,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
     if (!payMethod) return
     setBusy(true)
     try {
-      await apiFetch(`/api/lockers/${locker.id}/payment`, {
+      await apiFetch(`/api/lockers/${locker.id}/payment?gym_id=${gymId}`, {
         method: 'PATCH',
         body: JSON.stringify({ payment_method: payMethod }),
       })
@@ -458,7 +458,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
   const handleDelete = async () => {
     setBusy(true)
     try {
-      await apiFetch(`/api/lockers/${locker.id}`, { method: 'DELETE' })
+      await apiFetch(`/api/lockers/${locker.id}?gym_id=${gymId}`, { method: 'DELETE' })
       onRefresh()
       onClose()
     } catch (err) {
@@ -474,7 +474,7 @@ function LockerDetailSheet({ locker, gymId, onClose, onRefresh, onAssign }) {
   const handleMarkAvailable = async () => {
     setBusy(true)
     try {
-      await apiFetch(`/api/lockers/${locker.id}`, {
+      await apiFetch(`/api/lockers/${locker.id}?gym_id=${gymId}`, {
         method: 'PATCH',
         body: JSON.stringify({ status: 'available' }),
       })
@@ -767,6 +767,8 @@ function LockerCard({ locker, onClick }) {
 
   return (
     <button
+      type="button"
+      aria-label={`Open locker ${locker.label}, ${locker.status}`}
       onClick={onClick}
       style={{
         background: "var(--bg-card)",
@@ -808,7 +810,7 @@ const FILTERS = ['all', 'available', 'occupied', 'maintenance']
 
 export default function GymLockers() {
   const navigate = useNavigate()
-  const gymId = useOwnerGymId()
+  const { activeGymId: gymId, loading: gymLoading } = useActiveGym()
 
   const [lockers, setLockers] = useState([])
   const [expiringSoon, setExpiringSoon] = useState([])
@@ -827,12 +829,13 @@ export default function GymLockers() {
     setTimeout(() => setToast(null), 2500)
   }
 
-  const loadData = async () => {
+  const loadData = async (activeGymId) => {
+    if (!activeGymId) return
     setLoading(true)
     try {
       const token = await getToken()
       // Use raw fetch so we can detect 403 specifically
-      const res = await fetch(`${BASE}/api/lockers`, {
+      const res = await fetch(`${BASE}/api/lockers?gym_id=${encodeURIComponent(activeGymId)}`, {
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       })
 
@@ -851,7 +854,7 @@ export default function GymLockers() {
 
       // Fetch expiring-soon (non-critical, don't block render)
       try {
-        const exp = await apiFetch('/api/lockers/expiring-soon')
+        const exp = await apiFetch(`/api/lockers/expiring-soon?gym_id=${encodeURIComponent(activeGymId)}`)
         setExpiringSoon(Array.isArray(exp) ? exp : [])
       } catch { /* ignore */ }
     } catch (err) {
@@ -861,7 +864,25 @@ export default function GymLockers() {
     }
   }
 
-  useEffect(() => { loadData() }, [])
+  // Re-fetch whenever the active gym changes (mount, switcher selection,
+  // logout/login) — clears stale lockers first so another gym's data never
+  // flashes on screen. State updates are routed through a promise callback
+  // to satisfy react-hooks/set-state-in-effect.
+  useEffect(() => {
+    let cancelled = false
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      setLockers([])
+      setExpiringSoon([])
+      setFeatureDisabled(false)
+      if (gymId) {
+        loadData(gymId)
+      } else {
+        setLoading(gymLoading)
+      }
+    })
+    return () => { cancelled = true }
+  }, [gymId, gymLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = filter === 'all' ? lockers : lockers.filter(l => l.status === filter)
 
@@ -1047,6 +1068,7 @@ export default function GymLockers() {
       {/* Add Locker sheet */}
       {showAdd && (
         <AddLockerSheet
+          gymId={gymId}
           onClose={() => setShowAdd(false)}
           onAdded={newLocker => {
             setLockers(prev => [...prev, newLocker])
@@ -1062,7 +1084,7 @@ export default function GymLockers() {
           gymId={gymId}
           onClose={() => setSelectedLocker(null)}
           onRefresh={() => {
-            loadData()
+            loadData(gymId)
             setSelectedLocker(null)
           }}
           onAssign={locker => {
@@ -1080,7 +1102,7 @@ export default function GymLockers() {
           onClose={() => setAssignLocker(null)}
           onAssigned={() => {
             setAssignLocker(null)
-            loadData()
+            loadData(gymId)
             showToast('Locker assigned')
           }}
         />
