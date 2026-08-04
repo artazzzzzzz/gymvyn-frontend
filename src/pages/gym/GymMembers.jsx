@@ -132,6 +132,12 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
   const [manualPhone, setManualPhone] = useState('')
   const [manualPlan, setManualPlan]   = useState('')
 
+  // Join-code state (used by QR and phone-invite views once that feature lands)
+  // eslint-disable-next-line no-unused-vars
+  const [joinCode, setJoinCode]       = useState('')
+  // eslint-disable-next-line no-unused-vars
+  const [gymName,  setGymName]        = useState('')
+
   // CSV state
   const [csvRows, setCsvRows]         = useState([])   // all valid parsed rows
   const [csvFile, setCsvFile]         = useState(null) // File object
@@ -168,6 +174,27 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
       .then(data => setPlans((data?.membership_plans || []).filter(p => p.is_active !== false)))
       .catch(() => setPlans([]))
   }, [isOpen, gymId])
+
+  // Join code needed by the QR and phone-invite views (both gated by view state).
+  useEffect(() => {
+    if (!isOpen || !gymId || (view !== 'qr' && view !== 'phone')) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const base = import.meta.env.VITE_API_URL || ''
+        const res = await fetch(`${base}/api/gym/my-gym-code?gym_id=${gymId}`, {
+          headers: { ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        })
+        if (!res.ok || cancelled) return
+        const d = await res.json()
+        if (cancelled) return
+        setJoinCode(d.join_code || '')
+        setGymName(d.gym_name || '')
+      } catch { /* non-critical */ }
+    })()
+    return () => { cancelled = true }
+  }, [isOpen, gymId, view])
 
   // ── Manual submit ────────────────────────────────────────────────────────
   async function handleManualSubmit(e) {
@@ -630,6 +657,7 @@ export default function GymMembers() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [moreOpen,     setMoreOpen]     = useState(false)
   const [gymId,        setGymId]        = useState(null)
+  const [loadError,    setLoadError]    = useState(null)
 
   // ── Fetch gymId once ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -640,7 +668,7 @@ export default function GymMembers() {
   }, [user])
 
   // ── Fetch members (re-runs when gymId or page changes) ────────────────────
-  useEffect(() => {
+  const loadMembers = useCallback(async () => {
     if (!gymId) return
     if (page === 1) setLoading(true)
     setLoadError(null)
@@ -659,9 +687,14 @@ export default function GymMembers() {
       setLoadError(err)
     } finally { setLoading(false) }
   }, [gymId, page])
+  useEffect(() => {
+    let cancelled = false
+    Promise.resolve().then(() => { if (!cancelled) loadMembers() })
+    return () => { cancelled = true }
+  }, [loadMembers])
 
   // ── Filter + search ───────────────────────────────────────────────────────
-  const loadMembers = useCallback(async () => {
+  useEffect(() => {
     let result = members
 
     if (activeFilter !== 'all') {
@@ -679,13 +712,19 @@ export default function GymMembers() {
       result = result.filter(m => (m.full_name || '').toLowerCase().includes(q))
     }
 
-    setFiltered(result)
+    Promise.resolve().then(() => setFiltered(result))
   }, [search, activeFilter, members])
 
   // ── Derived counts ────────────────────────────────────────────────────────
   const totalCount  = members.length
   const activeCount = members.filter(m => m.status === 'active').length
   const atRiskCount = members.filter(m => m.churn_risk === 'high').length
+  if (loadError) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <p style={{ color: 'var(--error)' }}>Failed to load members.</p>
+      <button onClick={loadMembers}>Try again</button>
+    </div>
+  )
 
   // ── Chip styles ───────────────────────────────────────────────────────────
   const chipBase = { borderRadius: 20, padding: '8px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', border: 'none' }
@@ -804,7 +843,6 @@ export default function GymMembers() {
           ) : filtered.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 20px' }}>
               <svg width="48" height="48" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-  const [loadError,    setLoadError]    = useState(null)
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
