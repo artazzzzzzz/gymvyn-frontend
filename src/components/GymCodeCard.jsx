@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../utils/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useActiveGym } from '../contexts/ActiveGymContext'
 
 const BASE = import.meta.env.VITE_API_URL || ''
 
 export function GymCodeCard() {
   const { user } = useAuth()
+  const { activeGymId } = useActiveGym()
   const [code, setCode] = useState('')
   const [gymName, setGymName] = useState('')
   const [loading, setLoading] = useState(true)
@@ -15,13 +17,13 @@ export function GymCodeCard() {
   const [showQR, setShowQR] = useState(false)
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !activeGymId) return
     ;(async () => {
       setLoading(true)
       setError(false)
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        const res = await fetch(`${BASE}/api/gym/my-gym-code`, {
+        const res = await fetch(`${BASE}/api/gym/my-gym-code?gym_id=${activeGymId}`, {
           headers: { ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
         })
         if (!res.ok) {
@@ -41,7 +43,7 @@ export function GymCodeCard() {
         setLoading(false)
       }
     })()
-  }, [user])
+  }, [user, activeGymId])
 
   const copy = () => {
     navigator.clipboard.writeText(code).catch(() => {})

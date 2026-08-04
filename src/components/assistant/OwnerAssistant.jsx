@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { assistantGetBadge } from '../../utils/api'
 import AssistantPanel from './AssistantPanel'
 
 const POLL_INTERVAL = 5 * 60 * 1000 // 5 minutes
 
 export default function OwnerAssistant() {
-  const gymId = useOwnerGymId()
+  const { activeGymId: gymId } = useActiveGym()
   const [isOpen, setIsOpen] = useState(false)
   const [badgeCount, setBadgeCount] = useState(0)
   const pollRef = useRef(null)
@@ -14,9 +14,15 @@ export default function OwnerAssistant() {
   useEffect(() => {
     if (!gymId) return
 
+    // gymId is a dependency of this effect, so a gym switch tears down this
+    // entire effect (clearing the old interval below) and re-runs it from
+    // scratch — fetchBadge is redefined here on every run and closes over
+    // whatever gymId is current at that time. That's what keeps the poll
+    // tick from ever using a stale gymId; it is not a ref-based fix because
+    // none is needed as long as this dependency array stays [gymId].
     const fetchBadge = async () => {
       try {
-        const { count } = await assistantGetBadge()
+        const { count } = await assistantGetBadge(gymId)
         setBadgeCount(count || 0)
       } catch {}
     }

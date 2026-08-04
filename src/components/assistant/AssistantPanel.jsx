@@ -54,7 +54,7 @@ async function executeAction(proposedAction, gymId) {
     case 'propose_delete_member':
       return apiFetch(`/api/gym-members/${args.member_id}`, { method: 'DELETE' })
     case 'propose_delete_expense':
-      return apiFetch(`/api/expenses/${args.expense_id}`, { method: 'DELETE' })
+      return apiFetch(`/api/expenses/${args.expense_id}?gym_id=${gymId}`, { method: 'DELETE' })
     default:
       throw new Error(`Unknown action: ${tool}`)
   }
@@ -196,7 +196,7 @@ export default function AssistantPanel({ isOpen, onClose, gymId, onBadgeClear })
     if (!isOpen || !gymId || messages.length > 0) return
     let cancelled = false
 
-    assistantGetAttention()
+    assistantGetAttention(gymId)
       .then(({ items }) => {
         if (cancelled) return
         if (items?.length) onBadgeClear?.()
@@ -249,7 +249,7 @@ export default function AssistantPanel({ isOpen, onClose, gymId, onBadgeClear })
     setLoading(true)
 
     try {
-      const result = await assistantSendMessage({ conversationId, message: text })
+      const result = await assistantSendMessage({ gymId, conversationId, message: text })
       setConversationId(result.conversationId)
 
       if (result.proposedAction) {
@@ -283,7 +283,7 @@ export default function AssistantPanel({ isOpen, onClose, gymId, onBadgeClear })
     try {
       await executeAction(proposedAction, gymId)
       if (proposedAction.actionLogId) {
-        await assistantUpdateActionLog(proposedAction.actionLogId, 'executed').catch(() => {})
+        await assistantUpdateActionLog(proposedAction.actionLogId, 'executed', gymId).catch(() => {})
       }
       setMessages(prev => prev.map(m =>
         m.proposedAction?.actionLogId === proposedAction.actionLogId
@@ -301,7 +301,7 @@ export default function AssistantPanel({ isOpen, onClose, gymId, onBadgeClear })
 
   async function handleCancel(proposedAction) {
     if (proposedAction.actionLogId) {
-      await assistantUpdateActionLog(proposedAction.actionLogId, 'cancelled').catch(() => {})
+      await assistantUpdateActionLog(proposedAction.actionLogId, 'cancelled', gymId).catch(() => {})
     }
     setMessages(prev => prev.map(m =>
       m.proposedAction?.actionLogId === proposedAction.actionLogId

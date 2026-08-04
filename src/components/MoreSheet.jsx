@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useActiveGym } from '../contexts/ActiveGymContext'
 import { supabase } from '../utils/supabase'
 
 const BASE = import.meta.env.VITE_API_URL
@@ -187,6 +188,7 @@ function badgeLabel(pending, lowStock) {
 export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTrainer = false, onOpenJoinGym, onOpenJoinTrainer }) {
   const navigate = useNavigate()
   const { effectiveRole } = useAuth()
+  const { activeGymId } = useActiveGym()
 
   const visible = isOpen ?? open ?? false
 
@@ -195,16 +197,17 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
   const [lockersBadge, setLockersBadge] = useState(null)
 
   useEffect(() => {
-    if (!visible || effectiveRole !== 'gym_owner') return
+    if (!visible || effectiveRole !== 'gym_owner' || !activeGymId) return
     async function fetchBadges() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         const token = session?.access_token
         const headers = { Authorization: `Bearer ${token}` }
+        const gymQS = `gym_id=${activeGymId}`
         const [pendingRes, lowStockRes, lockerSettingsRes] = await Promise.all([
-          fetch(`${BASE}/api/supplements/orders?status=pending`, { headers }),
-          fetch(`${BASE}/api/supplements/products/low-stock`, { headers }),
-          fetch(`${BASE}/api/lockers/settings`, { headers }),
+          fetch(`${BASE}/api/supplements/orders?status=pending&${gymQS}`, { headers }),
+          fetch(`${BASE}/api/supplements/products/low-stock?${gymQS}`, { headers }),
+          fetch(`${BASE}/api/lockers/settings?${gymQS}`, { headers }),
         ])
         const pending  = pendingRes.ok  ? await pendingRes.json()  : []
         const lowStock = lowStockRes.ok ? await lowStockRes.json() : []
@@ -218,7 +221,7 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
           setLockersEnabled(enabled)
           if (enabled) {
             try {
-              const expRes = await fetch(`${BASE}/api/lockers/expiring-soon`, { headers })
+              const expRes = await fetch(`${BASE}/api/lockers/expiring-soon?${gymQS}`, { headers })
               if (expRes.ok) {
                 const exp = await expRes.json()
                 const n = Array.isArray(exp) ? exp.length : 0
@@ -230,7 +233,7 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
       } catch { /* non-critical */ }
     }
     fetchBadges()
-  }, [visible, effectiveRole])
+  }, [visible, effectiveRole, activeGymId])
 
   const gymItem = {
     id: 'my-gym',

@@ -692,17 +692,17 @@ export const deleteWorkout = (workoutId, userId) =>
 
 // ── Owner Assistant ───────────────────────────────────────────────────────────
 
-export const assistantSendMessage = ({ conversationId, message }) =>
+export const assistantSendMessage = ({ gymId, conversationId, message }) =>
   apiFetch('/api/assistant/message', {
     method: 'POST',
-    body: JSON.stringify({ conversationId, message }),
+    body: JSON.stringify({ gym_id: gymId, conversationId, message }),
   });
 
-export const assistantGetAttention = () =>
-  apiFetch('/api/assistant/attention');
+export const assistantGetAttention = (gymId) =>
+  apiFetch(`/api/assistant/attention?gym_id=${gymId}`);
 
-export const assistantGetBadge = () =>
-  apiFetch('/api/assistant/attention/badge');
+export const assistantGetBadge = (gymId) =>
+  apiFetch(`/api/assistant/attention/badge?gym_id=${gymId}`);
 
 export const assistantGetConversations = () =>
   apiFetch('/api/assistant/conversations');
@@ -719,8 +719,8 @@ export const assistantUpdateSettings = (gymId, updates) =>
     body: JSON.stringify({ gym_id: gymId, ...updates }),
   });
 
-export const assistantUpdateActionLog = (id, status) =>
-  apiFetch(`/api/assistant/action-log/${id}`, {
+export const assistantUpdateActionLog = (id, status, gymId) =>
+  apiFetch(`/api/assistant/action-log/${id}?gym_id=${gymId}`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   });
