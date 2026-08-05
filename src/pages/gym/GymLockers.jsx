@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
-import { KeyRound, Plus, X, ChevronLeft } from 'lucide-react'
+import { KeyRound, Lock, Plus, X, ChevronLeft } from 'lucide-react'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import PrimaryButton from '../../components/PrimaryButton'
