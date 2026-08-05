@@ -44,8 +44,28 @@ export default function GymSwitcher() {
     )
   }
 
-  // Single gym: render nothing — no visual regression.
-  if (gyms.length <= 1) return null
+  // No gym resolved yet (shouldn't happen post-onboarding, but safe fallback).
+  if (gyms.length === 0) return null
+
+  // Single gym: a low-weight "add another gym" affordance — secondary action only.
+  if (gyms.length === 1) {
+    return (
+      <button
+        onClick={() => navigate('/gym-onboarding?mode=add')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+          background: 'var(--bg-card)', border: 'none',
+          borderBottom: '0.5px solid rgba(0,0,0,0.08)',
+          padding: '8px 16px', cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <PlusIcon />
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)' }}>
+          Add another gym
+        </span>
+      </button>
+    )
+  }
 
   // No active gym resolved and multiple gyms exist — prompt the owner to pick.
   if (needsGymSelection) {
