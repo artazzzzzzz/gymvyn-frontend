@@ -475,6 +475,7 @@ export default function GymSchedule() {
     new Date().toISOString().split('T')[0]
   )
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
 
@@ -494,6 +495,7 @@ export default function GymSchedule() {
   const fetchWeek = useCallback(async (gId, date) => {
     if (!gId) return
     setLoading(true)
+    setLoadError('')
     try {
       const monday = getMondayOfWeek(date)
       const mondayISO = monday.toISOString().split('T')[0]
@@ -503,9 +505,11 @@ export default function GymSchedule() {
         { headers: { Authorization: `Bearer ${session?.access_token}` } }
       )
       const data = await res.json().catch(() => null)
-      if (res.ok) setWeekData(data)
-    } catch {
-      // silently ignore
+      if (!res.ok) throw new Error(data?.message || data?.error || 'Failed to load schedule')
+      setWeekData(data)
+    } catch (err) {
+      setWeekData(null)
+      setLoadError(err.message || 'Failed to load schedule')
     } finally {
       setLoading(false)
     }
@@ -522,6 +526,16 @@ export default function GymSchedule() {
     .filter(c => new Date(c.start_time) > new Date())
     .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
     .slice(0, 3)) || []
+
+  if (loadError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--error)', margin: 0 }}>{loadError}</p>
+        <button onClick={() => fetchWeek(gymId, selectedDate)} style={{ fontSize: 13, color: 'var(--text-cta)', background: 'none', border: 'none', cursor: 'pointer' }}>Try again</button>
+        <button onClick={() => navigate(-1)} style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>Back</button>
+      </div>
+    )
+  }
 
   return (
     <div style={{
