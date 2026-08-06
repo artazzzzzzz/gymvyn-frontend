@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAvatarColor } from '../../utils/avatarColor'
 import { supabase } from '../../utils/supabase'
@@ -135,6 +135,7 @@ const PLAN_OPTIONS = [
 function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
   const [selected, setSelected] = useState('monthly')
   const [loading,  setLoading]  = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
@@ -149,6 +150,7 @@ function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
     const newEndDate = new Date(baseDate)
     newEndDate.setDate(newEndDate.getDate() + plan.days)
 
+    setError('')
     setLoading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -169,7 +171,7 @@ function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
       onSuccess(data?.member || data)
       onClose()
     } catch (err) {
-      alert(err.message || 'Renewal failed, try again')
+      setError(err.message || 'Renewal failed, try again')
     } finally {
       setLoading(false)
     }
@@ -211,6 +213,8 @@ function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
           <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{member?.full_name}</p>
           <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '2px 0 0' }}>Current: {member?.plan_type || '—'}</p>
         </div>
+
+        {error && <p style={{ color: 'var(--error)', fontSize: 13, margin: '0 20px 12px' }}>{error}</p>}
 
         {/* Plan options */}
         <div style={{ padding: '0 20px' }}>
@@ -261,6 +265,7 @@ function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
 
 function RemoveConfirm({ member, memberId, isOpen, onClose, onRemoved }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
@@ -268,6 +273,7 @@ function RemoveConfirm({ member, memberId, isOpen, onClose, onRemoved }) {
   }, [isOpen])
 
   async function handleRemove() {
+    setError('')
     setLoading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -278,7 +284,7 @@ function RemoveConfirm({ member, memberId, isOpen, onClose, onRemoved }) {
       if (!res.ok) throw new Error('Failed to remove member')
       onRemoved()
     } catch (err) {
-      alert(err.message || 'Failed to remove member')
+      setError(err.message || 'Failed to remove member')
     } finally {
       setLoading(false)
     }
@@ -326,6 +332,7 @@ function RemoveConfirm({ member, memberId, isOpen, onClose, onRemoved }) {
             This will end their membership immediately.
           </p>
         </div>
+        {error && <p style={{ color: 'var(--error)', fontSize: 13, margin: '0 0 12px', textAlign: 'center' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 12 }}>
           <button
             onClick={onClose}
@@ -410,32 +417,56 @@ export default function GymMemberDetail() {
 
   const [member,            setMember]            = useState(null)
   const [loading,           setLoading]           = useState(true)
+  const [loadError,         setLoadError]         = useState('')
   const [showRenewModal,    setShowRenewModal]    = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [actionLoading,     setActionLoading]     = useState(false)
 
-  useEffect(() => {
+  const loadMember = useCallback(async (signal) => {
     if (!memberId) return
-    let cancelled = false
     setLoading(true)
-
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => fetch(`${BASE}/api/gym-members/${memberId}`, {
+    setLoadError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch(`${BASE}/api/gym-members/${memberId}`, {
         headers: { Authorization: `Bearer ${session?.access_token}` },
-      }))
-      .then(r => r.json())
-      .then(data => { if (!cancelled) setMember(data?.member || data) })
-      .catch(err => console.error('GymMemberDetail load error:', err))
-      .finally(() => { if (!cancelled) setLoading(false) })
-
-    return () => { cancelled = true }
+        signal: signal || undefined,
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.message || 'Failed to load member')
+      if (!signal?.aborted) setMember(data?.member || data)
+    } catch (err) {
+      if (err.name !== 'AbortError' && !signal?.aborted) {
+        console.error('GymMemberDetail load error:', err)
+        setMember(null)
+        setLoadError(err.message || 'Failed to load member')
+      }
+    } finally {
+      if (!signal?.aborted) setLoading(false)
+    }
   }, [memberId])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    loadMember(controller.signal)
+    return () => controller.abort()
+  }, [loadMember])
 
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="w-7 h-7 border-2 border-[var(--success)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, textAlign: 'center' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--error)', margin: 0 }}>{loadError}</p>
+        <button onClick={() => loadMember()} style={{ fontSize: 13, color: 'var(--text-cta)', background: 'none', border: 'none', cursor: 'pointer' }}>Try again</button>
+        <button onClick={() => navigate(-1)} style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>Back</button>
       </div>
     )
   }
