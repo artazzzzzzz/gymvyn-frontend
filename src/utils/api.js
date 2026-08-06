@@ -74,6 +74,32 @@ export async function getGymByUserId(userId) {
   return data;
 }
 
+// ── Gym equipment ────────────────────────────────────────────────────────────
+
+export function getGymEquipment(gymId) {
+  return apiFetch(`/api/equipment/${encodeURIComponent(gymId)}`);
+}
+
+export function createGymEquipment(gymId, payload) {
+  return apiFetch(`/api/equipment/${encodeURIComponent(gymId)}`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateGymEquipment(gymId, equipmentId, payload) {
+  return apiFetch(`/api/equipment/${encodeURIComponent(gymId)}/${encodeURIComponent(equipmentId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteGymEquipment(gymId, equipmentId) {
+  return apiFetch(`/api/equipment/${encodeURIComponent(gymId)}/${encodeURIComponent(equipmentId)}`, {
+    method: 'DELETE',
+  });
+}
+
 // ── Gym member management ────────────────────────────────────────────────────
 
 export async function getGymMembers(gymId) {
