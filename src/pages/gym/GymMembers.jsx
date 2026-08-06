@@ -3,10 +3,14 @@ import Papa from 'papaparse'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../utils/supabase'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { getAvatarColor } from '../../utils/avatarColor'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { ListSkeleton } from '../../components/loading/Loading'
+import { getEffectiveMembership, getStatusPillProps } from '../../utils/membershipStatus'
+import { inviteGymMemberByEmail } from '../../utils/api'
+import { GymCodeCard } from '../../components/GymCodeCard'
 
 const FILTERS = ['all', 'active', 'expiring', 'at_risk', 'inactive']
 const LIMIT = 20
@@ -35,17 +39,8 @@ function filterLabel(f) {
 
 // ── StatusPill ────────────────────────────────────────────────────────────────
 
-function StatusPill({ status, churn_risk, days_until_expiry }) {
-  let label, bg, color
-  if (churn_risk === 'high') {
-    label = 'At Risk';   bg = 'var(--error-bg)'; color = 'var(--error)'
-  } else if (days_until_expiry <= 7 && days_until_expiry > 0) {
-    label = 'Expiring';  bg = 'var(--warning-bg)'; color = 'var(--warning)'
-  } else if (status === 'inactive') {
-    label = 'Inactive';  bg = 'var(--bg-pill)'; color = 'var(--text-secondary)'
-  } else {
-    label = 'Active';    bg = 'var(--success-bg)'; color = 'var(--success)'
-  }
+function StatusPill({ member }) {
+  const { label, bg, color } = getStatusPillProps(member)
   return (
     <span style={{
       background: bg, color,
@@ -92,11 +87,7 @@ function MemberRow({ member, onClick }) {
         </p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-        <StatusPill
-          status={member.status}
-          churn_risk={member.churn_risk}
-          days_until_expiry={member.days_until_expiry}
-        />
+        <StatusPill member={member} />
         <svg width="16" height="16" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"
           strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
           <polyline points="9 18 15 12 9 6" />
@@ -123,7 +114,7 @@ function SummaryPill({ label, bg, text }) {
 // ── AddMemberSheet ────────────────────────────────────────────────────────────
 
 function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
-  // view: 'options' | 'form' | 'csv'
+  // view: 'options' | 'form' | 'csv' | 'phone' | 'email' | 'qr'
   const [view, setView]               = useState('options')
   const [plans, setPlans]             = useState([])
 
@@ -132,11 +123,17 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
   const [manualPhone, setManualPhone] = useState('')
   const [manualPlan, setManualPlan]   = useState('')
 
-  // Join-code state (used by QR and phone-invite views once that feature lands)
-  // eslint-disable-next-line no-unused-vars
+  // Phone-invite state
+  const [invitePhone, setInvitePhone] = useState('')
+  const [phoneDupWarning, setPhoneDupWarning] = useState('')
+  const [phoneDupChecking, setPhoneDupChecking] = useState(false)
   const [joinCode, setJoinCode]       = useState('')
-  // eslint-disable-next-line no-unused-vars
-  const [gymName,  setGymName]        = useState('')
+  const [gymName, setGymName]         = useState('')
+  const [smsCopied, setSmsCopied]     = useState(false)
+
+  // Email-invite state
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteName, setInviteName]   = useState('')
 
   // CSV state
   const [csvRows, setCsvRows]         = useState([])   // all valid parsed rows
@@ -161,6 +158,8 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
         setView('options')
         setManualName(''); setManualPhone(''); setManualPlan('')
         setCsvRows([]); setCsvFile(null); setImportResult(null)
+        setInvitePhone(''); setPhoneDupWarning(''); setSmsCopied(false)
+        setInviteEmail(''); setInviteName('')
         setSubmitting(false); setError(''); setSuccess(false)
       }, 300)
     }
@@ -175,7 +174,7 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
       .catch(() => setPlans([]))
   }, [isOpen, gymId])
 
-  // Join code needed by the QR and phone-invite views (both gated by view state).
+  // Join code is needed by both the QR view and the Phone-invite SMS text.
   useEffect(() => {
     if (!isOpen || !gymId || (view !== 'qr' && view !== 'phone')) return
     let cancelled = false
@@ -186,15 +185,67 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
         const res = await fetch(`${base}/api/gym/my-gym-code?gym_id=${gymId}`, {
           headers: { ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
         })
-        if (!res.ok || cancelled) return
+        if (!res.ok) return
         const d = await res.json()
         if (cancelled) return
         setJoinCode(d.join_code || '')
         setGymName(d.gym_name || '')
-      } catch { /* non-critical */ }
+      } catch { /* non-critical — SMS/QR view shows an empty-code state */ }
     })()
     return () => { cancelled = true }
   }, [isOpen, gymId, view])
+
+  // Light, non-blocking duplicate check — an SMS invite doesn't write to the
+  // DB, so this is a heads-up, not a hard gate against sending it anyway.
+  useEffect(() => {
+    if (!/^\d{10}$/.test(invitePhone) || !gymId) { setPhoneDupWarning(''); return }
+    let cancelled = false
+    setPhoneDupChecking(true)
+    const timer = setTimeout(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const base = import.meta.env.VITE_API_URL || ''
+        const res = await fetch(`${base}/api/gym-members-search/${gymId}?q=${encodeURIComponent(invitePhone)}`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
+        if (!res.ok) return
+        const results = await res.json()
+        if (cancelled) return
+        const match = Array.isArray(results) && results.find(r => (r.phone || '').replace(/\D/g, '') === invitePhone)
+        setPhoneDupWarning(match ? `${match.full_name} already has an active membership with this number.` : '')
+      } catch { /* non-critical */ } finally {
+        if (!cancelled) setPhoneDupChecking(false)
+      }
+    }, 400)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [invitePhone, gymId])
+
+  const smsMessage = joinCode
+    ? `You're invited to join ${gymName || 'the gym'} on Gymvyn! Use code ${joinCode} to link your account, or download the app and enter it under "Join a gym".`
+    : ''
+
+  function copySmsMessage() {
+    navigator.clipboard.writeText(smsMessage).catch(() => {})
+    setSmsCopied(true)
+    setTimeout(() => setSmsCopied(false), 2000)
+  }
+
+  // ── Email invite submit ──────────────────────────────────────────────────
+  async function handleEmailInviteSubmit(e) {
+    e.preventDefault()
+    if (!inviteEmail.trim()) return
+    setError(''); setSubmitting(true)
+    try {
+      await inviteGymMemberByEmail({
+        gymId, email: inviteEmail.trim(), fullName: inviteName.trim() || undefined,
+      })
+      setSuccess(true)
+      try { onAdded?.() } catch {}
+    } catch (err) {
+      setError(err.message)
+      setSubmitting(false)
+    }
+  }
 
   // ── Manual submit ────────────────────────────────────────────────────────
   async function handleManualSubmit(e) {
@@ -296,17 +347,22 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
 
   // ── Options list ─────────────────────────────────────────────────────────
   const options = [
-    { label: 'Invite via Phone', icon: <PhoneIcon /> },
-    { label: 'Invite via Email', icon: <MailIcon />  },
-    { label: 'Scan Member QR',   icon: <QrIcon />    },
+    { label: 'Invite via Phone', icon: <PhoneIcon />,    onPress: () => setView('phone') },
+    { label: 'Invite via Email', icon: <MailIcon />,     onPress: () => setView('email') },
+    { label: 'Show Join QR/Code', icon: <QrIcon />,      onPress: () => setView('qr') },
     { label: 'Add Manually',     icon: <UserPlusIcon />, onPress: () => setView('form') },
     { label: 'Import Members',   icon: <UploadIcon />,   onPress: () => { onClose?.(); setTimeout(() => onImportMembers?.(), 180) } },
   ]
 
   const phoneOk = manualPhone === '' || /^\d{10}$/.test(manualPhone)
+  const invitePhoneOk = invitePhone === '' || /^\d{10}$/.test(invitePhone)
+  const inviteEmailOk = inviteEmail === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail)
 
-  const viewTitle = { options: 'Add Member', form: 'Add Manually', csv: 'Import CSV' }
-  const isSubView = view === 'form' || view === 'csv'
+  const viewTitle = {
+    options: 'Add Member', form: 'Add Manually', csv: 'Import CSV',
+    phone: 'Invite via Phone', email: 'Invite via Email', qr: 'Join QR / Code',
+  }
+  const isSubView = view !== 'options'
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -338,7 +394,11 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isSubView && (
               <button
-                onClick={() => { setView('options'); setError(''); setCsvRows([]); setCsvFile(null); setSuccess(false); setImportResult(null) }}
+                onClick={() => {
+                  setView('options'); setError(''); setCsvRows([]); setCsvFile(null); setSuccess(false); setImportResult(null)
+                  setInvitePhone(''); setPhoneDupWarning(''); setSmsCopied(false)
+                  setInviteEmail(''); setInviteName('')
+                }}
                 style={{ background: 'none', border: 'none', padding: '4px 2px', cursor: 'pointer', display: 'flex' }}
               >
                 <svg width="20" height="20" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -546,6 +606,109 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
             )
           )}
 
+          {/* ── QR / join code ── */}
+          {view === 'qr' && (
+            <div style={{ padding: '4px 20px 32px' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 14px' }}>
+                Members scan this QR or enter the code themselves under "Join a gym" — no separate signup needed.
+              </p>
+              <GymCodeCard />
+            </div>
+          )}
+
+          {/* ── Phone invite ── */}
+          {view === 'phone' && (
+            <div style={{ padding: '12px 20px 32px' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 16px' }}>
+                Text them your gym's join code — they enter it themselves under "Join a gym" in the app.
+              </p>
+
+              <div style={{ marginBottom: 6 }}>
+                <label style={labelStyle}>Phone Number</label>
+                <div style={{ display: 'flex', alignItems: 'center', height: 48, border: '0.5px solid rgba(0,0,0,0.18)', borderRadius: 12, overflow: 'hidden' }}>
+                  <span style={{ padding: '0 10px 0 14px', color: 'var(--text-tertiary)', fontSize: 15, whiteSpace: 'nowrap', userSelect: 'none', flexShrink: 0 }}>+91</span>
+                  <input type="tel" value={invitePhone} maxLength={10}
+                    onChange={e => setInvitePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="98765 43210" autoFocus
+                    style={{ flex: 1, height: '100%', border: 'none', padding: '0 14px 0 0', fontSize: 15, outline: 'none', fontFamily: 'inherit' }} />
+                </div>
+                {invitePhone.length > 0 && !invitePhoneOk && (
+                  <p style={{ fontSize: 11, color: 'var(--warning)', margin: '4px 0 0' }}>Phone must be 10 digits</p>
+                )}
+                {phoneDupChecking && (
+                  <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>Checking…</p>
+                )}
+                {!phoneDupChecking && phoneDupWarning && (
+                  <p style={{ fontSize: 11, color: 'var(--warning)', margin: '4px 0 0' }}>{phoneDupWarning}</p>
+                )}
+              </div>
+
+              {invitePhoneOk && invitePhone.length === 10 && (
+                <>
+                  <div style={{ marginTop: 16, marginBottom: 16, padding: '12px 14px', background: 'var(--bg-primary)', borderRadius: 10, fontSize: 13, color: 'var(--text-secondary)' }}>
+                    {joinCode ? smsMessage : 'Loading your gym code…'}
+                  </div>
+
+                  <a
+                    href={joinCode ? `sms:+91${invitePhone}?&body=${encodeURIComponent(smsMessage)}` : undefined}
+                    aria-disabled={!joinCode}
+                    style={{
+                      ...submitBtnStyle(!joinCode),
+                      textDecoration: 'none', marginBottom: 10, pointerEvents: joinCode ? 'auto' : 'none',
+                    }}
+                  >
+                    Open SMS to {invitePhone}
+                  </a>
+                  <button
+                    onClick={copySmsMessage}
+                    disabled={!joinCode}
+                    style={{
+                      width: '100%', height: 44, borderRadius: 12,
+                      background: 'var(--bg-pill)', color: 'var(--text-primary)', border: 'none',
+                      fontSize: 14, fontWeight: 600, cursor: joinCode ? 'pointer' : 'default', opacity: joinCode ? 1 : 0.6,
+                    }}
+                  >
+                    {smsCopied ? 'Copied!' : 'Copy message instead'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Email invite ── */}
+          {view === 'email' && (
+            success ? (
+              <SuccessSplash message={`An invite email was sent to ${inviteEmail}.`} />
+            ) : (
+              <form onSubmit={handleEmailInviteSubmit} style={{ padding: '12px 20px 32px' }}>
+                {error && <ErrorBanner msg={error} />}
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 16px' }}>
+                  They'll get an email to set up their own Gymvyn login, already linked to your gym.
+                </p>
+
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Email Address <span style={{ color: 'var(--error)' }}>*</span></label>
+                  <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                    placeholder="member@example.com" autoFocus disabled={submitting} style={inputStyle} />
+                  {inviteEmail.length > 0 && !inviteEmailOk && (
+                    <p style={{ fontSize: 11, color: 'var(--warning)', margin: '4px 0 0' }}>Enter a valid email address</p>
+                  )}
+                </div>
+
+                <div style={{ marginBottom: 24 }}>
+                  <label style={labelStyle}>Full Name <span style={optStyle}>(optional)</span></label>
+                  <input type="text" value={inviteName} onChange={e => setInviteName(e.target.value)}
+                    placeholder="e.g. Aman Sharma" disabled={submitting} style={inputStyle} />
+                </div>
+
+                <button type="submit" disabled={!inviteEmail.trim() || !inviteEmailOk || submitting}
+                  style={submitBtnStyle(!inviteEmail.trim() || !inviteEmailOk || submitting)}>
+                  {submitting ? 'Sending…' : 'Send Email Invite'}
+                </button>
+              </form>
+            )
+          )}
+
         </div>
       </div>
     </>
@@ -646,26 +809,21 @@ function QrIcon() {
 export default function GymMembers() {
   const { user } = useAuth()
   const navigate  = useNavigate()
+  const { activeGymId: gymId } = useActiveGym()
 
   const [members,      setMembers]      = useState([])
   const [filtered,     setFiltered]     = useState([])
   const [search,       setSearch]       = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [loading,      setLoading]      = useState(true)
+  const [loadError,    setLoadError]    = useState(null)
   const [page,         setPage]         = useState(1)
   const [hasMore,      setHasMore]      = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [moreOpen,     setMoreOpen]     = useState(false)
-  const [gymId,        setGymId]        = useState(null)
-  const [loadError,    setLoadError]    = useState(null)
 
-  // ── Fetch gymId once ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!user) return
-    supabase
-      .from('users').select('gym_id').eq('id', user.id).single()
-      .then(({ data }) => setGymId(data?.gym_id ?? null))
-  }, [user])
+  // ── Reset list when active gym switches ───────────────────────────────────
+  useEffect(() => { setPage(1); setMembers([]) }, [gymId])
 
   // ── Fetch members (re-runs when gymId or page changes) ────────────────────
   const loadMembers = useCallback(async () => {
@@ -687,11 +845,7 @@ export default function GymMembers() {
       setLoadError(err)
     } finally { setLoading(false) }
   }, [gymId, page])
-  useEffect(() => {
-    let cancelled = false
-    Promise.resolve().then(() => { if (!cancelled) loadMembers() })
-    return () => { cancelled = true }
-  }, [loadMembers])
+  useEffect(() => { loadMembers() }, [loadMembers])
 
   // ── Filter + search ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -699,10 +853,11 @@ export default function GymMembers() {
 
     if (activeFilter !== 'all') {
       result = result.filter(m => {
-        if (activeFilter === 'active')   return m.status === 'active'
-        if (activeFilter === 'expiring') return m.days_until_expiry <= 7 && m.days_until_expiry > 0
+        const { effectiveStatus, daysRemaining } = getEffectiveMembership(m)
+        if (activeFilter === 'active')   return effectiveStatus === 'active'
+        if (activeFilter === 'expiring') return effectiveStatus === 'active' && daysRemaining != null && daysRemaining <= 7 && daysRemaining > 0
         if (activeFilter === 'at_risk')  return m.churn_risk === 'high'
-        if (activeFilter === 'inactive') return m.status === 'inactive'
+        if (activeFilter === 'inactive') return effectiveStatus !== 'active'
         return true
       })
     }
@@ -712,19 +867,14 @@ export default function GymMembers() {
       result = result.filter(m => (m.full_name || '').toLowerCase().includes(q))
     }
 
-    Promise.resolve().then(() => setFiltered(result))
+    setFiltered(result)
   }, [search, activeFilter, members])
 
   // ── Derived counts ────────────────────────────────────────────────────────
   const totalCount  = members.length
-  const activeCount = members.filter(m => m.status === 'active').length
+  const activeCount = members.filter(m => getEffectiveMembership(m).effectiveStatus === 'active').length
   const atRiskCount = members.filter(m => m.churn_risk === 'high').length
-  if (loadError) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-      <p style={{ color: 'var(--error)' }}>Failed to load members.</p>
-      <button onClick={loadMembers}>Try again</button>
-    </div>
-  )
+  if (loadError) return <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}><p style={{ color: 'var(--error)' }}>Failed to load members.</p><button onClick={loadMembers}>Try again</button></div>
 
   // ── Chip styles ───────────────────────────────────────────────────────────
   const chipBase = { borderRadius: 20, padding: '8px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', border: 'none' }

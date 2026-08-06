@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../utils/supabase'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
 import { formatShortDate } from '../../utils/dateHelpers'
 import GymBottomNav from '../../components/GymBottomNav'
@@ -343,10 +343,9 @@ function CollectModal({ isOpen, onClose, gymId, onSuccess }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function GymPayments({ embedded = false, topOffset = 0 } = {}) {
-  const { user } = useAuth()
   const navigate = useNavigate()
+  const { activeGymId: gymId } = useActiveGym()
 
-  const [gymId,            setGymId]            = useState(null)
   const [summary,          setSummary]          = useState(null)
   const [payments,         setPayments]         = useState([])
   const [activeFilter,     setActiveFilter]     = useState('all')
@@ -357,13 +356,6 @@ export default function GymPayments({ embedded = false, topOffset = 0 } = {}) {
   const [showCollectModal, setShowCollectModal] = useState(false)
   const [moreOpen,         setMoreOpen]         = useState(false)
   const [sendingReminders, setSendingReminders] = useState(false)
-
-  // ── Resolve gymId ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!user) return
-    supabase.from('users').select('gym_id').eq('id', user.id).single()
-      .then(({ data }) => setGymId(data?.gym_id ?? null))
-  }, [user])
 
   // ── Initial data load ─────────────────────────────────────────────────────
   const loadPayments = async () => {
