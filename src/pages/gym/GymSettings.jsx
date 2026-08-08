@@ -72,14 +72,19 @@ function ThemeSwatch({ id }) {
 }
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
-const Toggle = ({ value, onChange }) => (
-  <div
+const Toggle = ({ value, onChange, label }) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={value}
+    aria-label={label}
     onClick={() => onChange(!value)}
     style={{
       width: 44, height: 26, borderRadius: 13,
       backgroundColor: value ? 'var(--text-primary)' : 'var(--border)',
       position: 'relative', cursor: 'pointer',
       transition: 'background-color 0.2s', flexShrink: 0,
+      border: 'none', padding: 0, appearance: 'none',
     }}
   >
     <div style={{
@@ -90,7 +95,7 @@ const Toggle = ({ value, onChange }) => (
       transition: 'left 0.2s',
       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
     }} />
-  </div>
+  </button>
 )
 
 export default function GymSettings() {
@@ -124,6 +129,7 @@ export default function GymSettings() {
   const [deactivating, setDeactivating] = useState(false)
   const [toast, setToast] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [hoursErrors, setHoursErrors] = useState({})
 
   // ── Locker toggle ──────────────────────────────────────────────────────────
   const [lockersEnabled, setLockersEnabled] = useState(false)
@@ -204,6 +210,21 @@ export default function GymSettings() {
   // ─── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!isDirty || saving) return
+
+    const timeErrors = {}
+    for (const day of DAYS) {
+      const dh = hours[day.key]
+      if (!dh?.closed && dh?.open >= dh?.close) {
+        timeErrors[day.key] = 'Open must be before close'
+      }
+    }
+    if (Object.keys(timeErrors).length > 0) {
+      setHoursErrors(timeErrors)
+      showToastMsg('Fix invalid operating hours before saving', 'error')
+      return
+    }
+    setHoursErrors({})
+
     setSaving(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -287,6 +308,7 @@ export default function GymSettings() {
         },
         body: JSON.stringify(planData),
       })
+      if (!res.ok) throw new Error(`Save failed (${res.status})`)
       const data = await res.json()
       setPlans(Array.isArray(data) ? data : plans)
       setShowPlanSheet(false)
@@ -297,12 +319,14 @@ export default function GymSettings() {
   }
 
   const handleDeletePlan = async (planId) => {
+    if (!window.confirm('Delete this membership plan? This cannot be undone.')) return
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${API}/api/gyms/${gymId}/membership-plans/${planId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${session?.access_token}` },
       })
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`)
       const data = await res.json()
       setPlans(Array.isArray(data) ? data : plans.filter(p => p.id !== planId))
       showToastMsg('Plan removed')
@@ -411,6 +435,7 @@ export default function GymSettings() {
   const timeInputStyle = {
     width: 88, height: 36, border: '0.5px solid rgba(0,0,0,0.12)',
     borderRadius: 8, fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
+    backgroundColor: 'var(--bg-card)',
     textAlign: 'center', outline: 'none', padding: '0 4px', fontFamily: 'inherit',
   }
 
@@ -565,28 +590,51 @@ export default function GymSettings() {
           <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', overflow: 'hidden' }}>
             {DAYS.map((day, i) => {
               const dh = hours[day.key] || DEFAULT_HOURS[day.key]
+              const dayError = hoursErrors[day.key]
               return (
                 <div key={day.key} style={{
-                  display: 'flex', alignItems: 'center', padding: '0 16px', height: 52, gap: 12,
                   borderBottom: i < 6 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
                 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', width: 36, flexShrink: 0 }}>{day.label}</span>
-                  <Toggle
-                    value={!dh.closed}
-                    onChange={val => markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], closed: !val } }))}
-                  />
-                  {dh.closed
-                    ? <span style={{ fontSize: 13, color: 'var(--text-tertiary)', flex: 1 }}>Closed</span>
-                    : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
-                        <input type="time" value={dh.open} style={timeInputStyle}
-                          onChange={e => markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], open: e.target.value } }))} />
-                        <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>–</span>
-                        <input type="time" value={dh.close} style={timeInputStyle}
-                          onChange={e => markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], close: e.target.value } }))} />
-                      </div>
-                    )
-                  }
+                  <div style={{
+                    display: 'flex', alignItems: 'center', padding: '0 16px', height: 52, gap: 12,
+                  }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', width: 36, flexShrink: 0 }}>{day.label}</span>
+                    <Toggle
+                      label={`${day.label} operating hours`}
+                      value={!dh.closed}
+                      onChange={val => {
+                        markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], closed: !val } }))
+                        if (val) setHoursErrors(prev => { const n = { ...prev }; delete n[day.key]; return n })
+                      }}
+                    />
+                    {dh.closed
+                      ? <span style={{ fontSize: 13, color: 'var(--text-tertiary)', flex: 1 }}>Closed</span>
+                      : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
+                          <input aria-label={`${day.label} opening time`} type="time" value={dh.open}
+                            style={{ ...timeInputStyle, borderColor: dayError ? 'var(--error)' : 'rgba(0,0,0,0.12)' }}
+                            onInput={e => {
+                              const nextOpen = e.currentTarget.value
+                              markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], open: nextOpen } }))
+                              setHoursErrors(prev => { const n = { ...prev }; delete n[day.key]; return n })
+                            }} />
+                          <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>–</span>
+                          <input aria-label={`${day.label} closing time`} type="time" value={dh.close}
+                            style={{ ...timeInputStyle, borderColor: dayError ? 'var(--error)' : 'rgba(0,0,0,0.12)' }}
+                            onInput={e => {
+                              const nextClose = e.currentTarget.value
+                              markDirty(setHours)(prev => ({ ...prev, [day.key]: { ...prev[day.key], close: nextClose } }))
+                              setHoursErrors(prev => { const n = { ...prev }; delete n[day.key]; return n })
+                            }} />
+                        </div>
+                      )
+                    }
+                  </div>
+                  {dayError && (
+                    <div style={{ fontSize: 11, color: 'var(--error)', padding: '0 16px 8px', marginTop: -4 }}>
+                      {dayError}
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -601,7 +649,7 @@ export default function GymSettings() {
               <div key={plan.id} style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid rgba(0,0,0,0.08)', padding: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                   <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{plan.name}</span>
-                  <Toggle value={plan.is_active} onChange={val => handleTogglePlan(plan.id, val)} />
+                  <Toggle label={`${plan.name} membership plan`} value={plan.is_active} onChange={val => handleTogglePlan(plan.id, val)} />
                 </div>
                 <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>
                   ₹{plan.price?.toLocaleString('en-IN')} · {plan.duration_days} days
@@ -650,6 +698,7 @@ export default function GymSettings() {
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{item.sub}</div>
                 </div>
                 <Toggle
+                  label={item.label}
                   value={notifications[item.key]}
                   onChange={val => markDirty(setNotifications)(prev => ({ ...prev, [item.key]: val }))}
                 />
@@ -732,7 +781,7 @@ export default function GymSettings() {
               </div>
               {lockersLoading
                 ? <div style={{ width: 44, height: 26, borderRadius: 13, backgroundColor: 'var(--border)', flexShrink: 0 }} />
-                : <Toggle value={lockersEnabled} onChange={handleLockerToggle} />
+                : <Toggle label="Locker Management" value={lockersEnabled} onChange={handleLockerToggle} />
               }
             </div>
           </div>
