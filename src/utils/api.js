@@ -51,6 +51,13 @@ export function unpublishPlansListing(listingId) {
   return apiFetch(`/api/plans/trainer/listings/${listingId}/unpublish`, { method: 'POST' });
 }
 
+export function assignTrainerWorkoutPlan(payload) {
+  return apiFetch('/api/trainer/assign-plan', {
+    method: 'POST',
+    body: JSON.stringify({ ...payload, type: 'workout' }),
+  });
+}
+
 // ── Gym owner ────────────────────────────────────────────────────────────────
 
 export async function createGym({ userId, gymName, address, city, state, pincode, phone, email }) {
@@ -145,7 +152,10 @@ export async function inviteGymMemberByEmail({ gymId, email, fullName, planName 
 }
 
 export async function getGymTrainers(gymId) {
-  const res = await fetch(`${BASE_URL}/api/gym-trainers/${gymId}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-trainers/${gymId}`, {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || `Failed to fetch trainers (${res.status})`);
   return data || [];
@@ -309,6 +319,21 @@ export async function deleteGymClass(classId) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.message || `Failed to delete class (${res.status})`);
+  return data;
+}
+
+export async function updateGymClass(classId, updates) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-schedule/${classId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
+    body: JSON.stringify(updates),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to update class (${res.status})`);
   return data;
 }
 
