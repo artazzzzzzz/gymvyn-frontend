@@ -6,8 +6,9 @@ import { supabase } from '../../utils/supabase'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import PrimaryButton from '../../components/PrimaryButton'
+import SharedBottomSheet from '../../components/BottomSheet'
 import {
-  Package, Edit2, MoreVertical, X, ChevronLeft,
+  Package, Edit2, MoreVertical, ChevronLeft,
   ShoppingBag, Clock, CheckCircle, XCircle, AlertTriangle,
   Plus, RefreshCw, Trash2, Eye, EyeOff, Upload, Image as ImageIcon,
 } from 'lucide-react'
@@ -134,46 +135,16 @@ function Toast({ message, type = 'success', onDone }) {
 }
 
 // ── Bottom Sheet wrapper ─────────────────────────────────────────────────────
-
-function BottomSheet({ open, onClose, title, children }) {
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [open])
-
+// Thin adapter over the shared BottomSheet so the ~5 call sites below (which
+// all pass { open, onClose, title, children }) don't need touching. See
+// src/components/BottomSheet.jsx for why the old hand-rolled version (fixed
+// bottom + `90vh` maxHeight + `body.style.overflow`) let content and the
+// submit button render below the real mobile viewport.
+function BottomSheet({ open, onClose, title, children, footer }) {
   return (
-    <>
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0, zIndex: 60,
-          background: 'rgba(0,0,0,0.4)',
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? 'auto' : 'none',
-          transition: 'opacity 0.25s',
-        }}
-      />
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 70,
-        background: 'var(--bg-card)', borderRadius: '24px 24px 0 0',
-        transform: open ? 'translateY(0)' : 'translateY(100%)',
-        transition: 'transform 0.3s ease-out',
-        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 0', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, background: 'var(--border)', borderRadius: 2 }} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px 8px', flexShrink: 0 }}>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
-            <X size={20} color="var(--text-secondary)" />
-          </button>
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 20px 32px' }}>
-          {children}
-        </div>
-      </div>
-    </>
+    <SharedBottomSheet open={open} onClose={onClose} title={title} footer={footer}>
+      {children}
+    </SharedBottomSheet>
   )
 }
 
@@ -276,8 +247,14 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
     outline: 'none', boxSizing: 'border-box',
   }
 
+  const footer = (
+    <PrimaryButton onClick={handleSubmit} disabled={saving}>
+      {saving ? 'Saving…' : (isEdit ? 'Save Changes' : 'Add Product')}
+    </PrimaryButton>
+  )
+
   return (
-    <BottomSheet open={open} onClose={onClose} title={isEdit ? 'Edit Product' : 'Add Product'}>
+    <BottomSheet open={open} onClose={onClose} title={isEdit ? 'Edit Product' : 'Add Product'} footer={footer}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Image upload */}
         <div>
@@ -340,11 +317,6 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
           <input type="number" min="0" value={lowThreshold} onChange={e => setLowThreshold(e.target.value)} placeholder="5" style={inputStyle} />
         </div>
 
-        <div style={{ paddingTop: 8 }}>
-          <PrimaryButton onClick={handleSubmit} disabled={saving}>
-            {saving ? 'Saving…' : (isEdit ? 'Save Changes' : 'Add Product')}
-          </PrimaryButton>
-        </div>
       </div>
     </BottomSheet>
   )
@@ -584,13 +556,19 @@ function OrderActions({ order, onStatusChange, onPaymentChange, onToast }) {
             <XCircle size={14} color="var(--error)" /> Cancel
           </button>
         </div>
-        <BottomSheet open={showCancel} onClose={() => setShowCancel(false)} title="Cancel Order?">
+        <BottomSheet
+          open={showCancel}
+          onClose={() => setShowCancel(false)}
+          title="Cancel Order?"
+          footer={
+            <PrimaryButton onClick={handleCancel} disabled={busy} style={{ borderColor: 'var(--error)', color: 'var(--error)' }}>
+              {busy ? 'Cancelling…' : 'Yes, Cancel Order'}
+            </PrimaryButton>
+          }
+        >
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 12px' }}>
             Stock will be restored to inventory for all items in this order.
           </p>
-          <PrimaryButton onClick={handleCancel} disabled={busy} style={{ borderColor: 'var(--error)', color: 'var(--error)' }}>
-            {busy ? 'Cancelling…' : 'Yes, Cancel Order'}
-          </PrimaryButton>
         </BottomSheet>
       </>
     )
@@ -602,7 +580,16 @@ function OrderActions({ order, onStatusChange, onPaymentChange, onToast }) {
         <button onClick={() => setShowComplete(true)} disabled={busy} style={btnBase}>
           <CheckCircle size={14} /> Mark Completed
         </button>
-        <BottomSheet open={showComplete} onClose={() => setShowComplete(false)} title="Mark this order as completed?">
+        <BottomSheet
+          open={showComplete}
+          onClose={() => setShowComplete(false)}
+          title="Mark this order as completed?"
+          footer={
+            <PrimaryButton onClick={handleComplete} disabled={busy}>
+              {busy ? 'Processing…' : 'Confirm'}
+            </PrimaryButton>
+          }
+        >
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, color: 'var(--text-primary)', cursor: 'pointer' }}>
               <input type="checkbox" checked={paymentReceived} onChange={e => setPaymentReceived(e.target.checked)}
@@ -624,9 +611,6 @@ function OrderActions({ order, onStatusChange, onPaymentChange, onToast }) {
               ))}
             </div>
           )}
-          <PrimaryButton onClick={handleComplete} disabled={busy}>
-            {busy ? 'Processing…' : 'Confirm'}
-          </PrimaryButton>
         </BottomSheet>
       </>
     )
@@ -638,7 +622,16 @@ function OrderActions({ order, onStatusChange, onPaymentChange, onToast }) {
         <button onClick={() => setShowPay(true)} style={{ ...btnBase, color: 'var(--success)', borderColor: 'var(--success)' }}>
           Mark Paid
         </button>
-        <BottomSheet open={showPay} onClose={() => setShowPay(false)} title="Record Payment">
+        <BottomSheet
+          open={showPay}
+          onClose={() => setShowPay(false)}
+          title="Record Payment"
+          footer={
+            <PrimaryButton onClick={handleMarkPaid} disabled={busy}>
+              {busy ? 'Processing…' : `Mark Paid · ${payMethod.toUpperCase()}`}
+            </PrimaryButton>
+          }
+        >
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             {['cash', 'upi'].map(m => (
               <button key={m} onClick={() => setPayMethod(m)} style={{
@@ -651,9 +644,6 @@ function OrderActions({ order, onStatusChange, onPaymentChange, onToast }) {
               </button>
             ))}
           </div>
-          <PrimaryButton onClick={handleMarkPaid} disabled={busy}>
-            {busy ? 'Processing…' : `Mark Paid · ${payMethod.toUpperCase()}`}
-          </PrimaryButton>
         </BottomSheet>
       </>
     )
@@ -699,13 +689,19 @@ function DeleteConfirmSheet({ open, onClose, product, onConfirm }) {
   if (!product) return null
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Delete Product?">
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title="Delete Product?"
+      footer={
+        <PrimaryButton onClick={handleDelete} disabled={busy} style={{ borderColor: 'var(--error)', color: 'var(--error)' }}>
+          {busy ? 'Deleting…' : 'Delete Product'}
+        </PrimaryButton>
+      }
+    >
       <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 16px' }}>
         Delete "{product.name}"? This cannot be undone.
       </p>
-      <PrimaryButton onClick={handleDelete} disabled={busy} style={{ borderColor: 'var(--error)', color: 'var(--error)' }}>
-        {busy ? 'Deleting…' : 'Delete Product'}
-      </PrimaryButton>
     </BottomSheet>
   )
 }
