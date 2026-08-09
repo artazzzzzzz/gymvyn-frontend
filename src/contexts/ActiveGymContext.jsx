@@ -2,7 +2,19 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { useAuth } from '../hooks/useAuth'
 import { apiFetch } from '../utils/api'
 
-const ActiveGymContext = createContext(null)
+// Safe default so useActiveGym() never returns null outside ActiveGymProvider.
+// Components in non-gym roles (trainer, consumer) call MoreSheet which calls
+// useActiveGym(); without this default they'd crash with "Cannot destructure null".
+const ACTIVE_GYM_DEFAULT = {
+  gyms: [],
+  activeGymId: null,
+  activeGym: null,
+  loading: false,
+  needsGymSelection: false,
+  setActiveGym: () => {},
+  refreshGyms: async () => {},
+}
+const ActiveGymContext = createContext(ACTIVE_GYM_DEFAULT)
 
 const lsActiveGym = (uid) => `gv_active_gym_${uid}`
 
