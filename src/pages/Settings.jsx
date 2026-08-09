@@ -107,7 +107,7 @@ export default function Settings() {
   const [fetchError, setFetchError] = useState(null)
 
   const [form, setForm] = useState({
-    full_name: '', age: '', gender: '', city: '', phone: '',
+    full_name: '', age: '', gender: '', phone: '',
     goal: '', experience: '', equipment: [], training_days: 3,
     injuries: '', current_weight: '', height: '', target_weight: '',
   })
@@ -152,7 +152,6 @@ export default function Settings() {
           full_name: data.full_name || '',
           age: data.age ? String(data.age) : '',
           gender: data.gender || '',
-          city: data.city || '',
           phone: data.phone || '',
           goal: data.goal || '',
           experience: data.experience || '',
