@@ -188,7 +188,6 @@ export default function App() {
             <Route path="/trainer/clients"          element={<TrainerClients />} />
             <Route path="/trainer/client/:clientId" element={<TrainerClientDetail />} />
             <Route path="/trainer/templates"        element={<TrainerTemplates />} />
-            <Route path="/trainer/assign-plan"      element={<TrainerAssignPlan />} />
             <Route path="/trainer/settings"         element={<TrainerSettings />} />
             <Route path="/trainer/chat"             element={<TrainerChatPage />} />
             <Route path="/trainer/chat/:convoId"    element={<TrainerChatPage />} />
@@ -216,6 +215,7 @@ export default function App() {
           </Route>
 
           {/* Full-screen trainer editors — no nav */}
+          <Route path="/trainer/assign-plan"                     element={<ProtectedRoute><TrainerAssignPlan /></ProtectedRoute>} />
           <Route path="/trainer/templates/new"                   element={<ProtectedRoute><TrainerTemplateBuilder /></ProtectedRoute>} />
           <Route path="/trainer/templates/:templateId/edit"      element={<ProtectedRoute><TrainerTemplateBuilder /></ProtectedRoute>} />
           <Route path="/trainer/diet-templates/new"              element={<ProtectedRoute><TrainerDietBuilder /></ProtectedRoute>} />
