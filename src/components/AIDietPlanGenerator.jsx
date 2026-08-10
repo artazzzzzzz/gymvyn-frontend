@@ -84,7 +84,7 @@ export default function AIDietPlanGenerator({ clientUserId, clientName, onClose,
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
         background: 'var(--bg-card)', borderRadius: '20px 20px 0 0',
-        padding: '20px 20px 48px', maxHeight: '90vh', overflowY: 'auto',
+        padding: '20px 20px calc(48px + env(safe-area-inset-bottom))', maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
 

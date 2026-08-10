@@ -66,7 +66,7 @@ export function InviteClientSheet({ open, onClose }) {
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 300,
         background: 'var(--bg-card)',
         borderRadius: '20px 20px 0 0',
-        paddingBottom: 36,
+        paddingBottom: 'calc(36px + env(safe-area-inset-bottom))',
         boxShadow: '0 -2px 20px rgba(0,0,0,0.10)',
         transform: open ? 'translateY(0)' : 'translateY(108%)',
         transition: 'transform 0.3s cubic-bezier(0.32,0.72,0,1)',

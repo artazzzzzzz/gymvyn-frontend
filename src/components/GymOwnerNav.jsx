@@ -13,7 +13,7 @@ const tabs = [
 
 export default function GymOwnerNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111113] border-t border-white/[0.06] backdrop-blur-md">
+    <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111113] border-t border-white/[0.06] backdrop-blur-md pb-safe">
       <div className="flex items-stretch h-16 max-w-3xl mx-auto">
         {tabs.map(({ to, icon: Icon, label }) => (
           <NavLink

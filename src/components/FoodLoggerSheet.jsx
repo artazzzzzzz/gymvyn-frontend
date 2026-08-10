@@ -1382,6 +1382,7 @@ export default function FoodLoggerSheet({ open, onClose, mealType, defaultMode =
         maxHeight: '92vh',
         display: 'flex',
         flexDirection: 'column',
+        paddingBottom: 'env(safe-area-inset-bottom)',
         animation: 'slideUpSheet 0.3s ease',
       }}>
         {/* Drag handle */}

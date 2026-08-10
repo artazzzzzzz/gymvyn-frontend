@@ -161,6 +161,7 @@ export default function VoiceDietConfirmSheet({ parseResult, logDate, onSaved, o
         display: 'flex', flexDirection: 'column',
         maxHeight: '88vh',
         overflowY: 'auto',
+        paddingBottom: 'env(safe-area-inset-bottom)',
         animation: 'slideUpSheet 0.25s ease',
       }}>
         {/* Header */}

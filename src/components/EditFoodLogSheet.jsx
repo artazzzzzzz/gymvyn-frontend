@@ -91,7 +91,7 @@ export default function EditFoodLogSheet({ logEntry, onSaved, onClose }) {
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
         backgroundColor: 'var(--bg-card)',
         borderRadius: '20px 20px 0 0',
-        padding: '20px 20px 40px',
+        padding: '20px 20px calc(40px + env(safe-area-inset-bottom))',
         maxHeight: '90vh',
         overflowY: 'auto',
         animation: 'slideUpSheet 0.25s ease',

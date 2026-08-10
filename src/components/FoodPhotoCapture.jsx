@@ -61,7 +61,7 @@ export default function FoodPhotoCapture({ onParsed, onClose }) {
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
         backgroundColor: 'var(--bg-card)',
         borderRadius: '20px 20px 0 0',
-        padding: '24px 20px 48px',
+        padding: '24px 20px calc(48px + env(safe-area-inset-bottom))',
         display: 'flex', flexDirection: 'column', gap: 16,
         animation: 'slideUpSheet 0.25s ease',
       }}>

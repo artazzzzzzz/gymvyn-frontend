@@ -324,7 +324,7 @@ export default function MoreSheet({ isOpen, open, onClose, hasGym = false, hasTr
       />
 
       {/* Sheet */}
-      <div className={`fixed bottom-0 left-0 right-0 z-[70] bg-[var(--bg-card)] rounded-t-[24px] transition-transform duration-300 ease-out ${
+      <div className={`fixed bottom-0 left-0 right-0 z-[70] bg-[var(--bg-card)] rounded-t-[24px] transition-transform duration-300 ease-out pb-safe ${
         visible ? 'translate-y-0' : 'translate-y-full'
       }`}>
 
