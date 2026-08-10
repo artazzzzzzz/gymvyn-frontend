@@ -67,8 +67,15 @@ export default function GymOnboarding() {
   const isAddMode = searchParams.get('mode') === 'add'
   const API = import.meta.env.VITE_API_URL || ''
   const logoInputRef = useRef(null)
+  const plansSectionRef = useRef(null) // add-mode only: scroll target for Screen 2's plans "Edit →" link
 
   const [step, setStep] = useState(1)
+  // Add-mode uses its own screen state (1 | 2 | 'success') — kept fully separate
+  // from `step` because the full 5-step flow's goNext/goBack guards (`step < 5`,
+  // `step > 1`) don't translate to a 2-screen model. `step` itself is never
+  // mutated in add-mode, so the untouched full-mode step blocks below simply
+  // never match.
+  const [addModeScreen, setAddModeScreen] = useState(1)
   const [gymName, setGymName] = useState('')
   const [city, setCity] = useState('')
   const [gymType, setGymType] = useState('')
@@ -112,6 +119,10 @@ export default function GymOnboarding() {
   const goNext = () => { if (step < 5) setStep(prev => prev + 1) }
   const goBack = () => { if (step > 1) setStep(prev => prev - 1) }
   const goToStep = (n) => setStep(n)
+
+  // Add-mode screen transitions — independent of goNext/goBack/goToStep above.
+  const goNextAddMode = () => { setError(null); setAddModeScreen(2) }
+  const goBackAddMode = () => { setError(null); setAddModeScreen(1) }
 
   // ─── Logo handler ─────────────────────────────────────────────────────────
   const handleLogoSelect = (file) => {
@@ -226,7 +237,8 @@ export default function GymOnboarding() {
       if (refreshGyms) await refreshGyms()
 
       setCreatedGym(data.gym)
-      setStep('success')
+      if (isAddMode) setAddModeScreen('success')
+      else setStep('success')
     } catch (err) {
       setError(err.message || 'Something went wrong')
     } finally {
@@ -245,13 +257,18 @@ export default function GymOnboarding() {
     border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
   }
 
+  // Which screen model is "done" depends on mode — `step` never changes in
+  // add-mode (see addModeScreen above), so this stays correct for both
+  // without branching every call site.
+  const isSuccess = isAddMode ? addModeScreen === 'success' : step === 'success'
+
   return (
     <div style={{
       minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', flexDirection: 'column',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     }}>
       {/* HEADER */}
-      {step !== 'success' && (
+      {!isSuccess && (
         <div style={{ backgroundColor: "var(--bg-card)", borderBottom: '0.5px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', justifyContent: 'space-between' }}>
             <button
@@ -268,14 +285,27 @@ export default function GymOnboarding() {
               <div style={{ width: 40 }} />
             )}
           </div>
-          <ProgressBar current={step} />
+          {isAddMode ? (
+            <div>
+              <div style={{ display: 'flex', height: 3, backgroundColor: 'var(--border)' }}>
+                {[1, 2].map(i => (
+                  <div key={i} style={{ flex: 1, backgroundColor: i <= addModeScreen ? 'var(--text-primary)' : 'var(--border)' }} />
+                ))}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '6px 0 0 20px' }}>
+                {addModeScreen === 1 ? 'Gym details' : 'Plans & review'}
+              </div>
+            </div>
+          ) : (
+            <ProgressBar current={step} />
+          )}
         </div>
       )}
 
-      <div style={{ flex: 1, padding: step === 'success' ? 0 : '24px 20px 0', overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: isSuccess ? 0 : '24px 20px 0', overflowY: 'auto' }}>
 
-        {/* ─── STEP 1 ─── */}
-        {step === 1 && (
+        {/* ─── STEP 1 (full-mode only) ─── */}
+        {!isAddMode && step === 1 && (
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Tell us about your gym</h1>
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
@@ -312,8 +342,8 @@ export default function GymOnboarding() {
           </div>
         )}
 
-        {/* ─── STEP 2 ─── */}
-        {step === 2 && (
+        {/* ─── STEP 2 (full-mode only) ─── */}
+        {!isAddMode && step === 2 && (
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>How can members reach you?</h1>
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>Used for your gym's public profile.</p>
@@ -359,8 +389,8 @@ export default function GymOnboarding() {
           </div>
         )}
 
-        {/* ─── STEP 3: LOGO ─── */}
-        {step === 3 && (
+        {/* ─── STEP 3: LOGO (full-mode only) ─── */}
+        {!isAddMode && step === 3 && (
           <div style={{ textAlign: 'center' }}>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px', textAlign: 'left' }}>Add your gym's logo</h1>
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 12px', textAlign: 'left' }}>
@@ -420,8 +450,8 @@ export default function GymOnboarding() {
           </div>
         )}
 
-        {/* ─── STEP 4: PLANS ─── */}
-        {step === 4 && (
+        {/* ─── STEP 4: PLANS (full-mode only) ─── */}
+        {!isAddMode && step === 4 && (
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Set up your plans</h1>
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
@@ -502,8 +532,8 @@ export default function GymOnboarding() {
           </div>
         )}
 
-        {/* ─── STEP 5: REVIEW ─── */}
-        {step === 5 && (
+        {/* ─── STEP 5: REVIEW (full-mode only) ─── */}
+        {!isAddMode && step === 5 && (
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Review your gym</h1>
             <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 20px' }}>Looks good? Launch your gym on Gymvyn.</p>
@@ -583,8 +613,291 @@ export default function GymOnboarding() {
           </div>
         )}
 
-        {/* ─── SUCCESS ─── */}
-        {step === 'success' && (
+        {/* ─── ADD-MODE SCREEN 1: GYM DETAILS (Steps 1+2+3 combined) ─── */}
+        {isAddMode && addModeScreen === 1 && (
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Gym details</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
+              This is what members will see when they search for your gym.
+            </p>
+
+            <div style={{ marginBottom: 12 }}>
+              <input type="text" placeholder="Gym Name*" value={gymName} onChange={e => setGymName(e.target.value)} style={inputStyle} />
+              <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 4 }}>Choose a name members will recognize</div>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <CitySearchInput value={city} onChange={setCity} placeholder="Search city…" />
+            </div>
+
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 10 }}>Gym Type*</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 28 }}>
+              {GYM_TYPES.map(type => (
+                <button
+                  key={type} onClick={() => setGymType(type)}
+                  style={{
+                    height: 48, backgroundColor: gymType === type ? 'var(--text-primary)' : "var(--bg-card)",
+                    color: gymType === type ? 'var(--bg-primary)' : 'var(--text-primary)',
+                    border: gymType === type ? 'none' : '0.5px solid var(--border)',
+                    borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}
+                >{type}</button>
+              ))}
+            </div>
+
+            <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '0 0 24px' }} />
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>Contact & description</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 16px' }}>Optional — used for your gym's public profile.</p>
+
+            <div style={{ marginBottom: 12 }}>
+              <input type="text" placeholder="Street address, area" value={address}
+                onChange={e => setAddress(e.target.value)} style={inputStyle} />
+            </div>
+            <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', ...inputStyle, padding: 0 }}>
+              <span style={{ padding: '0 10px 0 16px', color: 'var(--text-tertiary)', fontSize: 15, whiteSpace: 'nowrap', userSelect: 'none' }}>+91</span>
+              <input
+                type="tel"
+                placeholder="98765 43210"
+                value={phone}
+                maxLength={10}
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                style={{ ...inputStyle, border: 'none', padding: '0 16px 0 0', flex: 1, height: '100%' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <textarea
+                placeholder="Describe your gym in 1–2 sentences — equipment, vibe, specialties..."
+                value={description} maxLength={200}
+                onChange={e => setDescription(e.target.value)}
+                style={{
+                  width: '100%', height: 100, border: '0.5px solid var(--border)',
+                  borderRadius: 12, padding: 16, fontSize: 15, boxSizing: 'border-box',
+                  outline: 'none', resize: 'none', fontFamily: 'inherit', backgroundColor: "var(--bg-card)",
+                }}
+              />
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right', marginTop: 4 }}>{description.length}/200</div>
+            </div>
+
+            <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '0 0 24px' }} />
+
+            <div style={{ textAlign: 'center' }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px', textAlign: 'left' }}>Gym logo</h2>
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 12px', textAlign: 'left' }}>
+                Optional — you can always add this later from Settings.
+              </p>
+              <span style={{
+                display: 'inline-block', backgroundColor: 'var(--warning-bg)', color: 'var(--warning)',
+                fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 20, marginBottom: 20,
+              }}>Optional</span>
+
+              <div
+                onClick={() => logoInputRef.current?.click()}
+                style={{
+                  width: 120, height: 120, borderRadius: '50%', backgroundColor: 'var(--bg-primary)',
+                  border: '2px dashed var(--border-strong)', margin: '0 auto 12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', position: 'relative', overflow: 'hidden',
+                }}
+              >
+                {logoPreview ? (
+                  <>
+                    <img src={logoPreview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      onClick={e => { e.stopPropagation(); setLogoFile(null); setLogoPreview(null) }}
+                      style={{
+                        position: 'absolute', top: 4, right: 4,
+                        width: 24, height: 24, borderRadius: '50%',
+                        backgroundColor: "var(--bg-card)", border: '0.5px solid var(--border)',
+                        fontSize: 14, color: 'var(--text-tertiary)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+                      }}
+                    >×</button>
+                  </>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: 32, color: 'var(--text-tertiary)' }}>↑</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Tap to upload</div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 24 }}>JPG or PNG, max 5MB</div>
+
+              <input
+                ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }}
+                onChange={e => { if (e.target.files?.[0]) handleLogoSelect(e.target.files[0]) }}
+              />
+            </div>
+
+            {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
+
+            <button onClick={goNextAddMode} disabled={!canContinueStep1} style={{ ...btnPrimary(!canContinueStep1), marginBottom: 20 }}>Continue</button>
+          </div>
+        )}
+
+        {/* ─── ADD-MODE SCREEN 2: PLANS & REVIEW (Steps 4+5 combined) ─── */}
+        {isAddMode && addModeScreen === 2 && (
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Plans & review</h1>
+            <p style={{ fontSize: 16, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
+              Define what members can purchase, then launch your gym.
+            </p>
+
+            <h2 ref={plansSectionRef} style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>Plans</h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
+              {plans.map(plan => (
+                <div key={plan.id} style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid var(--border)', padding: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{plan.name}</span>
+                    <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>₹{plan.price?.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: plan.features?.length ? 8 : 0 }}>{plan.duration_days} days</div>
+                  {plan.features?.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                      {plan.features.map((f, i) => (
+                        <span key={i} style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 6, padding: '4px 8px', fontSize: 12, color: 'var(--text-secondary)' }}>{f}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <button onClick={() => openEditPlan(plan)} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-cta)', cursor: 'pointer', padding: 0 }}>✏ Edit</button>
+                    <button onClick={() => deletePlan(plan.id)} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--error)', cursor: 'pointer', padding: 0 }}>× Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={openAddPlan}
+              style={{
+                width: '100%', height: 52, backgroundColor: "var(--bg-card)",
+                border: '1px dashed var(--border-strong)', borderRadius: 12,
+                fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer',
+                marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            ><span style={{ fontSize: 18 }}>+</span> Add Plan</button>
+
+            {showPlanForm && (
+              <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid var(--border)', padding: 16, marginBottom: 8 }}>
+                {[
+                  { key: 'name', placeholder: 'Plan Name*', type: 'text' },
+                  { key: 'price', placeholder: 'Price (₹)*', type: 'number' },
+                  { key: 'duration_days', placeholder: 'Duration (days)*', type: 'number' },
+                  { key: 'features', placeholder: 'Features (comma-separated)', type: 'text' },
+                ].map(f => (
+                  <input
+                    key={f.key} type={f.type} placeholder={f.placeholder} value={planForm[f.key]}
+                    onChange={e => setPlanForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                    style={{ ...inputStyle, height: 44, borderRadius: 10, padding: '0 14px', fontSize: 14, marginBottom: 8 }}
+                  />
+                ))}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setShowPlanForm(false)} style={{ ...btnSecondary, flex: 1, height: 40, borderRadius: 10, fontSize: 13 }}>Cancel</button>
+                  <button
+                    onClick={savePlan}
+                    disabled={!planForm.name || !planForm.price || !planForm.duration_days}
+                    style={{
+                      flex: 1, height: 40, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
+                      border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                      opacity: (!planForm.name || !planForm.price || !planForm.duration_days) ? 0.4 : 1,
+                    }}
+                  >{editingPlanId ? 'Update' : 'Add'}</button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginBottom: 24 }}>
+              Or skip for now — you can add plans later in Settings.
+            </div>
+
+            <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '0 0 24px' }} />
+
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>Review</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Looks good? Launch your gym on Gymvyn.</p>
+
+            <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden', marginBottom: 16 }}>
+              <div style={{ padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: '50%', backgroundColor: 'var(--bg-pill)',
+                      overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {logoPreview
+                        ? <img src={logoPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-secondary)' }}>{gymName.slice(0, 2).toUpperCase()}</span>
+                      }
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>{gymName}</div>
+                      <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{city}</div>
+                    </div>
+                  </div>
+                  <button onClick={goBackAddMode} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-cta)', cursor: 'pointer' }}>Edit →</button>
+                </div>
+
+                {[
+                  { label: 'Type', value: gymType },
+                  { label: 'Address', value: address || '—' },
+                  { label: 'Phone', value: phone || '—' },
+                ].map(row => (
+                  <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '0.5px solid var(--border)' }}>
+                    <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>{row.label}</span>
+                    <span style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500 }}>{row.value}</span>
+                  </div>
+                ))}
+
+                {description && (
+                  <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: 10 }}>
+                    <div style={{ fontSize: 14, color: 'var(--text-tertiary)', marginBottom: 4 }}>Description</div>
+                    <div style={{ fontSize: 14, color: 'var(--text-primary)' }}>{description}</div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ borderTop: '0.5px solid var(--border)', padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>PLANS</div>
+                  <button
+                    onClick={() => plansSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-cta)', cursor: 'pointer' }}
+                  >Edit →</button>
+                </div>
+                {plans.length === 0
+                  ? <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>No plans added</div>
+                  : plans.map(plan => (
+                    <div key={plan.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid var(--border)' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{plan.name} · {plan.duration_days}d</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>₹{plan.price?.toLocaleString('en-IN')}</span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            {error && (
+              <div style={{ backgroundColor: 'var(--error-bg)', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: 'var(--error)', marginBottom: 16 }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+              <button
+                onClick={handleSubmit} disabled={submitting}
+                style={{ ...btnPrimary(submitting) }}
+              >{submitting ? 'Launching...' : 'Launch My Gym'}</button>
+              <button onClick={goBackAddMode} style={{ width: '100%', height: 52, backgroundColor: "var(--bg-card)", color: 'var(--text-primary)', border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+                Back
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── SUCCESS (shared by both modes) ─── */}
+        {isSuccess && (
           <div style={{
             minHeight: '100vh', backgroundColor: "var(--bg-card)",
             display: 'flex', flexDirection: 'column',
