@@ -128,6 +128,10 @@ export default function GymOnboarding() {
     if (logoPick && logoPick.file.size > 5 * 1024 * 1024) {
       setError('Logo must be under 5MB')
       clearLogo()
+    } else if (logoPick) {
+      // Valid file accepted — clear any stale size-limit error so it doesn't
+      // linger on the step-5 review screen or add-mode summary.
+      setError(null)
     }
   }, [logoPick, clearLogo])
 
