@@ -5,7 +5,7 @@ import { formatShortDate } from '../../utils/dateHelpers'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { supabase } from '../../utils/supabase'
-import { useAuth } from '../../hooks/useAuth'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 
 const BASE_URL = import.meta.env.VITE_API_URL || ''
 
@@ -468,8 +468,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function GymSchedule() {
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const [gymId, setGymId] = useState(null)
+  const { activeGymId: gymId } = useActiveGym()
   const [weekData, setWeekData] = useState(null)
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
@@ -478,19 +477,6 @@ export default function GymSchedule() {
   const [loadError, setLoadError] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
-
-  // Resolve gymId
-  useEffect(() => {
-    if (!user) return
-    supabase
-      .from('users')
-      .select('gym_id')
-      .eq('id', user.id)
-      .single()
-      .then(({ data }) => {
-        if (data?.gym_id) setGymId(data.gym_id)
-      })
-  }, [user])
 
   const fetchWeek = useCallback(async (gId, date) => {
     if (!gId) return
