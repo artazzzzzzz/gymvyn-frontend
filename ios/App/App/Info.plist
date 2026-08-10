@@ -49,6 +49,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Gymvyn uses your camera to log food photos for macro tracking.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Gymvyn uses your microphone to log meals and workouts by voice.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
