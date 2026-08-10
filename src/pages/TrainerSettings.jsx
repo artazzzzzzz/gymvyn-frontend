@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -8,6 +8,7 @@ import { TrainerCodeCard } from '../components/TrainerCodeCard';
 import { TrainerJoinGymSheet } from '../components/TrainerJoinGymSheet';
 import { CitySearchInput } from '../components/CitySearchInput';
 import { useTheme } from '../contexts/ThemeContext';
+import { usePhotoPicker } from '../hooks/usePhotoPicker';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -86,7 +87,7 @@ export default function TrainerSettings() {
   const { user, enterMemberMode, memberDataComplete } = useAuth();
   const navigate = useNavigate();
   const { theme, setThemeMode } = useTheme();
-  const photoInputRef = useRef(null);
+  const { photo: photoPick, pickPhoto, clearPhoto } = usePhotoPicker();
 
   const [profile, setProfile] = useState(null);
   const [clients, setClients] = useState([]);
@@ -98,6 +99,7 @@ export default function TrainerSettings() {
   const [editForm, setEditForm] = useState({});
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState(null);
   const [joinGymOpen, setJoinGymOpen] = useState(false);
 
   const userId = user?.id;
@@ -127,26 +129,33 @@ export default function TrainerSettings() {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setPhotoUploading(true);
-    const formData = new FormData();
-    formData.append('photo', file);
-    formData.append('userId', userId);
-    try {
-      const res = await fetch(`${API}/api/trainer/profile/${userId}/photo`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      setProfile(p => ({ ...p, profile_photo_url: data.photo_url }));
-    } catch (err) {
-      console.error('Photo upload error:', err);
-    } finally {
-      setPhotoUploading(false);
+  // ─── Photo upload (triggered by hook when user picks a photo) ─────────────
+  useEffect(() => {
+    if (!photoPick) return;
+    async function doUpload() {
+      setPhotoUploading(true);
+      setPhotoError(null);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const formData = new FormData();
+        formData.append('photo', photoPick.blob, 'avatar.jpg');
+        const res = await fetch(`${API}/api/trainer/profile/${userId}/photo`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        setProfile(p => ({ ...p, profile_photo_url: data.photo_url }));
+      } catch {
+        setPhotoError('Photo upload failed. Please try again.');
+      } finally {
+        setPhotoUploading(false);
+        clearPhoto();
+      }
     }
-  };
+    doUpload();
+  }, [photoPick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleAccepting = async () => {
     const newVal = !profile.is_accepting_clients;
@@ -273,38 +282,39 @@ export default function TrainerSettings() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             {/* Avatar with camera overlay */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                ref={photoInputRef}
-                onChange={handlePhotoUpload}
-              />
-              <div
-                onClick={() => photoInputRef.current?.click()}
-                style={{ width: 64, height: 64, borderRadius: '50%', cursor: 'pointer', overflow: 'hidden', background: 'var(--accent-bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                {profile?.profile_photo_url
-                  ? <img src={profile.profile_photo_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-cta)' }}>{initials}</span>
-                }
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ position: 'relative' }}>
+                <div
+                  onClick={pickPhoto}
+                  style={{ width: 64, height: 64, borderRadius: '50%', cursor: 'pointer', overflow: 'hidden', background: 'var(--accent-bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {profile?.profile_photo_url
+                    ? <img src={profile.profile_photo_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-cta)' }}>{initials}</span>
+                  }
+                </div>
+                {/* Camera overlay badge */}
+                <div
+                  onClick={pickPhoto}
+                  style={{
+                    position: 'absolute', bottom: 0, right: 0,
+                    width: 22, height: 22, borderRadius: '50%',
+                    background: "var(--text-primary)", display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {photoUploading
+                    ? <span style={{ fontSize: 8, color: 'white' }}>…</span>
+                    : <i className="ti ti-camera" style={{ fontSize: 11, color: 'white' }} />
+                  }
+                </div>
               </div>
-              {/* Camera overlay badge */}
-              <div style={{
-                position: 'absolute', bottom: 0, right: 0,
-                width: 22, height: 22, borderRadius: '50%',
-                background: "var(--text-primary)", display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer'
-              }}
-                onClick={() => photoInputRef.current?.click()}
-              >
-                {photoUploading
-                  ? <span style={{ fontSize: 8, color: 'white' }}>…</span>
-                  : <i className="ti ti-camera" style={{ fontSize: 11, color: 'white' }} />
-                }
-              </div>
+              {photoError && (
+                <div style={{ fontSize: 10, color: 'var(--error)', marginTop: 4, maxWidth: 64, textAlign: 'center', lineHeight: 1.3 }}>
+                  Upload failed
+                </div>
+              )}
             </div>
 
             {/* Name + bio */}
