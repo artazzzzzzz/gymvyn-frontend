@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useActiveGym } from '../../contexts/ActiveGymContext'
+import { usePhotoPicker } from '../../hooks/usePhotoPicker'
 import { CitySearchInput } from '../../components/CitySearchInput'
 
 const GYM_TYPES = ['Commercial', 'Boutique', 'CrossFit', 'Yoga Studio', 'Boxing', 'Other']
@@ -66,7 +67,7 @@ export default function GymOnboarding() {
   const [searchParams] = useSearchParams()
   const isAddMode = searchParams.get('mode') === 'add'
   const API = import.meta.env.VITE_API_URL || ''
-  const logoInputRef = useRef(null)
+  const { photo: logoPick, pickPhoto: pickLogo, clearPhoto: clearLogo } = usePhotoPicker()
   const plansSectionRef = useRef(null) // add-mode only: scroll target for Screen 2's plans "Edit →" link
 
   const [step, setStep] = useState(1)
@@ -82,8 +83,6 @@ export default function GymOnboarding() {
   const [address, setAddress] = useState('')
   const [phone, setPhone] = useState('')
   const [description, setDescription] = useState('')
-  const [logoFile, setLogoFile] = useState(null)
-  const [logoPreview, setLogoPreview] = useState(null)
   const [plans, setPlans] = useState(STARTER_PLANS)
   const [showPlanForm, setShowPlanForm] = useState(false)
   const [editingPlanId, setEditingPlanId] = useState(null)
@@ -124,15 +123,13 @@ export default function GymOnboarding() {
   const goNextAddMode = () => { setError(null); setAddModeScreen(2) }
   const goBackAddMode = () => { setError(null); setAddModeScreen(1) }
 
-  // ─── Logo handler ─────────────────────────────────────────────────────────
-  const handleLogoSelect = (file) => {
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { setError('Logo must be under 5MB'); return }
-    setLogoFile(file)
-    const reader = new FileReader()
-    reader.onload = (e) => setLogoPreview(e.target.result)
-    reader.readAsDataURL(file)
-  }
+  // ─── Logo 5MB guard ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (logoPick && logoPick.file.size > 5 * 1024 * 1024) {
+      setError('Logo must be under 5MB')
+      clearLogo()
+    }
+  }, [logoPick, clearLogo])
 
   // ─── Plan handlers ────────────────────────────────────────────────────────
   const openAddPlan = () => {
@@ -209,10 +206,10 @@ export default function GymOnboarding() {
       const gymId = data.gym.id
       localStorage.setItem('gymId', gymId)
 
-      if (logoFile) {
+      if (logoPick) {
         try {
           const formData = new FormData()
-          formData.append('logo', logoFile)
+          formData.append('logo', logoPick.blob, 'logo.jpg')
           await fetch(`${API}/api/gyms/${gymId}/upload-logo`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${session?.access_token}` },
@@ -402,7 +399,7 @@ export default function GymOnboarding() {
             }}>Optional</span>
 
             <div
-              onClick={() => logoInputRef.current?.click()}
+              onClick={pickLogo}
               style={{
                 width: 120, height: 120, borderRadius: '50%', backgroundColor: 'var(--bg-primary)',
                 border: '2px dashed var(--border-strong)', margin: '0 auto 12px',
@@ -410,11 +407,11 @@ export default function GymOnboarding() {
                 cursor: 'pointer', position: 'relative', overflow: 'hidden',
               }}
             >
-              {logoPreview ? (
+              {logoPick ? (
                 <>
-                  <img src={logoPreview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={logoPick.preview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button
-                    onClick={e => { e.stopPropagation(); setLogoFile(null); setLogoPreview(null) }}
+                    onClick={e => { e.stopPropagation(); clearLogo() }}
                     style={{
                       position: 'absolute', top: 4, right: 4,
                       width: 24, height: 24, borderRadius: '50%',
@@ -434,17 +431,12 @@ export default function GymOnboarding() {
 
             <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 32 }}>JPG or PNG, max 5MB</div>
 
-            <input
-              ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }}
-              onChange={e => { if (e.target.files?.[0]) handleLogoSelect(e.target.files[0]) }}
-            />
-
             {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
 
             <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
               <button onClick={goBack} style={btnSecondary}>← Back</button>
               <button onClick={goNext} style={{ ...btnPrimary(false), flex: 1, width: 'auto', marginBottom: 0 }}>
-                {logoPreview ? 'Continue' : 'Skip'}
+                {logoPick ? 'Continue' : 'Skip'}
               </button>
             </div>
           </div>
@@ -546,8 +538,8 @@ export default function GymOnboarding() {
                       width: 48, height: 48, borderRadius: '50%', backgroundColor: 'var(--bg-pill)',
                       overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {logoPreview
-                        ? <img src={logoPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {logoPick?.preview
+                        ? <img src={logoPick.preview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         : <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-secondary)' }}>{gymName.slice(0, 2).toUpperCase()}</span>
                       }
                     </div>
@@ -693,7 +685,7 @@ export default function GymOnboarding() {
               }}>Optional</span>
 
               <div
-                onClick={() => logoInputRef.current?.click()}
+                onClick={pickLogo}
                 style={{
                   width: 120, height: 120, borderRadius: '50%', backgroundColor: 'var(--bg-primary)',
                   border: '2px dashed var(--border-strong)', margin: '0 auto 12px',
@@ -701,11 +693,11 @@ export default function GymOnboarding() {
                   cursor: 'pointer', position: 'relative', overflow: 'hidden',
                 }}
               >
-                {logoPreview ? (
+                {logoPick ? (
                   <>
-                    <img src={logoPreview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={logoPick.preview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button
-                      onClick={e => { e.stopPropagation(); setLogoFile(null); setLogoPreview(null) }}
+                      onClick={e => { e.stopPropagation(); clearLogo() }}
                       style={{
                         position: 'absolute', top: 4, right: 4,
                         width: 24, height: 24, borderRadius: '50%',
@@ -724,11 +716,6 @@ export default function GymOnboarding() {
               </div>
 
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 24 }}>JPG or PNG, max 5MB</div>
-
-              <input
-                ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }}
-                onChange={e => { if (e.target.files?.[0]) handleLogoSelect(e.target.files[0]) }}
-              />
             </div>
 
             {error && <div style={{ fontSize: 13, color: 'var(--error)', marginBottom: 12 }}>{error}</div>}
@@ -826,8 +813,8 @@ export default function GymOnboarding() {
                       width: 48, height: 48, borderRadius: '50%', backgroundColor: 'var(--bg-pill)',
                       overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {logoPreview
-                        ? <img src={logoPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {logoPick?.preview
+                        ? <img src={logoPick.preview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         : <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-secondary)' }}>{gymName.slice(0, 2).toUpperCase()}</span>
                       }
                     </div>

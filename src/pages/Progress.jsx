@@ -7,6 +7,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { useAuth } from '../hooks/useAuth'
+import { usePhotoPicker } from '../hooks/usePhotoPicker'
 import { supabase } from '../utils/supabase'
 import { useStreak } from '../hooks/useStreak'
 import LogStatsSheet from '../components/LogStatsSheet'
@@ -44,7 +45,7 @@ function PhotosTab({ userId }) {
   const [comparing, setComparing] = useState(false)   // selection mode
   const [selected, setSelected]   = useState([])      // up to 2 photo ids
   const [compareView, setCompareView] = useState(false) // comparison view
-  const fileRef = useRef(null)
+  const { photo, pickPhoto, clearPhoto } = usePhotoPicker()
 
   useEffect(() => { fetchPhotos() }, [userId])
 
@@ -64,31 +65,34 @@ function PhotosTab({ userId }) {
     }
   }
 
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  // Upload progress photo whenever a new one is picked
+  useEffect(() => {
+    if (!photo) return
     setUploadError(null)
     setUploading(true)
-    try {
-      const form = new FormData()
-      form.append('userId', userId)
-      form.append('photo', file)
-      form.append('date', new Date().toISOString().slice(0, 10))
-      const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch(`${API}/upload-progress-photo`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-        body: form,
-      })
-      if (!res.ok) throw new Error()
-      await fetchPhotos()
-    } catch {
-      setUploadError('Could not upload photo. Try again.')
-    } finally {
-      setUploading(false)
-      e.target.value = ''
+    async function doUpload() {
+      try {
+        const form = new FormData()
+        form.append('userId', userId)
+        form.append('photo', photo.blob, photo.file.name)
+        form.append('date', new Date().toISOString().slice(0, 10))
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${API}/upload-progress-photo`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+          body: form,
+        })
+        if (!res.ok) throw new Error()
+        await fetchPhotos()
+      } catch {
+        setUploadError('Could not upload photo. Try again.')
+      } finally {
+        setUploading(false)
+        clearPhoto()
+      }
     }
-  }
+    doUpload()
+  }, [photo, userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function formatDate(d) {
     if (!d) return ''
@@ -161,8 +165,6 @@ function PhotosTab({ userId }) {
   // ── Normal / selection mode ──────────────────────────────────────────────────
   return (
     <div className="px-5 pb-8">
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-
       {/* Action bar */}
       <div className={`flex gap-3 mb-6 ${comparing ? '' : ''}`}>
         {comparing ? (
@@ -185,7 +187,7 @@ function PhotosTab({ userId }) {
         ) : (
           <>
             <button
-              onClick={() => fileRef.current?.click()}
+              onClick={pickPhoto}
               disabled={uploading}
               className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-black font-semibold py-3.5 rounded-2xl transition-colors"
             >

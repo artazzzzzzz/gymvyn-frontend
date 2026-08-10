@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import GymBottomNav from '../../components/GymBottomNav'
@@ -8,6 +8,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../utils/supabase'
 import { useOwnerGymId } from '../../hooks/useOwnerGymId'
+import { usePhotoPicker } from '../../hooks/usePhotoPicker'
 import { CitySearchInput } from '../../components/CitySearchInput'
 import { assistantGetSettings, assistantUpdateSettings } from '../../utils/api'
 
@@ -109,7 +110,7 @@ export default function GymSettings() {
   }
   const gymId = useOwnerGymId()
   const API = import.meta.env.VITE_API_URL || ''
-  const logoInputRef = useRef(null)
+  const { photo: logoPick, pickPhoto: pickLogo, clearPhoto: clearLogo } = usePhotoPicker()
 
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState({
@@ -246,29 +247,37 @@ export default function GymSettings() {
     }
   }
 
-  // ─── Logo upload ───────────────────────────────────────────────────────────
-  const handleLogoUpload = async (file) => {
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { showToastMsg('File too large. Max 5MB.', 'error'); return }
-    setLogoUploading(true)
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const formData = new FormData()
-      formData.append('logo', file)
-      const res = await fetch(`${API}/api/gyms/${gymId}/upload-logo`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-        body: formData,
-      })
-      const data = await res.json()
-      setLogoUrl(data.logo_url)
-      showToastMsg('Logo updated')
-    } catch {
-      showToastMsg('Upload failed', 'error')
-    } finally {
-      setLogoUploading(false)
+  // ─── Logo upload (triggered by hook when user picks a photo) ─────────────
+  useEffect(() => {
+    if (!logoPick) return
+    if (logoPick.file.size > 5 * 1024 * 1024) {
+      showToastMsg('File too large. Max 5MB.', 'error')
+      clearLogo()
+      return
     }
-  }
+    async function doUpload() {
+      setLogoUploading(true)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const formData = new FormData()
+        formData.append('logo', logoPick.blob, 'logo.jpg')
+        const res = await fetch(`${API}/api/gyms/${gymId}/upload-logo`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+          body: formData,
+        })
+        const data = await res.json()
+        setLogoUrl(data.logo_url)
+        showToastMsg('Logo updated')
+      } catch {
+        showToastMsg('Upload failed', 'error')
+      } finally {
+        setLogoUploading(false)
+        clearLogo()
+      }
+    }
+    doUpload()
+  }, [logoPick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Plan handlers ─────────────────────────────────────────────────────────
   const openAddPlan = () => {
@@ -492,7 +501,7 @@ export default function GymSettings() {
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 10 }}>JPG or PNG, max 5MB</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
-                  onClick={() => logoInputRef.current?.click()}
+                  onClick={pickLogo}
                   disabled={logoUploading}
                   style={{
                     backgroundColor: 'var(--text-primary)', color: "var(--bg-card)", border: 'none', borderRadius: 10,
@@ -508,10 +517,6 @@ export default function GymSettings() {
                 )}
               </div>
             </div>
-            <input
-              ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }}
-              onChange={e => { if (e.target.files?.[0]) handleLogoUpload(e.target.files[0]) }}
-            />
           </div>
 
           {/* Profile form */}

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useActiveGym } from '../../contexts/ActiveGymContext'
+import { usePhotoPicker } from '../../hooks/usePhotoPicker'
 import { supabase } from '../../utils/supabase'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
@@ -158,12 +159,12 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
   const [price, setPrice]                   = useState('')
   const [stockCount, setStockCount]         = useState('')
   const [lowThreshold, setLowThreshold]     = useState('5')
-  const [imageFile, setImageFile]           = useState(null)
-  const [imagePreview, setImagePreview]     = useState(null)
+  const [existingImageUrl, setExistingImageUrl] = useState(null)
   const [saving, setSaving]                 = useState(false)
-  const fileRef = useRef(null)
+  const { photo: pickedImage, pickPhoto: pickImage, clearPhoto: clearImage } = usePhotoPicker()
 
   useEffect(() => {
+    clearImage()
     if (open && product) {
       setName(product.name || '')
       setDescription(product.description || '')
@@ -171,21 +172,13 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
       setPrice(String(product.price ?? ''))
       setStockCount(String(product.stock_count ?? ''))
       setLowThreshold(String(product.low_stock_threshold ?? 5))
-      setImagePreview(product.image_url || null)
-      setImageFile(null)
+      setExistingImageUrl(product.image_url || null)
     } else if (open) {
       setName(''); setDescription(''); setCategory('protein')
       setPrice(''); setStockCount(''); setLowThreshold('5')
-      setImageFile(null); setImagePreview(null)
+      setExistingImageUrl(null)
     }
-  }, [open, product])
-
-  function handleFileChange(e) {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setImageFile(f)
-    setImagePreview(URL.createObjectURL(f))
-  }
+  }, [open, product, clearImage])
 
   async function handleSubmit() {
     if (!name.trim()) return onToast('Product name is required', 'error')
@@ -222,9 +215,9 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
         })
       }
 
-      if (imageFile && saved?.id) {
+      if (pickedImage && saved?.id) {
         try {
-          const imgRes = await apiUpload(`/api/supplements/products/${saved.id}/upload-image?gym_id=${gymId}`, imageFile)
+          const imgRes = await apiUpload(`/api/supplements/products/${saved.id}/upload-image?gym_id=${gymId}`, pickedImage.blob)
           saved.image_url = imgRes.image_url
         } catch (imgErr) {
           onToast('Product saved but image upload failed: ' + imgErr.message, 'error')
@@ -259,17 +252,16 @@ function ProductFormSheet({ open, onClose, product, onSaved, onToast, gymId }) {
         {/* Image upload */}
         <div>
           <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6, display: 'block' }}>Product Image</label>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
           <button
-            onClick={() => fileRef.current?.click()}
+            onClick={pickImage}
             style={{
               width: '100%', height: 100, ...card, display: 'flex',
               flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 6, cursor: 'pointer', overflow: 'hidden', position: 'relative',
             }}
           >
-            {imagePreview ? (
-              <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            {(pickedImage?.preview || existingImageUrl) ? (
+              <img src={pickedImage?.preview || existingImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
             ) : (
               <>
                 <Upload size={20} color="var(--text-tertiary)" />

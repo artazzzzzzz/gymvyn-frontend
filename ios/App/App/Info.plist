@@ -51,6 +51,8 @@
 	<string>Gymvyn uses your camera to log food photos for macro tracking.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Gymvyn uses your microphone to log meals and workouts by voice.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Gymvyn uses your photo library to set your profile photo, gym logo, and progress photos.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
