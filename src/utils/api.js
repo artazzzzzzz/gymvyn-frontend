@@ -569,6 +569,12 @@ export const unlinkGym = () => apiFetch('/api/my-gym/unlink', { method: 'PATCH' 
 
 export const unlinkTrainer = () => apiFetch('/api/trainer/unlink', { method: 'PATCH' });
 
+// Trainer-side gym linkage. Trainers are linked via trainer_profiles.gym_id,
+// never via gym_memberships (that table is member enrollment only) — do not
+// reuse getMyGym()/'/api/my-gym/:userId' for a trainer, it will always report
+// unlinked. Returns { gym: {id, name} | null, pending_gym: {id, name} | null }.
+export const getTrainerGymStatus = () => apiFetch('/api/trainer/gym-status');
+
 // ── Diet & Macros ────────────────────────────────────────────────────────────
 
 async function dietRequest(path, { method = 'GET', body } = {}) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, RefreshCw, Loader2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { getMyGym } from '../../utils/api'
+import { getTrainerGymStatus } from '../../utils/api'
 import { getFeedPosts, deletePost, toggleLike } from '../../hooks/useGymFeed'
 import FeedPostCard from '../../components/feed/FeedPostCard'
 import CommentSheet from '../../components/feed/CommentSheet'
@@ -31,8 +31,11 @@ export default function TrainerGymFeedPage() {
   useEffect(() => {
     if (!user) return
     setGymLoading(true)
-    getMyGym(user.id)
-      .then(result => setGymInfo(result || { linked: false }))
+    // Trainers are linked via trainer_profiles.gym_id, not gym_memberships —
+    // getMyGym()/'/api/my-gym/:userId' is member-only and always reports
+    // unlinked for a trainer. Use the trainer-specific gym-status endpoint.
+    getTrainerGymStatus()
+      .then(result => setGymInfo({ gym: result?.gym || null, linked: !!result?.gym }))
       .catch(() => setGymInfo({ linked: false }))
       .finally(() => setGymLoading(false))
   }, [user])
