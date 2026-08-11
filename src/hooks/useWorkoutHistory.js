@@ -38,7 +38,11 @@ export function useWorkoutHistory() {
           .from('workout_logs')
           .select('*')
           .eq('user_id', userId)
-          .neq('notes', 'Rest day')
+          // Exclude rest days, but NOT via a plain .neq('notes', 'Rest day') —
+          // in Postgres, NULL != 'Rest day' evaluates to NULL, not true, so
+          // that filter silently dropped every log with no notes (the common
+          // case) from recentWorkouts, breaking "Repeat Last" for most users.
+          .or('notes.is.null,notes.neq.Rest day')
           .order('created_at', { ascending: false })
           .limit(20)
 
