@@ -5,28 +5,28 @@ import { apiFetch } from '../utils/api';
 
 /* ── palette ── */
 const C = {
-  bg: 'var(--bg-pill)',
+  bg: 'var(--bg-primary)',
   card: "var(--bg-card)",
+  hover: 'var(--bg-hover)',
   border: 'var(--border)',
   text: 'var(--text-primary)',
   sub: 'var(--text-secondary)',
-  green: '#1a9955',
+  meta: 'var(--text-tertiary)',
+  green: 'var(--success)',
   greenBg: 'var(--success-bg)',
-  amber: '#c07800',
+  amber: 'var(--warning)',
   amberBg: 'var(--warning-bg)',
-  blue: '#1a6fd4',
+  blue: 'var(--accent)',
   blueBg: 'var(--accent-bg)',
   gray: 'var(--text-tertiary)',
   grayBg: 'var(--bg-pill)',
-  red: '#d93025',
 };
 
 const AVATAR_COLORS = [
-  { bg: 'var(--accent-bg)', text: '#1a6fd4' },
-  { bg: 'var(--error-bg)', text: '#c0392b' },
-  { bg: 'var(--success-bg)', text: '#1a9955' },
-  { bg: 'var(--warning-bg)', text: '#c07800' },
-  { bg: '#f3e8fb', text: '#7b2fbf' },
+  { bg: 'var(--accent-bg)', text: 'var(--accent)' },
+  { bg: 'var(--error-bg)', text: 'var(--error)' },
+  { bg: 'var(--success-bg)', text: 'var(--success)' },
+  { bg: 'var(--warning-bg)', text: 'var(--warning)' },
 ];
 
 const FILTER_TABS = ['All', 'Active', 'Needs attention', 'No plan', 'Pending'];
@@ -95,15 +95,18 @@ function StatCard({ value, label, sub, subColor, subBg }) {
     <div style={{
       background: C.card, borderRadius: 16, padding: '16px 14px',
       display: 'flex', flexDirection: 'column', gap: 6,
-      border: `1px solid ${C.border}`,
+      border: `0.5px solid ${C.border}`,
     }}>
       <span style={{ fontSize: 28, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</span>
-      <span style={{ fontSize: 12, fontWeight: 500, color: C.sub, lineHeight: 1.3 }}>{label}</span>
+      <span style={{
+        fontSize: 11, fontWeight: 600, color: C.meta, lineHeight: 1.3,
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>{label}</span>
       {sub && (
         <span style={{
-          fontSize: 11, fontWeight: 600, color: subColor || C.sub,
+          fontSize: 12, fontWeight: 500, color: subColor || C.meta,
           background: subBg || C.grayBg,
-          borderRadius: 20, padding: '2px 7px', alignSelf: 'flex-start', marginTop: 2,
+          borderRadius: 20, padding: '2px 8px', alignSelf: 'flex-start', marginTop: 2,
         }}>{sub}</span>
       )}
     </div>
@@ -136,10 +139,10 @@ function ClientCard({ rel, avatarIdx, onClick }) {
       onMouseLeave={() => setPressed(false)}
       onClick={onClick}
       style={{
-        background: pressed ? '#f9f9fb' : C.card,
+        background: pressed ? C.hover : C.card,
         borderRadius: 16, padding: '14px 14px',
         display: 'flex', alignItems: 'center', gap: 12,
-        border: `1px solid ${C.border}`,
+        border: `0.5px solid ${C.border}`,
         cursor: 'pointer',
         transition: 'background 0.1s',
       }}
@@ -156,7 +159,7 @@ function ClientCard({ rel, avatarIdx, onClick }) {
           <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{name}</span>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusDotColor(status), flexShrink: 0 }} />
         </div>
-        <div style={{ fontSize: 12, color: C.sub, marginBottom: 6 }}>
+        <div style={{ fontSize: 12, color: C.meta, marginBottom: 6 }}>
           {goal}{planName ? ` · ${planName}` : ''}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -165,7 +168,7 @@ function ClientCard({ rel, avatarIdx, onClick }) {
             color: badgeColor, background: badgeBg,
             borderRadius: 20, padding: '2px 8px',
           }}>{badge}</span>
-          <span style={{ fontSize: 11, color: C.sub }}>{lastActiveText(rel)}</span>
+          <span style={{ fontSize: 11, color: C.meta }}>{lastActiveText(rel)}</span>
         </div>
       </div>
 
@@ -269,13 +272,13 @@ export default function TrainerDashboard() {
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div style={{ textAlign: 'center', maxWidth: 320 }}>
           <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 8 }}>{fetchError}</h2>
-          <p style={{ fontSize: 13, color: C.sub, marginBottom: 20, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, color: C.meta, marginBottom: 20, lineHeight: 1.5 }}>
             Something went wrong loading this page. Your profile and clients are unaffected — try again.
           </p>
           <button
             onClick={loadData}
             style={{
-              padding: '12px 24px', borderRadius: 12, border: `1px solid ${C.border}`,
+              padding: '12px 24px', borderRadius: 12, border: `0.5px solid ${C.border}`,
               background: C.text, color: C.bg, fontWeight: 600, fontSize: 14, cursor: 'pointer',
             }}
           >
@@ -298,7 +301,7 @@ export default function TrainerDashboard() {
             <div style={{ fontSize: 22, fontWeight: 700, color: C.text, letterSpacing: '-0.3px' }}>
               {greeting()}, {trainerName}
             </div>
-            <div style={{ fontSize: 13, color: C.sub, marginTop: 3 }}>{dateStr}</div>
+            <div style={{ fontSize: 13, color: C.meta, marginTop: 3 }}>{dateStr}</div>
           </div>
           <div
             onClick={() => navigate('/trainer/settings')}
@@ -313,7 +316,7 @@ export default function TrainerDashboard() {
         </div>
 
         {/* stats grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <StatCard
             value={activeClients.length}
             label="Active clients"
@@ -346,22 +349,25 @@ export default function TrainerDashboard() {
         {profile?.invite_code && (
           <div style={{
             background: C.card, borderRadius: 18, padding: '16px 16px',
-            border: `1px solid ${C.border}`, marginBottom: 22,
+            border: `0.5px solid ${C.border}`, marginBottom: 22,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 2 }}>Your invite code</div>
-            <div style={{ fontSize: 12, color: C.sub, marginBottom: 14 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 600, color: C.meta, marginBottom: 4,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+            }}>Your invite code</div>
+            <div style={{ fontSize: 12, color: C.meta, marginBottom: 14 }}>
               Share with new clients to link instantly
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
-                flex: 1, background: C.bg, borderRadius: 12, padding: '10px 14px',
+                flex: 1, background: C.grayBg, borderRadius: 12, padding: '10px 14px',
                 fontFamily: 'monospace',
                 fontSize: 22, fontWeight: 700, letterSpacing: '3px', color: C.text,
               }}>{profile.invite_code}</div>
               <button
                 onClick={copyInviteCode}
                 style={{
-                  width: 42, height: 42, borderRadius: 12, border: `1px solid ${C.border}`,
+                  width: 42, height: 42, borderRadius: 12, border: `0.5px solid ${C.border}`,
                   background: copied ? C.greenBg : C.card,
                   color: copied ? C.green : C.sub,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -373,7 +379,7 @@ export default function TrainerDashboard() {
               <button
                 onClick={shareInviteCode}
                 style={{
-                  width: 42, height: 42, borderRadius: 12, border: `1px solid ${C.border}`,
+                  width: 42, height: 42, borderRadius: 12, border: `0.5px solid ${C.border}`,
                   background: C.card, color: C.sub,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', flexShrink: 0,
@@ -398,7 +404,7 @@ export default function TrainerDashboard() {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: C.card, borderRadius: 12, padding: '10px 12px',
-          border: `1px solid ${C.border}`, marginBottom: 12,
+          border: `0.5px solid ${C.border}`, marginBottom: 12,
         }}>
           <IconSearch />
           <input
@@ -424,7 +430,7 @@ export default function TrainerDashboard() {
               style={{
                 padding: '6px 13px', borderRadius: 20, fontSize: 12, fontWeight: 600,
                 whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
-                border: activeFilter === f ? 'none' : `1px solid ${C.border}`,
+                border: activeFilter === f ? 'none' : `0.5px solid ${C.border}`,
                 background: activeFilter === f ? C.text : C.card,
                 color: activeFilter === f ? "var(--bg-card)" : C.sub,
                 transition: 'all 0.15s',
@@ -437,13 +443,13 @@ export default function TrainerDashboard() {
         {filteredClients.length === 0 ? (
           <div style={{
             background: C.card, borderRadius: 18, padding: '40px 24px',
-            border: `1px solid ${C.border}`, textAlign: 'center',
+            border: `0.5px solid ${C.border}`, textAlign: 'center',
           }}>
             <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: C.sub }}>
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 4 }}>No clients yet</div>
-            <div style={{ fontSize: 13, color: C.sub }}>Share your invite code to get started</div>
+            <div style={{ fontSize: 13, color: C.meta }}>Share your invite code to get started</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
