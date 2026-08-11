@@ -402,7 +402,10 @@ export default function Settings() {
                   backgroundColor: 'var(--accent-bg)', color: 'var(--text-cta)',
                   fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, marginTop: 4,
                 }}>
-                  {effectiveRole === 'trainer' ? 'Trainer' : user.gym_id ? 'Member' : 'Solo User'}
+                  {effectiveRole === 'trainer' ? 'Trainer'
+                    : effectiveRole === 'gym_owner' ? 'Owner'
+                    : effectiveRole === 'staff' ? 'Staff'
+                    : user.gym_id ? 'Member' : 'Solo User'}
                 </span>
                 <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 4 }}>
                   Joined {formatMonthYear(user.created_at)}
