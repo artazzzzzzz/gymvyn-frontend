@@ -15,7 +15,7 @@ import { searchExercises } from '../data/exerciseDatabase';
 
 /* ── palette ── */
 const C = {
-  bg: '#f7f7f5', card: "var(--bg-card)", border: 'var(--border)',
+  bg: 'var(--bg-pill)', card: "var(--bg-card)", border: 'var(--border)',
   text: 'var(--text-primary)', sub: "var(--text-tertiary)",
   green: 'var(--success)', greenBg: 'var(--success-bg)',
   amber: 'var(--warning)', amberBg: 'var(--warning-bg)',
