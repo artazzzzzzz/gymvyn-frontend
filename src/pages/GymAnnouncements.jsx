@@ -10,15 +10,24 @@ import {
 } from '../utils/api'
 import GymOwnerNav from '../components/GymOwnerNav'
 
+// Values must match the live `announcements_priority_check` constraint —
+// ['low', 'normal', 'high', 'urgent'], enforced backend-side in server.js
+// (VALID_PRIORITIES). The picker never offered 'important' as anything but a
+// UI label; it was sent to the API as the literal string 'important', which
+// isn't one of the four accepted values at all (not just wrong casing) and
+// always 400'd. 'high' is the accepted value that sits between normal and
+// urgent, so it keeps the "Important" label but sends 'high' — 'urgent' stays
+// its own distinct (and already-working) option rather than being collapsed
+// into it.
 const PRIORITY_OPTIONS = [
-  { value: 'normal',    label: 'Normal'    },
-  { value: 'important', label: 'Important' },
-  { value: 'urgent',    label: 'Urgent'    },
+  { value: 'normal', label: 'Normal'    },
+  { value: 'high',   label: 'Important' },
+  { value: 'urgent', label: 'Urgent'    },
 ]
 
 const PRIORITY_STYLES = {
   normal:    { bg: 'bg-[var(--bg-card)]/[0.06]',     border: 'border-white/[0.10]',   text: 'text-[var(--text-secondary)]', icon: Info,      iconColor: 'text-[var(--text-secondary)]'    },
-  important: { bg: 'bg-[var(--warning-bg)]',     border: 'border-[var(--warning)]',   text: 'text-[var(--warning)]', icon: Bell,      iconColor: 'text-[var(--warning)]'  },
+  high:      { bg: 'bg-[var(--warning-bg)]',     border: 'border-[var(--warning)]',   text: 'text-[var(--warning)]', icon: Bell,      iconColor: 'text-[var(--warning)]'  },
   urgent:    { bg: 'bg-[var(--error-bg)]',       border: 'border-[var(--error)]',    text: 'text-[var(--error)]',   icon: Zap,       iconColor: 'text-[var(--error)]'    },
 }
 
@@ -42,10 +51,11 @@ function timeAgo(iso) {
 function PriorityPill({ priority }) {
   const s = PRIORITY_STYLES[priority] ?? PRIORITY_STYLES.normal
   const Icon = s.icon
+  const label = PRIORITY_OPTIONS.find(o => o.value === priority)?.label || priority || 'Normal'
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${s.bg} ${s.border} ${s.text}`}>
       <Icon size={10} className={s.iconColor} />
-      {priority || 'normal'}
+      {label}
     </span>
   )
 }
