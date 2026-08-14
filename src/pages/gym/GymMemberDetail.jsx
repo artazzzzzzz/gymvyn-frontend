@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAvatarColor } from '../../utils/avatarColor'
 import { supabase } from '../../utils/supabase'
+import { apiFetch } from '../../utils/api'
 import { getStatusPillProps, getEffectiveMembership, getDaysRemainingLabel } from '../../utils/membershipStatus'
 
 const BASE = import.meta.env.VITE_API_URL
@@ -418,6 +419,35 @@ export default function GymMemberDetail() {
   const [showRenewModal,    setShowRenewModal]    = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [actionLoading,     setActionLoading]     = useState(false)
+  const [messagingBusy,     setMessagingBusy]     = useState(false)
+  // Kept separate from loadError — that state renders a full-page error in
+  // place of the member detail view, which would be a disruptive way to
+  // report a failure in this one secondary action.
+  const [messageError,      setMessageError]      = useState('')
+
+  // Owner-context "message this member" — get-or-create the conversation
+  // (same /api/chat/start used by FriendsPage/GymChatPage's own contact
+  // picker) and deep-link into it via GymChatPage's ?conversationId=&name=
+  // support, instead of dropping the owner into the unrelated trainer chat
+  // shell at /trainer/chat.
+  const messageMember = async () => {
+    if (messagingBusy || !member) return
+    setMessagingBusy(true)
+    setMessageError('')
+    try {
+      const { conversationId } = await apiFetch('/api/chat/start', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId: memberId }),
+      })
+      if (!conversationId) throw new Error('Could not open this conversation.')
+      navigate(`/gym/chat?conversationId=${encodeURIComponent(conversationId)}&name=${encodeURIComponent(member.full_name || 'Chat')}`)
+    } catch (err) {
+      console.error('Start owner-member conversation error:', err)
+      setMessageError(err.message || 'Could not open this conversation.')
+    } finally {
+      setMessagingBusy(false)
+    }
+  }
 
   const loadMember = useCallback(async (signal) => {
     if (!memberId) return
@@ -779,13 +809,18 @@ export default function GymMemberDetail() {
           </div>
 
           {/* 7 — Actions */}
+          {messageError && (
+            <p style={{ fontSize: 13, color: 'var(--error)', margin: '0 0 -4px' }}>{messageError}</p>
+          )}
           <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
             <button
-              onClick={() => navigate('/trainer/chat')}
+              onClick={messageMember}
+              disabled={messagingBusy}
               style={{
                 display: 'flex', alignItems: 'center', gap: 14,
                 width: '100%', padding: '0 16px', height: 56,
-                background: 'none', border: 'none', cursor: 'pointer',
+                background: 'none', border: 'none', cursor: messagingBusy ? 'default' : 'pointer',
+                opacity: messagingBusy ? 0.6 : 1,
                 borderBottom: '0.5px solid rgba(0,0,0,0.06)',
                 textAlign: 'left',
               }}
@@ -795,7 +830,7 @@ export default function GymMemberDetail() {
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </div>
-              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>Send Message</span>
+              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>{messagingBusy ? 'Opening…' : 'Send Message'}</span>
               <svg style={{ marginLeft: 'auto' }} width="16" height="16" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <polyline points="9 18 15 12 9 6" />
               </svg>

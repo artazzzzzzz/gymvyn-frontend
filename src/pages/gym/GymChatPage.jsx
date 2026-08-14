@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { apiFetch } from '../../utils/api';
 import ChatWindow from '../ChatWindow';
@@ -18,8 +19,18 @@ function formatLastTime(iso) {
 
 export default function GymChatPage() {
   const { user } = useAuth();
+  const location = useLocation();
+  // Mirrors ClientChatPage's ?conversationId=&name= deep-link pattern — a
+  // caller (e.g. "Send Message" on a member's detail page) that already did
+  // POST /api/chat/start lands directly in that conversation instead of the
+  // conversation list.
   const [conversations, setConversations] = useState([]);
-  const [activeConvo, setActiveConvo] = useState(null);
+  const [activeConvo, setActiveConvo] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    const conversationId = params.get('conversationId');
+    if (!conversationId) return null;
+    return { id: conversationId, other_user: { full_name: params.get('name') || 'Chat' } };
+  });
   const [loading, setLoading] = useState(true);
   const [moreOpen, setMoreOpen] = useState(false);
 
