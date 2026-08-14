@@ -184,17 +184,27 @@ export default function App() {
           {/* Trainer routes — shared nav via TrainerLayout */}
           <Route path="/become-trainer" element={<AuthRoute><BecomeTrainer /></AuthRoute>} />
           <Route element={<ProtectedRoute><TrainerLayout /></ProtectedRoute>}>
-            <Route path="/trainer/dashboard"        element={<TrainerDashboard />} />
-            <Route path="/trainer/clients"          element={<TrainerClients />} />
-            <Route path="/trainer/client/:clientId" element={<TrainerClientDetail />} />
-            <Route path="/trainer/templates"        element={<TrainerTemplates />} />
-            <Route path="/trainer/settings"         element={<TrainerSettings />} />
-            <Route path="/trainer/chat"             element={<TrainerChatPage />} />
-            <Route path="/trainer/chat/:convoId"    element={<TrainerChatPage />} />
+            {/* These render inside TrainerLayout (auth-only) but, unlike every
+                /gym/* route (all wrapped in GymOwnerRoute), most weren't
+                role-gated at all — a member/owner navigating straight to
+                /trainer/dashboard rendered the trainer shell instead of being
+                redirected home. TrainerRoute already had the correct
+                role-check + redirect logic (mirrors GymOwnerRoute); it just
+                wasn't applied here except on /trainer/plans. exercise-library
+                and exercise/:name are intentionally left unwrapped — they're
+                shared reference content also reachable at the un-role-gated
+                /exercise-library for every authenticated role. */}
+            <Route path="/trainer/dashboard"        element={<TrainerRoute><TrainerDashboard /></TrainerRoute>} />
+            <Route path="/trainer/clients"          element={<TrainerRoute><TrainerClients /></TrainerRoute>} />
+            <Route path="/trainer/client/:clientId" element={<TrainerRoute><TrainerClientDetail /></TrainerRoute>} />
+            <Route path="/trainer/templates"        element={<TrainerRoute><TrainerTemplates /></TrainerRoute>} />
+            <Route path="/trainer/settings"         element={<TrainerRoute><TrainerSettings /></TrainerRoute>} />
+            <Route path="/trainer/chat"             element={<TrainerRoute><TrainerChatPage /></TrainerRoute>} />
+            <Route path="/trainer/chat/:convoId"    element={<TrainerRoute><TrainerChatPage /></TrainerRoute>} />
             <Route path="/trainer/exercise-library" element={<ExerciseLibrary />} />
             <Route path="/trainer/exercise/:name"   element={<ExerciseDetail />} />
-            <Route path="/trainer/feed"             element={<TrainerGymFeedPage />} />
-            <Route path="/trainer/earnings"         element={<TrainerEarnings />} />
+            <Route path="/trainer/feed"             element={<TrainerRoute><TrainerGymFeedPage /></TrainerRoute>} />
+            <Route path="/trainer/earnings"         element={<TrainerRoute><TrainerEarnings /></TrainerRoute>} />
             <Route path="/trainer/plans"            element={<TrainerRoute><TrainerPlansListings /></TrainerRoute>} />
           </Route>
 
