@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAvatarColor } from '../../utils/avatarColor'
 import { supabase } from '../../utils/supabase'
+import { getStatusPillProps, getEffectiveMembership, getDaysRemainingLabel } from '../../utils/membershipStatus'
 
 const BASE = import.meta.env.VITE_API_URL
 
@@ -103,18 +104,14 @@ const detailRow = {
 }
 
 // ── StatusPill ────────────────────────────────────────────────────────────────
+// Renders getStatusPillProps() from utils/membershipStatus.js — the same
+// active/expired/expiring computation GymMembers.jsx (the list screen) uses,
+// so the two screens can't disagree again about whether a membership whose
+// end_date has already passed (but whose `status` column was never flipped —
+// no cron does that) still counts as "Active".
 
-function StatusPill({ status, churn_risk, days_until_expiry }) {
-  let label, bg, color
-  if (churn_risk === 'high') {
-    label = 'At Risk';   bg = 'var(--error-bg)'; color = 'var(--error)'
-  } else if (days_until_expiry <= 7 && days_until_expiry > 0) {
-    label = 'Expiring';  bg = 'var(--warning-bg)'; color = 'var(--warning)'
-  } else if (status === 'inactive' || status === 'expired') {
-    label = 'Inactive';  bg = 'var(--bg-pill)'; color = 'var(--text-secondary)'
-  } else {
-    label = 'Active';    bg = 'var(--success-bg)'; color = 'var(--success)'
-  }
+function StatusPill({ member }) {
+  const { label, bg, color } = getStatusPillProps(member)
   return (
     <span style={{ background: bg, color, padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500 }}>
       {label}
@@ -488,8 +485,12 @@ export default function GymMemberDetail() {
   const elapsed     = daysBetween(member.membership_start, new Date())
   const progressPct = totalDays > 0 ? Math.min(Math.round((elapsed / totalDays) * 100), 100) : 0
 
-  const daysLeft = member.days_until_expiry ?? daysBetween(new Date(), member.membership_end)
-  const daysLeftColor = daysLeft < 7 ? 'var(--error)' : daysLeft < 14 ? 'var(--warning)' : 'var(--success)'
+  const { effectiveStatus, daysRemaining } = getEffectiveMembership(member)
+  const daysLeftLabel = getDaysRemainingLabel(member)
+  const daysLeftColor = effectiveStatus === 'expired' ? 'var(--error)'
+    : daysRemaining != null && daysRemaining < 7 ? 'var(--error)'
+    : daysRemaining != null && daysRemaining < 14 ? 'var(--warning)'
+    : 'var(--success)'
 
   const rateVal = member.attendance?.rate_percent ?? 0
   const rateColor = rateVal >= 70 ? 'var(--success)' : rateVal >= 40 ? 'var(--warning)' : 'var(--error)'
@@ -603,11 +604,7 @@ export default function GymMemberDetail() {
                   ? member.plan_type.charAt(0).toUpperCase() + member.plan_type.slice(1) + ' Plan'
                   : '—'}
               </span>
-              <StatusPill
-                status={member.status}
-                churn_risk={member.churn_risk}
-                days_until_expiry={member.days_until_expiry}
-              />
+              <StatusPill member={member} />
             </div>
 
             {/* Progress bar */}
@@ -622,7 +619,7 @@ export default function GymMemberDetail() {
             </div>
 
             <p style={{ fontSize: 12, color: daysLeftColor, fontWeight: 500, marginBottom: 14 }}>
-              {daysLeft} days remaining
+              {daysLeftLabel}
             </p>
 
             {/* Detail rows */}
