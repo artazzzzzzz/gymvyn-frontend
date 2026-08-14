@@ -6,11 +6,33 @@ import { supabase } from '../utils/supabase'
 import { getAvatarColor, getInitials } from '../utils/avatarColor'
 import { formatMonthYear } from '../utils/dateHelpers'
 import { useTheme } from '../contexts/ThemeContext'
+import { EXPERIENCE_OPTIONS, EXPERIENCE_LABELS } from '../components/onboarding/onboardingConfig'
 
 const GOALS = ['Lose Weight', 'Build Muscle', 'Stay Fit', 'Athletic Performance', 'Improve Health']
-const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
+// Gender/experience are backend enum columns with DB check constraints that only
+// accept specific lowercase values (see onboardingConfig.js / ScreenBodyStats.jsx,
+// which already write these exact values successfully during onboarding). Using
+// {label, value} pairs here — instead of the Title-Case display strings the old
+// EXPERIENCE_LEVELS/gender array sent straight to the API — is what onboarding
+// already does; mirror it instead of inventing a third casing convention.
+const GENDER_OPTIONS = [
+  { label: 'Male', value: 'male' },
+  { label: 'Female', value: 'female' },
+  { label: 'Prefer not to say', value: 'prefer_not_to_say' },
+]
+const GENDER_LABELS = Object.fromEntries(GENDER_OPTIONS.map(o => [o.value, o.label]))
 const EQUIPMENT_OPTIONS = ['Full Gym', 'Home Gym', 'Minimal', 'Bodyweight Only']
 const API = import.meta.env.VITE_API_URL || ''
+
+// Maps a `users` table column name to the label shown on its Settings row, so a
+// backend "users_<column>_check" constraint violation can be turned into a
+// specific, human-readable toast instead of a generic/opaque failure message.
+const FIELD_LABELS = {
+  full_name: 'Name', age: 'Age', gender: 'gender', phone: 'phone',
+  goal: 'goal', experience: 'experience', equipment: 'equipment',
+  training_days: 'training days', injuries: 'injuries',
+  current_weight: 'weight', height: 'height', target_weight: 'target weight',
+}
 
 // ─── ThemeSwatch ─────────────────────────────────────────────────────────────
 function ThemeSwatch({ id }) {
@@ -67,9 +89,14 @@ const Toggle = ({ value, onChange }) => (
 )
 
 // ─── Pill Selector ────────────────────────────────────────────────────────────
+// `options` accepts either plain strings (value === display label, the legacy
+// shape still used by GOALS/EQUIPMENT_OPTIONS) or {label, value} objects (used
+// wherever the option's value is a backend enum that must stay lowercase).
 const PillSelector = ({ options, value, onChange, multiSelect = false }) => (
   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '12px 0' }}>
-    {options.map(opt => {
+    {options.map(raw => {
+      const opt = typeof raw === 'object' ? raw.value : raw
+      const label = typeof raw === 'object' ? raw.label : raw
       const isSelected = multiSelect ? (value || []).includes(opt) : value === opt
       return (
         <button
@@ -81,7 +108,7 @@ const PillSelector = ({ options, value, onChange, multiSelect = false }) => (
             border: isSelected ? 'none' : '0.5px solid var(--border)',
             fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}
-        >{opt}</button>
+        >{label}</button>
       )
     })}
   </div>
@@ -221,14 +248,31 @@ export default function Settings() {
         },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Save failed')
+      if (!res.ok) {
+        // Read the server's actual message (e.g. a DB check-constraint violation)
+        // instead of discarding it — the catch block below turns it into a
+        // field-specific toast so a failed field doesn't just look like it saved.
+        let serverMessage = ''
+        try { serverMessage = (await res.json())?.message || '' } catch { /* non-JSON error body */ }
+        throw new Error(serverMessage || 'Save failed')
+      }
       const updated = await res.json()
       setUser(updated)
       setIsDirty(false)
       setActiveEditRow(null)
       showToastMsg('Settings saved', 'success')
-    } catch {
-      showToastMsg('Failed to save settings', 'error')
+    } catch (err) {
+      // isDirty is intentionally left true here — the failed edits stay in the
+      // form so the user can fix the offending field and retry, instead of the
+      // save silently reporting success while quietly dropping their changes.
+      const constraintField = /users_(\w+)_check/.exec(err?.message || '')?.[1]
+      const friendlyField = constraintField && FIELD_LABELS[constraintField]
+      showToastMsg(
+        friendlyField
+          ? `Couldn't save — check your ${friendlyField} selection and try again.`
+          : 'Failed to save settings. Please try again.',
+        'error'
+      )
     } finally {
       setSaving(false)
     }
@@ -453,12 +497,12 @@ export default function Settings() {
                   style={rowStyle({ borderBottom: activeEditRow === 'gender' ? '0.5px solid rgba(0,0,0,0.06)' : 'none' })}
                 >
                   <span style={labelStyle}>Gender</span>
-                  <span style={valueStyle}>{form.gender || '—'}</span>
+                  <span style={valueStyle}>{GENDER_LABELS[form.gender] || form.gender || '—'}</span>
                 </div>
                 {activeEditRow === 'gender' && (
                   <div style={{ padding: '0 20px 12px' }}>
                     <PillSelector
-                      options={['Male', 'Female', 'Other']}
+                      options={GENDER_OPTIONS}
                       value={form.gender}
                       onChange={val => { updateField('gender', val); setActiveEditRow(null) }}
                     />
@@ -495,12 +539,12 @@ export default function Settings() {
               <div>
                 <div onClick={() => toggleEditRow('experience')} style={rowStyle()}>
                   <span style={labelStyle}>Experience</span>
-                  <span style={valueStyle}>{form.experience || '—'}</span>
+                  <span style={valueStyle}>{EXPERIENCE_LABELS[form.experience] || form.experience || '—'}</span>
                 </div>
                 {activeEditRow === 'experience' && (
                   <div style={{ padding: '4px 20px 12px', borderBottom: '0.5px solid var(--border)' }}>
                     <PillSelector
-                      options={EXPERIENCE_LEVELS} value={form.experience}
+                      options={EXPERIENCE_OPTIONS} value={form.experience}
                       onChange={val => { updateField('experience', val); setActiveEditRow(null) }}
                     />
                   </div>
