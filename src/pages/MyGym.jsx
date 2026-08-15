@@ -4,6 +4,7 @@ import { Loader2, Building2, X, MoreVertical } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { getMyGym, joinGym, unlinkGym, getClassesByDate, getGymOccupancy, getGymQR } from '../utils/api'
 import { supabase } from '../utils/supabase'
+import ReviewGymSheet from '../components/ReviewGymSheet'
 
 const BASE = import.meta.env.VITE_API_URL
 
@@ -153,6 +154,7 @@ export default function MyGym() {
 
   const [contactOpen,    setContactOpen]    = useState(false)
   const [membershipOpen, setMembershipOpen] = useState(false)
+  const [reviewOpen,     setReviewOpen]     = useState(false)
 
   const [announcementDetail, setAnnouncementDetail] = useState(null)
 
@@ -705,6 +707,7 @@ export default function MyGym() {
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                   </svg>
                 ),
+                onClick: () => setReviewOpen(true),
               },
             ].map((a, i) => (
               <button
@@ -839,6 +842,8 @@ export default function MyGym() {
           </div>
         </div>
       )}
+
+      <ReviewGymSheet open={reviewOpen} onClose={() => setReviewOpen(false)} />
 
       {unlinkConfirmOpen && (
         <div

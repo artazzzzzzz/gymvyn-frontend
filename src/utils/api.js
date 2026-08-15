@@ -567,6 +567,18 @@ export async function joinGym(userId, joinCode) {
 // membership row to inactive. Self-only — acts on the caller's own token.
 export const unlinkGym = () => apiFetch('/api/my-gym/unlink', { method: 'PATCH' });
 
+// Leave a Review (MyGym.jsx). Self-only, same as unlinkGym above — the
+// backend resolves the caller's gym from their own active gym_memberships
+// row, so there is no gym_id to pass (or tamper with) here. Upsert
+// semantics: submitting again edits the existing review rather than
+// creating a second one.
+export const submitGymReview = (rating, reviewText) =>
+  apiFetch('/api/gym-reviews', { method: 'POST', body: JSON.stringify({ rating, review_text: reviewText }) });
+
+// 404s (via apiFetch's thrown Error) when the caller hasn't reviewed their
+// current gym yet — callers should catch and treat that as "no review".
+export const getMyGymReview = () => apiFetch('/api/gym-reviews/mine');
+
 export const unlinkTrainer = () => apiFetch('/api/trainer/unlink', { method: 'PATCH' });
 
 // Trainer-side gym linkage. Trainers are linked via trainer_profiles.gym_id,
