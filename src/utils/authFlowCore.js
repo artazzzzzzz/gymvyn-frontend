@@ -8,8 +8,20 @@ export const OAUTH_PROVIDERS = {
   apple: 'apple',
 }
 
+// Password-reset email links land here (ResetPassword.jsx), the same way
+// OAuth callbacks land on OAUTH_CALLBACK_PATH -- kept as a distinct path
+// (not reusing /auth/callback) because the two pages do different things
+// with the incoming code: OAuth exchanges it and immediately routes into
+// the app, recovery exchanges it and then shows a new-password form before
+// the user is considered "in".
+export const PASSWORD_RESET_PATH = '/auth/reset-password'
+
 export function getOAuthRedirectTo(origin = window.location.origin) {
   return `${String(origin).replace(/\/+$/, '')}${OAUTH_CALLBACK_PATH}`
+}
+
+export function getPasswordResetRedirectTo(origin = window.location.origin) {
+  return `${String(origin).replace(/\/+$/, '')}${PASSWORD_RESET_PATH}`
 }
 
 // Deep-link equivalents of AuthCallback.jsx's window.location.search/hash
@@ -53,6 +65,29 @@ export async function startOAuth(provider, {
     },
   })
 
+  if (error) throw error
+}
+
+// Sends the "reset your password" email. redirectTo mirrors getOAuthRedirectTo's
+// approach (derive from window.location.origin rather than hardcoding a host)
+// so this works unchanged across local/staging/prod without an env var --
+// but unlike OAuth, this has no native-scheme variant yet: on a Capacitor
+// build, `origin` resolves to the app's internal webview origin, which a
+// link opened from the device's Mail app can't reach. Recovery email links
+// are only verified/supported for the web flow today; native support would
+// need the same NATIVE_OAUTH_CALLBACK_URL-style deep link treatment OAuth
+// already has, wired up separately.
+export async function requestPasswordReset(email, {
+  client,
+  origin = window.location.origin,
+} = {}) {
+  if (!client) throw new Error('Supabase client is not available.')
+  const trimmed = String(email || '').trim()
+  if (!trimmed) throw new Error('Enter your email address.')
+
+  const { error } = await client.auth.resetPasswordForEmail(trimmed, {
+    redirectTo: getPasswordResetRedirectTo(origin),
+  })
   if (error) throw error
 }
 

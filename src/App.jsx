@@ -14,6 +14,7 @@ import StaffLayout from './layouts/StaffLayout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import AuthCallback from './pages/AuthCallback'
+import ResetPassword from './pages/ResetPassword'
 import RoleSelect from './pages/RoleSelect'
 import StaffOnboarding from './pages/StaffOnboarding'
 import Onboarding from './pages/Onboarding'
@@ -106,6 +107,7 @@ export default function App() {
           <Route path="/login"        element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/signup"       element={<PublicRoute><Signup /></PublicRoute>} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/role-select"       element={<AuthRoute><RoleSelect /></AuthRoute>} />
           <Route path="/onboarding"        element={<AuthRoute><Onboarding /></AuthRoute>} />
           <Route path="/stagv-onboarding"  element={<AuthRoute><StaffOnboarding /></AuthRoute>} />

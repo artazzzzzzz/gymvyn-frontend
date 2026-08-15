@@ -128,6 +128,17 @@ export function AuthProvider({ children }) {
       (event, session) => {
         const u = session?.user ?? null
         setUser(u)
+        // A clicked password-reset link lands here as PASSWORD_RECOVERY: Supabase
+        // sets a real (temporary-purpose) session so ResetPassword.jsx can call
+        // updateUser({ password }), but this is not a normal sign-in. Skip the
+        // role/onboarding lookup (and its localStorage caching) for it — that
+        // page owns its own navigation once the password is actually set;
+        // running checkOnboarding here would do a needless DB read mid-recovery
+        // for no one that reads its result.
+        if (event === 'PASSWORD_RECOVERY') {
+          setLoading(false)
+          return
+        }
         // Do not await — Supabase holds the auth lock while subscriber callbacks
         // run; any await blocks token refresh and visibility-change recovery.
         void checkOnboarding(u?.id ?? null).finally(() => setLoading(false))

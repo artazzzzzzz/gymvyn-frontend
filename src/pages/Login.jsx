@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
 import { useAuth } from '../hooks/useAuth'
 import { OAUTH_PROVIDERS, startOAuth } from '../utils/authFlow'
+import ForgotPasswordSheet from '../components/ForgotPasswordSheet'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -147,6 +148,7 @@ export default function Login() {
   const [isLoading,    setIsLoading]    = useState(false)
   const [oauthLoading, setOauthLoading] = useState(null)
   const [error,        setError]        = useState('')
+  const [forgotOpen,   setForgotOpen]   = useState(false)
 
   const canSubmit = email.trim() && password.length >= 6 && !isLoading && !oauthLoading
 
@@ -257,7 +259,13 @@ export default function Login() {
 
         {/* Forgot */}
         <div className="flex justify-end mt-2">
-          <button className="text-[12px] font-medium text-[var(--text-cta)]">Forgot password?</button>
+          <button
+            type="button"
+            onClick={() => setForgotOpen(true)}
+            className="text-[12px] font-medium text-[var(--text-cta)]"
+          >
+            Forgot password?
+          </button>
         </div>
 
         {/* CTA */}
@@ -294,6 +302,11 @@ export default function Login() {
         </p>
       </div>
 
+      <ForgotPasswordSheet
+        open={forgotOpen}
+        onClose={() => setForgotOpen(false)}
+        initialEmail={email}
+      />
     </div>
   )
 }
