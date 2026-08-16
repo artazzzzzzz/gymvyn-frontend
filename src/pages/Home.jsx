@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../utils/supabase'
-import { useStreak } from '../hooks/useStreak'
 import { apiFetch, getMyGym, getGymOccupancy, getMacros, calculateMacros, getXPProfile, useStreakFreeze } from '../utils/api'
 import PrimaryButton from '../components/PrimaryButton'
 import AIPlanGenerator from '../components/AIPlanGenerator'
@@ -100,7 +99,12 @@ export default function Home() {
   // ── Existing state ────────────────────────────────────────────────────────
   const [profile, setProfile] = useState(null)
   const [macroGoals, setMacroGoals] = useState(null)
-  const { current: streakDays } = useStreak(user?.id)
+  // Streak comes from the persisted XP profile (xp_profiles.current_streak via
+  // /api/xp/profile), not computed client-side from raw workout_logs — that
+  // computation drifted from the XP engine's own streak (which accounts for
+  // freezes, minimum workout duration, etc.), producing a Home/XP-page mismatch.
+  // See getXPProfile() effect below, the single source of truth for this value.
+  const [streakDays, setStreakDays] = useState(0)
 
   // ── New state ─────────────────────────────────────────────────────────────
   const [todayWorkout,   setTodayWorkout]   = useState(null)
@@ -298,12 +302,15 @@ export default function Home() {
       .catch(() => setGymData(null))
   }, [user?.id])
 
-  // ── XP profile fetch (freezes remaining) ──────────────────────────────────
+  // ── XP profile fetch (streak + freezes remaining) ─────────────────────────
   useEffect(() => {
     if (!user) return
     getXPProfile()
-      .then(p => setFreezesRemaining(p?.freezesRemaining ?? null))
-      .catch(() => setFreezesRemaining(null))
+      .then(p => {
+        setFreezesRemaining(p?.freezesRemaining ?? null)
+        setStreakDays(p?.currentStreak ?? 0)
+      })
+      .catch(() => { setFreezesRemaining(null); setStreakDays(0) })
   }, [user])
 
   async function handleSkip() {
