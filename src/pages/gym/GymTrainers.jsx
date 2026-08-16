@@ -55,6 +55,13 @@ export default function GymTrainers() {
   const [pendingRequests, setPendingRequests] = useState([])
   const [showRequestsSheet, setShowRequestsSheet] = useState(false)
   const [requestActionId, setRequestActionId] = useState(null)
+  const [showAssignClients, setShowAssignClients] = useState(false)
+  const [assignTrainer, setAssignTrainer] = useState(null)
+  const [gymMembers, setGymMembers] = useState([])
+  const [gymMembersLoading, setGymMembersLoading] = useState(false)
+  const [selectedClientIds, setSelectedClientIds] = useState(new Set())
+  const [assignSubmitting, setAssignSubmitting] = useState(false)
+  const [assignError, setAssignError] = useState('')
 
   const fetchTrainers = async () => {
     if (!gymId) return
@@ -158,6 +165,57 @@ export default function GymTrainers() {
       alert('Failed to add trainer')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const openAssignClients = async (trainer) => {
+    setAssignTrainer(trainer)
+    setAssignError('')
+    setSelectedClientIds(new Set())
+    setShowAssignClients(true)
+    setGymMembersLoading(true)
+    try {
+      // Same GET /api/gym-members list GymMembers.jsx uses — reused here for
+      // the client picker rather than duplicating a second member-fetch path.
+      const data = await authReq(API, 'GET', `/api/gym-members?gymId=${gymId}&status=active&limit=200`)
+      setGymMembers(Array.isArray(data) ? data : (data?.members ?? []))
+    } catch {
+      setGymMembers([])
+      setAssignError('Failed to load members')
+    } finally {
+      setGymMembersLoading(false)
+    }
+  }
+
+  const toggleClientSelected = (userId) => {
+    setSelectedClientIds(prev => {
+      const next = new Set(prev)
+      if (next.has(userId)) next.delete(userId)
+      else next.add(userId)
+      return next
+    })
+  }
+
+  const handleAssignClients = async () => {
+    if (!assignTrainer || selectedClientIds.size === 0) return
+    setAssignSubmitting(true)
+    setAssignError('')
+    try {
+      // Same POST /api/gym-members/:memberId/assign-trainer used by
+      // GymMemberDetail's Assign Trainer action — one relationship, wired
+      // from either side, no duplicated backend logic.
+      await Promise.all(
+        Array.from(selectedClientIds).map(memberId =>
+          authReq(API, 'POST', `/api/gym-members/${memberId}/assign-trainer`, { trainer_id: assignTrainer.user_id })
+        )
+      )
+      setShowAssignClients(false)
+      setAssignTrainer(null)
+      fetchTrainers()
+    } catch (err) {
+      setAssignError(err.message || 'Failed to assign clients')
+    } finally {
+      setAssignSubmitting(false)
     }
   }
 
@@ -389,6 +447,22 @@ export default function GymTrainers() {
                       boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                       zIndex: 20, minWidth: 160,
                     }}>
+                      <button
+                        onClick={() => {
+                          setMoreOpenId(null)
+                          if (trainer.user_id) openAssignClients(trainer)
+                        }}
+                        disabled={!trainer.user_id}
+                        title={!trainer.user_id ? "This trainer hasn't claimed their profile yet" : undefined}
+                        style={{
+                          display: 'block', width: '100%',
+                          padding: '12px 16px', textAlign: 'left',
+                          background: 'none', border: 'none',
+                          fontSize: 14, color: trainer.user_id ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                          cursor: trainer.user_id ? 'pointer' : 'not-allowed',
+                          borderBottom: '0.5px solid rgba(0,0,0,0.06)',
+                        }}
+                      >Assign Clients</button>
                       <button
                         onClick={() => {
                           setSelectedTrainer(trainer)
@@ -751,6 +825,82 @@ export default function GymTrainers() {
                   cursor: 'pointer',
                 }}
               >Cancel</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ASSIGN CLIENTS SHEET */}
+      {showAssignClients && assignTrainer && (
+        <>
+          <div
+            onClick={() => { setShowAssignClients(false); setAssignTrainer(null) }}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: "var(--bg-card)", borderRadius: '20px 20px 0 0',
+            zIndex: 51, padding: '0 0 32px',
+            maxHeight: '80vh', overflowY: 'auto',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 0' }} />
+            <div style={{ padding: '16px 20px 0' }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                Assign Clients
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+                to {assignTrainer.full_name}
+              </div>
+
+              {assignError && <p style={{ color: 'var(--error)', fontSize: 13, marginBottom: 12 }}>{assignError}</p>}
+
+              {gymMembersLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>Loading members…</div>
+              ) : gymMembers.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)', fontSize: 14 }}>No active members found</div>
+              ) : (
+                gymMembers.map(m => {
+                  const uid = m.user_id || m.id
+                  const checked = selectedClientIds.has(uid)
+                  return (
+                    <button
+                      key={uid}
+                      onClick={() => toggleClientSelected(uid)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                        padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.06)', textAlign: 'left',
+                      }}
+                    >
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 5, flexShrink: 0,
+                        border: checked ? 'none' : '1.5px solid var(--border)',
+                        background: checked ? 'var(--text-primary)' : 'none',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {checked && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--bg-card)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </div>
+                      <span style={{ fontSize: 14, color: 'var(--text-primary)' }}>{m.users?.full_name || m.full_name || 'Unknown'}</span>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+
+            <div style={{ padding: '20px 20px 0' }}>
+              <button
+                onClick={handleAssignClients}
+                disabled={assignSubmitting || selectedClientIds.size === 0}
+                style={{
+                  width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
+                  border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                  cursor: 'pointer', opacity: assignSubmitting || selectedClientIds.size === 0 ? 0.5 : 1,
+                }}
+              >{assignSubmitting ? 'Assigning…' : `Assign ${selectedClientIds.size || ''} Client${selectedClientIds.size === 1 ? '' : 's'}`}</button>
             </div>
           </div>
         </>
