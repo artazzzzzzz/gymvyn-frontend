@@ -414,12 +414,15 @@ function ProductCard({ product, onEdit, onToggleActive, onDelete, onToast }) {
 
 // ── Order Card ───────────────────────────────────────────────────────────────
 
-function OrderCard({ order, onStatusChange, onPaymentChange, onToast }) {
+function OrderCard({ order, onStatusChange, onPaymentChange, onToast, onOpenDetail }) {
   const st = STATUS_BADGE[order.status] || STATUS_BADGE.pending
   const pt = PAYMENT_BADGE[order.payment_status] || PAYMENT_BADGE.unpaid
 
   return (
-    <div style={{ ...card, padding: 16, marginBottom: 12 }}>
+    <div
+      onClick={() => onOpenDetail(order)}
+      style={{ ...card, padding: 16, marginBottom: 12, cursor: 'pointer' }}
+    >
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
         <div>
@@ -473,9 +476,79 @@ function OrderCard({ order, onStatusChange, onPaymentChange, onToast }) {
         </div>
       </div>
 
-      {/* Actions */}
-      <OrderActions order={order} onStatusChange={onStatusChange} onPaymentChange={onPaymentChange} onToast={onToast} />
+      {/* Actions — stop propagation so pressing a status action doesn't also open the detail sheet */}
+      <div onClick={e => e.stopPropagation()}>
+        <OrderActions order={order} onStatusChange={onStatusChange} onPaymentChange={onPaymentChange} onToast={onToast} />
+      </div>
     </div>
+  )
+}
+
+// ── Order Detail Sheet ──────────────────────────────────────────────────────
+// Bug 16 (QA re-verification): order cards showed status actions but had no
+// way to open a fuller detail view. The card already surfaces most fields
+// inline, so this adds what it doesn't: the order id (for support/reference),
+// member phone (fetched by the API but never rendered), and full
+// created/updated timestamps.
+
+function OrderDetailSheet({ order, onClose }) {
+  if (!order) return null
+  const st = STATUS_BADGE[order.status] || STATUS_BADGE.pending
+  const pt = PAYMENT_BADGE[order.payment_status] || PAYMENT_BADGE.unpaid
+
+  return (
+    <BottomSheet open={!!order} onClose={onClose} title="Order Detail">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>#{order.id?.slice(0, 8)}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 12, background: st.bg, color: st.color }}>{st.label}</span>
+        </div>
+
+        <div>
+          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{order.member_name || 'Unknown member'}</p>
+          {order.member_phone && (
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{order.member_phone}</p>
+          )}
+        </div>
+
+        <div>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 8px' }}>Items</p>
+          {(order.supplement_order_items || []).map((item, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-secondary)', margin: '4px 0' }}>
+              <span>{item.quantity}× {item.product_name_snapshot}</span>
+              <span>{formatPrice(item.unit_price_snapshot * item.quantity)}</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+            <span>Total</span>
+            <span>{formatPrice(order.total_amount)}</span>
+          </div>
+        </div>
+
+        {order.notes && (
+          <div>
+            <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 6px' }}>Notes</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0 }}>"{order.notes}"</p>
+          </div>
+        )}
+
+        <div>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 6px' }}>Payment</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: pt.color, margin: 0 }}>
+            {order.payment_status === 'paid' ? `Paid${order.payment_method ? ` · ${order.payment_method.toUpperCase()}` : ''}` : 'Unpaid'}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-tertiary)', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+          <span>Placed {order.created_at ? new Date(order.created_at).toLocaleString('en-IN') : '—'}</span>
+        </div>
+        {order.updated_at && order.updated_at !== order.created_at && (
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: -8 }}>
+            Updated {new Date(order.updated_at).toLocaleString('en-IN')}
+          </div>
+        )}
+      </div>
+    </BottomSheet>
   )
 }
 
@@ -721,6 +794,7 @@ export default function GymSupplements() {
   // Orders state
   const [orders, setOrders]             = useState([])
   const [ordersLoading, setOrdersLoading] = useState(true)
+  const [selectedOrder, setSelectedOrder] = useState(null)
   const [orderFilter, setOrderFilter]   = useState('pending')
   const pollRef = useRef(null)
 
@@ -989,6 +1063,7 @@ export default function GymSupplements() {
                     onStatusChange={handleStatusChange}
                     onPaymentChange={handlePaymentChange}
                     onToast={showToast}
+                    onOpenDetail={setSelectedOrder}
                   />
                 ))
               )}
@@ -1017,6 +1092,9 @@ export default function GymSupplements() {
         product={deleteTarget}
         onConfirm={handleDeleteProduct}
       />
+
+      {/* Order detail */}
+      <OrderDetailSheet order={selectedOrder} onClose={() => setSelectedOrder(null)} />
     </>
   )
 }
