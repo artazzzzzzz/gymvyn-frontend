@@ -101,6 +101,9 @@ export default function TrainerSettings() {
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [showLeaveGymConfirm, setShowLeaveGymConfirm] = useState(false);
+  const [leavingGym, setLeavingGym] = useState(false);
+  const [leaveGymError, setLeaveGymError] = useState('');
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState(null);
   const [joinGymOpen, setJoinGymOpen] = useState(false);
@@ -234,6 +237,20 @@ export default function TrainerSettings() {
       loadData();
     } catch (err) {
       alert('Failed to remove client');
+    }
+  };
+
+  const confirmLeaveGym = async () => {
+    setLeavingGym(true);
+    setLeaveGymError('');
+    try {
+      await apiFetch('/api/trainer/leave-gym', { method: 'PATCH' });
+      setProfile(p => ({ ...p, gym_id: null, pending_gym_id: null }));
+      setShowLeaveGymConfirm(false);
+    } catch (err) {
+      setLeaveGymError(err.message || 'Could not leave gym.');
+    } finally {
+      setLeavingGym(false);
     }
   };
 
@@ -414,7 +431,18 @@ export default function TrainerSettings() {
               ? "Couldn't load"
               : profile?.gym_id ? 'Linked' : (profile?.pending_gym_id ? 'Pending approval' : 'Not linked')
           }
-          onPress={() => (fetchError ? loadData() : setJoinGymOpen(true))}
+          onPress={() => {
+            if (fetchError) { loadData(); return }
+            // Bug 11: this row had no leave/unlink action at all when
+            // already linked (or pending) — it just kept reopening "Join a
+            // Gym", which makes no sense once you're already in one.
+            if (profile?.gym_id || profile?.pending_gym_id) {
+              setLeaveGymError('')
+              setShowLeaveGymConfirm(true)
+            } else {
+              setJoinGymOpen(true)
+            }
+          }}
         />
       </div>
 
@@ -519,6 +547,44 @@ export default function TrainerSettings() {
           Delete Account
         </button>
       </div>
+
+      {/* ── Leave Gym Confirm ── (same shape as MyTrainer.jsx's member-side
+          "Leave this trainer" confirm — centered card over a dim backdrop) */}
+      {showLeaveGymConfirm && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: '0 24px' }}
+          onClick={() => !leavingGym && setShowLeaveGymConfirm(false)}
+        >
+          <div
+            style={{ width: '100%', maxWidth: 340, background: 'var(--bg-card)', borderRadius: 16, padding: 24 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+              {profile?.pending_gym_id && !profile?.gym_id ? 'Cancel your join request?' : 'Leave your gym?'}
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 20 }}>
+              {profile?.pending_gym_id && !profile?.gym_id
+                ? "You'll withdraw your pending request to join this gym. You can request again anytime."
+                : "Your clients and history stay intact, but the gym will no longer be able to assign you clients. You can rejoin anytime."}
+            </p>
+            {leaveGymError && (
+              <p style={{ fontSize: 12, color: 'var(--error)', marginBottom: 12 }}>{leaveGymError}</p>
+            )}
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setShowLeaveGymConfirm(false)}
+                disabled={leavingGym}
+                style={{ flex: 1, padding: '12px 0', borderRadius: 12, fontWeight: 500, fontSize: 13, color: 'var(--text-secondary)', border: '0.5px solid var(--border)', background: 'var(--bg-primary)', cursor: 'pointer', opacity: leavingGym ? 0.5 : 1 }}
+              >Cancel</button>
+              <button
+                onClick={confirmLeaveGym}
+                disabled={leavingGym}
+                style={{ flex: 1, padding: '12px 0', borderRadius: 12, fontWeight: 600, fontSize: 13, color: 'white', background: 'var(--error)', border: 'none', cursor: 'pointer', opacity: leavingGym ? 0.6 : 1 }}
+              >{leavingGym ? 'Leaving…' : 'Leave Gym'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Delete Account Sheet ── */}
       {showDeleteSheet && (
