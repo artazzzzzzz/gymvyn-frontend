@@ -76,6 +76,25 @@ export default function TrainerTemplateBuilder() {
     }
   };
 
+  // Up/down buttons rather than drag-and-drop — the exercise list below
+  // already reorders this way (see moveExercise), and full drag-and-drop
+  // (pointer tracking, drop-target detection, touch support) is a much
+  // heavier lift than a day list actually needs. Mirrors openDays (which
+  // tracks day indices) so the open/closed state follows the day, not the
+  // position, when two days swap places.
+  const moveDay = (dayIdx, direction) => {
+    const target = dayIdx + direction;
+    if (target < 0 || target >= days.length) return;
+    const next = [...days];
+    [next[dayIdx], next[target]] = [next[target], next[dayIdx]];
+    setDays(next);
+    setOpenDays(openDays.map(i => {
+      if (i === dayIdx) return target;
+      if (i === target) return dayIdx;
+      return i;
+    }));
+  };
+
   const addExercise = (dayIdx, exercise) => {
     setDays(days.map((d, i) => i === dayIdx ? {
       ...d,
@@ -281,7 +300,20 @@ export default function TrainerTemplateBuilder() {
             >
               {/* Day header */}
               <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--text-disabled)', fontSize: 16, cursor: 'grab', userSelect: 'none' }}>⠿</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  <button
+                    onClick={() => moveDay(dayIdx, -1)}
+                    disabled={dayIdx === 0}
+                    title="Move day up"
+                    style={{ background: 'none', border: 'none', cursor: dayIdx === 0 ? 'default' : 'pointer', color: dayIdx === 0 ? 'var(--text-disabled)' : 'var(--text-tertiary)', fontSize: 11, padding: 0, lineHeight: 1 }}
+                  >▲</button>
+                  <button
+                    onClick={() => moveDay(dayIdx, 1)}
+                    disabled={dayIdx === days.length - 1}
+                    title="Move day down"
+                    style={{ background: 'none', border: 'none', cursor: dayIdx === days.length - 1 ? 'default' : 'pointer', color: dayIdx === days.length - 1 ? 'var(--text-disabled)' : 'var(--text-tertiary)', fontSize: 11, padding: 0, lineHeight: 1 }}
+                  >▼</button>
+                </div>
                 <input
                   type="text"
                   value={day.name}
