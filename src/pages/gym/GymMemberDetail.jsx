@@ -3,7 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getAvatarColor } from '../../utils/avatarColor'
 import { supabase } from '../../utils/supabase'
 import { apiFetch } from '../../utils/api'
+import { useActiveGym } from '../../contexts/ActiveGymContext'
 import { getStatusPillProps, getEffectiveMembership, getDaysRemainingLabel } from '../../utils/membershipStatus'
+
+const PLAN_TYPE_OPTIONS = [
+  { key: 'monthly',     label: 'Monthly' },
+  { key: 'quarterly',   label: 'Quarterly' },
+  { key: 'half_yearly', label: 'Half-Yearly' },
+  { key: 'annual',      label: 'Annual' },
+]
 
 const BASE = import.meta.env.VITE_API_URL
 
@@ -259,6 +267,269 @@ function RenewModal({ member, memberId, isOpen, onClose, onSuccess }) {
   )
 }
 
+// ── AssignTrainerSheet ────────────────────────────────────────────────────────
+// Reuses GET /api/gym-trainers/:gymId (same source GymTrainers.jsx lists from)
+// and POST /api/gym-members/:memberId/assign-trainer (already existed on the
+// backend, just never wired to any UI) to set gym_memberships.assigned_trainer_id.
+
+function AssignTrainerSheet({ member, memberId, gymId, isOpen, onClose, onAssigned }) {
+  const [trainers, setTrainers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!isOpen || !gymId) return
+    setLoading(true)
+    setError('')
+    apiFetch(`/api/gym-trainers/${gymId}`)
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data?.trainers ?? [])
+        setTrainers(list.filter(t => t.user_id)) // only trainers with an app account can be assigned
+        setSelected(member?.assigned_trainer?.id || null)
+      })
+      .catch(() => setError('Failed to load trainers'))
+      .finally(() => setLoading(false))
+  }, [isOpen, gymId, member])
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  async function handleConfirm() {
+    setSubmitting(true)
+    setError('')
+    try {
+      await apiFetch(`/api/gym-members/${memberId}/assign-trainer`, {
+        method: 'POST',
+        body: JSON.stringify({ trainer_id: selected || null }),
+      })
+      onAssigned()
+      onClose()
+    } catch (err) {
+      setError(err.message || 'Failed to assign trainer')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 60,
+          background: 'rgba(0,0,0,0.4)',
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'opacity 0.25s',
+        }}
+      />
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 70,
+        background: 'var(--bg-card)', borderRadius: '24px 24px 0 0',
+        transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 0.3s ease-out',
+        maxHeight: '80vh', overflowY: 'auto',
+        paddingBottom: 32,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12 }}>
+          <div style={{ width: 36, height: 4, background: 'var(--border)', borderRadius: 2 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px 4px' }}>
+          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>Assign Trainer</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
+            <svg width="20" height="20" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {error && <p style={{ color: 'var(--error)', fontSize: 13, margin: '0 20px 12px' }}>{error}</p>}
+
+        <div style={{ padding: '0 20px' }}>
+          {loading ? (
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '20px 0' }}>Loading trainers…</p>
+          ) : trainers.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '20px 0' }}>No trainers with an app account yet. Invite a trainer first.</p>
+          ) : (
+            <>
+              <button
+                onClick={() => setSelected(null)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  width: '100%', height: 52, padding: '0 14px',
+                  background: 'none', cursor: 'pointer', border: 'none',
+                  borderLeft: selected === null ? '3px solid var(--text-primary)' : '3px solid transparent',
+                  borderBottom: '0.5px solid rgba(0,0,0,0.06)', textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 15, color: selected === null ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: selected === null ? 600 : 400 }}>Unassigned</span>
+              </button>
+              {trainers.map(t => (
+                <button
+                  key={t.user_id}
+                  onClick={() => setSelected(t.user_id)}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    width: '100%', height: 52, padding: '0 14px',
+                    background: 'none', cursor: 'pointer', border: 'none',
+                    borderLeft: selected === t.user_id ? '3px solid var(--text-primary)' : '3px solid transparent',
+                    borderBottom: '0.5px solid rgba(0,0,0,0.06)', textAlign: 'left',
+                  }}
+                >
+                  <span style={{ fontSize: 15, color: selected === t.user_id ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: selected === t.user_id ? 600 : 400 }}>{t.full_name}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{t.client_count ?? 0} clients</span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
+        <div style={{ padding: '20px 20px 0' }}>
+          <button
+            onClick={handleConfirm}
+            disabled={submitting}
+            style={{
+              width: '100%', height: 52, background: 'var(--text-primary)', color: 'var(--bg-card)',
+              border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.7 : 1,
+            }}
+          >
+            {submitting ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ── EditMemberSheet ────────────────────────────────────────────────────────────
+// Owner-editable fields only: membership plan/type + end date. Personal
+// profile data (name/phone/age/etc.) stays exclusive to the member's own
+// Settings screen — this is not that form.
+
+function EditMemberSheet({ member, memberId, isOpen, onClose, onSaved }) {
+  const [planType, setPlanType] = useState('monthly')
+  const [endDate, setEndDate] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!isOpen) return
+    const rawType = PLAN_TYPE_OPTIONS.find(p => p.label === member?.plan_type)?.key
+      || (member?.plan_type ? member.plan_type.toLowerCase().replace(/[\s-]+/g, '_') : 'monthly')
+    setPlanType(PLAN_TYPE_OPTIONS.some(p => p.key === rawType) ? rawType : 'monthly')
+    setEndDate(member?.membership_end ? member.membership_end.slice(0, 10) : '')
+    setError('')
+  }, [isOpen, member])
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  async function handleSave() {
+    setSubmitting(true)
+    setError('')
+    try {
+      const data = await apiFetch(`/api/gym-members/${memberId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ membership_type: planType, end_date: endDate || undefined }),
+      })
+      onSaved(data?.member || {})
+      onClose()
+    } catch (err) {
+      setError(err.message || 'Failed to save changes')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 60,
+          background: 'rgba(0,0,0,0.4)',
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'opacity 0.25s',
+        }}
+      />
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 70,
+        background: 'var(--bg-card)', borderRadius: '24px 24px 0 0',
+        transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 0.3s ease-out',
+        paddingBottom: 32,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12 }}>
+          <div style={{ width: 36, height: 4, background: 'var(--border)', borderRadius: 2 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px 4px' }}>
+          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>Edit Membership</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
+            <svg width="20" height="20" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {error && <p style={{ color: 'var(--error)', fontSize: 13, margin: '0 20px 12px' }}>{error}</p>}
+
+        <div style={{ padding: '4px 20px 0' }}>
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Plan Type</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+            {PLAN_TYPE_OPTIONS.map(opt => (
+              <button
+                key={opt.key}
+                onClick={() => setPlanType(opt.key)}
+                style={{
+                  padding: '8px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  border: planType === opt.key ? '1.5px solid var(--text-primary)' : '0.5px solid rgba(0,0,0,0.15)',
+                  background: planType === opt.key ? 'var(--text-primary)' : 'none',
+                  color: planType === opt.key ? 'var(--bg-card)' : 'var(--text-secondary)',
+                }}
+              >{opt.label}</button>
+            ))}
+          </div>
+
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 600, margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>End Date</p>
+          <input
+            type="date"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+            style={{
+              width: '100%', height: 48, border: '0.5px solid rgba(0,0,0,0.15)',
+              borderRadius: 10, padding: '0 14px', fontSize: 14, boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        <div style={{ padding: '20px 20px 0' }}>
+          <button
+            onClick={handleSave}
+            disabled={submitting}
+            style={{
+              width: '100%', height: 52, background: 'var(--text-primary)', color: 'var(--bg-card)',
+              border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.7 : 1,
+            }}
+          >
+            {submitting ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── RemoveConfirm ─────────────────────────────────────────────────────────────
 
 function RemoveConfirm({ member, memberId, isOpen, onClose, onRemoved }) {
@@ -412,14 +683,18 @@ function AttendanceCalendar({ attendedCount, memberId }) {
 export default function GymMemberDetail() {
   const { memberId } = useParams()
   const navigate = useNavigate()
+  const { activeGymId: gymId } = useActiveGym()
 
-  const [member,            setMember]            = useState(null)
-  const [loading,           setLoading]           = useState(true)
-  const [loadError,         setLoadError]         = useState('')
-  const [showRenewModal,    setShowRenewModal]    = useState(false)
-  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
-  const [actionLoading,     setActionLoading]     = useState(false)
-  const [messagingBusy,     setMessagingBusy]     = useState(false)
+  const [member,             setMember]             = useState(null)
+  const [loading,            setLoading]            = useState(true)
+  const [loadError,          setLoadError]          = useState('')
+  const [showRenewModal,     setShowRenewModal]     = useState(false)
+  const [showRemoveConfirm,  setShowRemoveConfirm]  = useState(false)
+  const [showMoreMenu,       setShowMoreMenu]       = useState(false)
+  const [showAssignTrainer,  setShowAssignTrainer]  = useState(false)
+  const [showEditSheet,      setShowEditSheet]      = useState(false)
+  const [actionLoading,      setActionLoading]      = useState(false)
+  const [messagingBusy,      setMessagingBusy]      = useState(false)
   // Kept separate from loadError — that state renders a full-page error in
   // place of the member detail view, which would be a disruptive way to
   // report a failure in this one secondary action.
@@ -552,13 +827,40 @@ export default function GymMemberDetail() {
             </svg>
           </button>
           <span style={{ flex: 1, fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Member Detail</span>
-          <button style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-              <circle cx="5" cy="12" r="1.5" fill="var(--text-secondary)" />
-              <circle cx="12" cy="12" r="1.5" fill="var(--text-secondary)" />
-              <circle cx="19" cy="12" r="1.5" fill="var(--text-secondary)" />
-            </svg>
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowMoreMenu(v => !v)}
+              style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}
+            >
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                <circle cx="5" cy="12" r="1.5" fill="var(--text-secondary)" />
+                <circle cx="12" cy="12" r="1.5" fill="var(--text-secondary)" />
+                <circle cx="19" cy="12" r="1.5" fill="var(--text-secondary)" />
+              </svg>
+            </button>
+
+            {showMoreMenu && (
+              <>
+                <div onClick={() => setShowMoreMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 39 }} />
+                <div style={{
+                  position: 'absolute', right: 0, top: 32,
+                  background: 'var(--bg-card)', borderRadius: 10,
+                  border: '0.5px solid rgba(0,0,0,0.12)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                  zIndex: 40, minWidth: 170, overflow: 'hidden',
+                }}>
+                  <button
+                    onClick={() => { setShowMoreMenu(false); setShowAssignTrainer(true) }}
+                    style={{ display: 'block', width: '100%', padding: '12px 16px', textAlign: 'left', background: 'none', border: 'none', fontSize: 14, color: 'var(--text-primary)', cursor: 'pointer' }}
+                  >Assign Trainer</button>
+                  <button
+                    onClick={() => { setShowMoreMenu(false); setShowEditSheet(true) }}
+                    style={{ display: 'block', width: '100%', padding: '12px 16px', textAlign: 'left', background: 'none', border: 'none', fontSize: 14, color: 'var(--text-primary)', cursor: 'pointer', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}
+                  >Edit</button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div style={{ padding: '16px 20px 0' }}>
@@ -659,6 +961,7 @@ export default function GymMemberDetail() {
               { label: 'End Date',     value: formatDate(member.membership_end) },
               { label: 'Amount Paid',  value: member.payments?.[0]?.amount != null ? `₹${Number(member.payments[0].amount).toLocaleString('en-IN')}` : '—' },
               { label: 'Next Renewal', value: formatDate(member.membership_end) },
+              { label: 'Assigned Trainer', value: member.assigned_trainer?.full_name || 'Unassigned' },
             ].map(({ label, value }, i, arr) => (
               <div key={label} style={{ ...detailRow, borderBottom: i === arr.length - 1 ? 'none' : '0.5px solid rgba(0,0,0,0.06)' }}>
                 <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{label}</span>
@@ -877,6 +1180,21 @@ export default function GymMemberDetail() {
         isOpen={showRemoveConfirm}
         onClose={() => setShowRemoveConfirm(false)}
         onRemoved={() => navigate('/gym/members')}
+      />
+      <AssignTrainerSheet
+        member={member}
+        memberId={memberId}
+        gymId={gymId}
+        isOpen={showAssignTrainer}
+        onClose={() => setShowAssignTrainer(false)}
+        onAssigned={() => loadMember()}
+      />
+      <EditMemberSheet
+        member={member}
+        memberId={memberId}
+        isOpen={showEditSheet}
+        onClose={() => setShowEditSheet(false)}
+        onSaved={updated => setMember(prev => ({ ...prev, ...updated }))}
       />
     </>
   )
