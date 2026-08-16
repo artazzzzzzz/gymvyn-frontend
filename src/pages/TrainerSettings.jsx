@@ -181,6 +181,8 @@ export default function TrainerSettings() {
       specializations: profile?.specializations || [],
       experience_years: profile?.experience_years || '',
       hourly_rate: profile?.hourly_rate || '',
+      monthly_rate: profile?.monthly_rate || '',
+      session_rate: profile?.session_rate || '',
       city: profile?.city || '',
       phone: profile?.phone || '',
     });
@@ -200,11 +202,20 @@ export default function TrainerSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Numeric trainer_profiles columns (experience_years, hourly_rate,
+      // monthly_rate, session_rate) reject an empty string with a Postgres
+      // "invalid input syntax for type numeric" 500 — a cleared field must
+      // go to the API as null, not "".
+      const NUMERIC_FIELDS = ['experience_years', 'hourly_rate', 'monthly_rate', 'session_rate'];
+      const payload = { ...editForm };
+      for (const key of NUMERIC_FIELDS) {
+        if (payload[key] === '') payload[key] = null;
+      }
       await apiFetch(`/api/trainer/profile/${userId}`, {
         method: 'PATCH',
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(payload)
       });
-      setProfile(p => ({ ...p, ...editForm }));
+      setProfile(p => ({ ...p, ...payload }));
       setEditOpen(false);
     } catch (err) {
       console.error('Save error:', err);
@@ -361,6 +372,16 @@ export default function TrainerSettings() {
               </div>
             ))}
           </div>
+
+          {(profile?.monthly_rate || profile?.session_rate) && (
+            <div style={{
+              display: 'flex', justifyContent: 'center', gap: 14,
+              paddingTop: 10, fontSize: 12, color: 'var(--text-tertiary)',
+            }}>
+              {profile?.monthly_rate && <span>₹{profile.monthly_rate}/month</span>}
+              {profile?.session_rate && <span>₹{profile.session_rate}/session</span>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -615,6 +636,31 @@ export default function TrainerSettings() {
                 type="number"
                 value={editForm.hourly_rate || ''}
                 onChange={e => setEditForm(f => ({ ...f, hourly_rate: e.target.value }))}
+                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+
+          {/* Monthly + Per-session rate — same pattern as hourly above.
+              trainer_profiles.monthly_rate / .session_rate already exist
+              (set at onboarding via POST /api/trainer/onboard) but had no
+              UI to edit them after signup. */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Rate (₹/month)</div>
+              <input
+                type="number"
+                value={editForm.monthly_rate || ''}
+                onChange={e => setEditForm(f => ({ ...f, monthly_rate: e.target.value }))}
+                style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Rate (₹/session)</div>
+              <input
+                type="number"
+                value={editForm.session_rate || ''}
+                onChange={e => setEditForm(f => ({ ...f, session_rate: e.target.value }))}
                 style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
