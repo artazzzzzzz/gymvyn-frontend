@@ -116,7 +116,7 @@ function Pill({ text, bg, color }) {
 }
 
 // ─── ClassCard ───────────────────────────────────────────────────────────────
-function ClassCard({ cls }) {
+function ClassCard({ cls, menuOpen, onToggleMenu, onEdit, onCancel }) {
   const cfg = TYPE_CONFIG[cls.class_type] || TYPE_CONFIG.other
   const avatarStyle = getAvatarColor(cls.trainer_name || 'T')
   return (
@@ -127,6 +127,7 @@ function ClassCard({ cls }) {
       borderLeft: `3px solid ${cfg.accent}`,
       padding: 16,
       marginBottom: 10,
+      position: 'relative',
     }}>
       {/* Top row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -137,10 +138,39 @@ function ClassCard({ cls }) {
         }}>
           {formatTime(cls.start_time)}
         </span>
-        {cls.is_full
-          ? <Pill text="Full" bg="var(--error-bg)" color="var(--error)" />
-          : <Pill text={`${cls.booked_count} / ${cls.capacity}`} bg="var(--success-bg)" color="var(--success)" />
-        }
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {cls.is_full
+            ? <Pill text="Full" bg="var(--error-bg)" color="var(--error)" />
+            : <Pill text={`${cls.booked_count} / ${cls.capacity}`} bg="var(--success-bg)" color="var(--success)" />
+          }
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={onToggleMenu}
+              style={{ background: 'none', border: 'none', padding: '2px 6px', fontSize: 18, color: 'var(--text-tertiary)', cursor: 'pointer', lineHeight: 1 }}
+            >⋮</button>
+            {menuOpen && (
+              <>
+                <div onClick={onToggleMenu} style={{ position: 'fixed', inset: 0, zIndex: 39 }} />
+                <div style={{
+                  position: 'absolute', right: 0, top: 26,
+                  background: 'var(--bg-card)', borderRadius: 10,
+                  border: '0.5px solid rgba(0,0,0,0.12)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                  zIndex: 40, minWidth: 140, overflow: 'hidden',
+                }}>
+                  <button
+                    onClick={onEdit}
+                    style={{ display: 'block', width: '100%', padding: '10px 14px', textAlign: 'left', background: 'none', border: 'none', fontSize: 13, color: 'var(--text-primary)', cursor: 'pointer', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}
+                  >Edit</button>
+                  <button
+                    onClick={onCancel}
+                    style={{ display: 'block', width: '100%', padding: '10px 14px', textAlign: 'left', background: 'none', border: 'none', fontSize: 13, color: 'var(--error)', cursor: 'pointer' }}
+                  >Cancel Class</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Class name */}
@@ -197,7 +227,11 @@ function SkeletonCard() {
 }
 
 // ─── AddClassModal ────────────────────────────────────────────────────────────
-function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
+// Doubles as the Edit sheet when `editingClass` is passed — same fields,
+// pre-filled, PATCH instead of POST, no recurring option (editing a single
+// occurrence, not its whole series).
+function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess, editingClass }) {
+  const isEdit = !!editingClass
   const [className, setClassName] = useState('')
   const [classType, setClassType] = useState('yoga')
   const [date, setDate] = useState(selectedDate)
@@ -210,7 +244,28 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => { setDate(selectedDate) }, [selectedDate])
+  useEffect(() => { if (!isEdit) setDate(selectedDate) }, [selectedDate, isEdit])
+
+  useEffect(() => {
+    if (!show) return
+    if (editingClass) {
+      const start = new Date(editingClass.start_time)
+      setClassName(editingClass.class_name || '')
+      setClassType(editingClass.class_type || 'yoga')
+      setDate(start.toISOString().split('T')[0])
+      setStartTime(start.toTimeString().slice(0, 5))
+      setDuration(editingClass.duration_minutes || 60)
+      setCapacity(String(editingClass.capacity ?? ''))
+      setEquipment(editingClass.equipment && editingClass.equipment !== 'No equipment' ? editingClass.equipment : '')
+      setRecurring(false)
+      setRecurringDays([])
+      setError('')
+    } else {
+      setClassName(''); setClassType('yoga'); setDate(selectedDate); setStartTime('07:00')
+      setDuration(60); setCapacity(''); setEquipment('')
+      setRecurring(false); setRecurringDays([]); setError('')
+    }
+  }, [show, editingClass, selectedDate])
 
   const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
   const DAY_VALUES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
@@ -227,39 +282,54 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
     setError('')
     setSubmitting(true)
     try {
-      const body = {
-        gym_id: gymId,
-        class_name: className.trim(),
-        class_type: classType,
-        start_time: combineDateAndTime(date, startTime),
-        duration_minutes: duration,
-        capacity: Number(capacity) || 20,
-        equipment: equipment.trim() || 'No equipment',
-        trainer_id: null,
-        recurring,
-        recurring_days: recurring ? recurringDays : [],
-      }
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch(`${BASE_URL}/api/gym-schedule`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify(body),
-      })
+      let res
+      if (isEdit) {
+        res = await fetch(`${BASE_URL}/api/gym-schedule/${editingClass.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            class_name: className.trim(),
+            class_type: classType,
+            start_time: combineDateAndTime(date, startTime),
+            duration_minutes: duration,
+            capacity: Number(capacity) || 20,
+            equipment: equipment.trim() || 'No equipment',
+          }),
+        })
+      } else {
+        const body = {
+          gym_id: gymId,
+          class_name: className.trim(),
+          class_type: classType,
+          start_time: combineDateAndTime(date, startTime),
+          duration_minutes: duration,
+          capacity: Number(capacity) || 20,
+          equipment: equipment.trim() || 'No equipment',
+          trainer_id: null,
+          recurring,
+          recurring_days: recurring ? recurringDays : [],
+        }
+        res = await fetch(`${BASE_URL}/api/gym-schedule`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(body),
+        })
+      }
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
         throw new Error(errData.message || errData.error || `Server error ${res.status}`)
       }
       onSuccess()
       onClose()
-      // reset
-      setClassName(''); setClassType('yoga'); setStartTime('07:00')
-      setDuration(60); setCapacity(''); setEquipment('')
-      setRecurring(false); setRecurringDays([])
     } catch (e) {
-      setError(e.message || 'Failed to add class')
+      setError(e.message || (isEdit ? 'Failed to save changes' : 'Failed to add class'))
     } finally {
       setSubmitting(false)
     }
@@ -296,7 +366,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
         }} />
 
         <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>
-          Add Class
+          {isEdit ? 'Edit Class' : 'Add Class'}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -380,7 +450,8 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
             onChange={e => setEquipment(e.target.value)}
           />
 
-          {/* Recurring toggle */}
+          {/* Recurring toggle — not applicable when editing a single occurrence */}
+          {!isEdit && (
           <div style={{
             height: 52, display: 'flex', alignItems: 'center',
             justifyContent: 'space-between',
@@ -409,9 +480,10 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
               }} />
             </div>
           </div>
+          )}
 
           {/* Day selector */}
-          {recurring && (
+          {!isEdit && recurring && (
             <div style={{
               display: 'flex', gap: 8, justifyContent: 'center',
               paddingBottom: 4,
@@ -457,7 +529,7 @@ function AddClassModal({ show, onClose, gymId, selectedDate, onSuccess }) {
               marginTop: 4,
             }}
           >
-            {submitting ? 'Adding…' : 'Add Class'}
+            {submitting ? (isEdit ? 'Saving…' : 'Adding…') : (isEdit ? 'Save Changes' : 'Add Class')}
           </button>
         </div>
       </div>
@@ -477,6 +549,34 @@ export default function GymSchedule() {
   const [loadError, setLoadError] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [cardMenuId, setCardMenuId] = useState(null)
+  const [editingClass, setEditingClass] = useState(null)
+  const [cancelTarget, setCancelTarget] = useState(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState('')
+
+  async function handleCancelClass() {
+    if (!cancelTarget) return
+    setCancelling(true)
+    setCancelError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${BASE_URL}/api/gym-schedule/${cancelTarget.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.message || `Server error ${res.status}`)
+      }
+      setCancelTarget(null)
+      fetchWeek(gymId, selectedDate)
+    } catch (e) {
+      setCancelError(e.message || 'Failed to cancel class')
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   const fetchWeek = useCallback(async (gId, date) => {
     if (!gId) return
@@ -637,7 +737,14 @@ export default function GymSchedule() {
               </div>
             )
             : selectedDayData.classes.map(cls => (
-              <ClassCard key={cls.id} cls={cls} />
+              <ClassCard
+                key={cls.id}
+                cls={cls}
+                menuOpen={cardMenuId === cls.id}
+                onToggleMenu={() => setCardMenuId(prev => prev === cls.id ? null : cls.id)}
+                onEdit={() => { setCardMenuId(null); setEditingClass(cls) }}
+                onCancel={() => { setCardMenuId(null); setCancelError(''); setCancelTarget(cls) }}
+              />
             ))
         }
 
@@ -739,6 +846,58 @@ export default function GymSchedule() {
         selectedDate={selectedDate}
         onSuccess={() => fetchWeek(gymId, selectedDate)}
       />
+
+      <AddClassModal
+        show={!!editingClass}
+        onClose={() => setEditingClass(null)}
+        gymId={gymId}
+        selectedDate={selectedDate}
+        editingClass={editingClass}
+        onSuccess={() => fetchWeek(gymId, selectedDate)}
+      />
+
+      {/* CANCEL CLASS CONFIRM */}
+      {cancelTarget && (
+        <>
+          <div
+            onClick={() => !cancelling && setCancelTarget(null)}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: 'var(--bg-card)', borderRadius: '20px 20px 0 0',
+            zIndex: 51, padding: '20px 20px 32px',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '0 auto 16px' }} />
+            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+              Cancel {cancelTarget.class_name}?
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
+              This removes the class from the schedule. Members who booked it won't be able to attend.
+            </div>
+            {cancelError && <p style={{ color: 'var(--error)', fontSize: 13, marginBottom: 12 }}>{cancelError}</p>}
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setCancelTarget(null)}
+                disabled={cancelling}
+                style={{
+                  flex: 1, height: 50, backgroundColor: 'var(--bg-pill)', border: 'none',
+                  borderRadius: 12, fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer',
+                }}
+              >Keep Class</button>
+              <button
+                onClick={handleCancelClass}
+                disabled={cancelling}
+                style={{
+                  flex: 1, height: 50, backgroundColor: 'var(--error)', border: 'none',
+                  borderRadius: 12, fontSize: 15, fontWeight: 600, color: 'var(--bg-card)',
+                  cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.7 : 1,
+                }}
+              >{cancelling ? 'Cancelling…' : 'Cancel Class'}</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
