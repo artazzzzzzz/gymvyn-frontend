@@ -97,7 +97,10 @@ export default function TrainerSettings() {
   const [copied, setCopied] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({});
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState(null);
   const [joinGymOpen, setJoinGymOpen] = useState(false);
@@ -229,16 +232,21 @@ export default function TrainerSettings() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!deleteConfirm) {
-      setDeleteConfirm(true);
-      return;
-    }
+    if (deleteConfirm !== 'DELETE') return;
+    setDeleting(true);
+    setDeleteError('');
     try {
-      await apiFetch(`/api/trainer/profile/${userId}`, { method: 'DELETE' });
+      // DELETE /api/trainer/profile/:userId doesn't exist on the backend —
+      // reuse the same generic self-delete endpoint member Settings.jsx
+      // uses. deleteUserCascade (shared by both) now also clears
+      // trainer_profiles so this doesn't leave an orphaned row.
+      await apiFetch(`/api/users/${userId}`, { method: 'DELETE' });
       await supabase.auth.signOut();
       navigate('/');
     } catch (err) {
       console.error('Delete error:', err);
+      setDeleteError(err.message || 'Failed to delete account');
+      setDeleting(false);
     }
   };
 
@@ -464,7 +472,7 @@ export default function TrainerSettings() {
         </div>
       </div>
 
-      {/* ── Log Out ── */}
+      {/* ── Log Out / Delete Account ── */}
       <div style={{ padding: '8px 20px 40px' }}>
         <div style={{ height: 1, background: 'var(--border)', margin: '8px 0 20px' }} />
         <button
@@ -478,7 +486,82 @@ export default function TrainerSettings() {
         >
           Log Out
         </button>
+        <button
+          onClick={() => { setDeleteConfirm(''); setDeleteError(''); setShowDeleteSheet(true) }}
+          style={{
+            width: '100%', padding: '14px', marginTop: 12,
+            background: 'none', color: 'var(--error)', fontWeight: 500,
+            fontSize: 14, border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}
+        >
+          Delete Account
+        </button>
       </div>
+
+      {/* ── Delete Account Sheet ── */}
+      {showDeleteSheet && (
+        <>
+          <div
+            onClick={() => { setShowDeleteSheet(false); setDeleteConfirm('') }}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 200 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            backgroundColor: 'var(--bg-card)', borderRadius: '20px 20px 0 0',
+            zIndex: 201, padding: '0 20px 32px',
+          }}>
+            <div style={{ width: 40, height: 4, backgroundColor: 'var(--border)', borderRadius: 2, margin: '12px auto 16px' }} />
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>Delete Account?</div>
+
+            <div style={{
+              backgroundColor: 'var(--warning-bg)', borderLeft: '3px solid var(--warning)',
+              borderRadius: '0 10px 10px 0', padding: 12, marginTop: 14,
+            }}>
+              <div style={{ fontSize: 13, color: 'var(--warning)' }}>
+                ⚠ This will permanently delete your trainer account, profile, and client relationships. This cannot be undone.
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>Type DELETE to confirm</div>
+              <input
+                type="text" placeholder="Type DELETE" value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                style={{
+                  width: '100%', height: 52, border: '0.5px solid var(--border)',
+                  borderRadius: 12, padding: '0 16px', fontSize: 15,
+                  boxSizing: 'border-box', outline: 'none', background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+            </div>
+
+            {deleteError && (
+              <div style={{ fontSize: 13, color: 'var(--error)', marginTop: 12 }}>{deleteError}</div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== 'DELETE' || deleting}
+                style={{
+                  width: '100%', height: 52, backgroundColor: 'var(--error)', color: 'white',
+                  border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                  cursor: 'pointer', opacity: (deleteConfirm !== 'DELETE' || deleting) ? 0.4 : 1,
+                }}
+              >{deleting ? 'Deleting...' : 'Delete Account'}</button>
+              <button
+                onClick={() => { setShowDeleteSheet(false); setDeleteConfirm('') }}
+                style={{
+                  width: '100%', height: 52, backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)',
+                  border: '0.5px solid var(--text-primary)', borderRadius: 12, fontSize: 15, fontWeight: 500, cursor: 'pointer',
+                }}
+              >Cancel</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── Edit Profile Sheet ── */}
       {editOpen && (
