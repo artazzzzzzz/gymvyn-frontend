@@ -15,6 +15,7 @@ import SummaryTiles from '../../components/reports/SummaryTiles';
 import RevenueTrendChart from '../../components/reports/RevenueTrendChart';
 import TopMembersList from '../../components/reports/TopMembersList';
 import TrainerPerformanceTable from '../../components/reports/TrainerPerformanceTable';
+import AtRiskMembersList from '../../components/reports/AtRiskMembersList';
 import DownloadReportsSection from '../../components/reports/DownloadReportsSection';
 
 const PRESETS = [
@@ -274,6 +275,19 @@ export default function GymReports({ embedded = false } = {}) {
         <div>
           <SectionHeader title="Trainer Performance" sublabel={range?.label} />
           <TrainerPerformanceTable data={trainers} loading={trainersLoading} error={trainersError} onRetry={loadTrainerPerformance} />
+        </div>
+
+        {/* At Risk Members */}
+        <div>
+          <SectionHeader title="At Risk Members" sublabel="Tap a member to view their profile" />
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            padding: 16,
+          }}>
+            <AtRiskMembersList data={churn} loading={churnLoading} error={churnError} onRetry={loadChurnRisk} />
+          </div>
         </div>
 
         {/* Download Reports */}
