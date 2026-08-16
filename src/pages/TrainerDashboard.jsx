@@ -234,6 +234,14 @@ export default function TrainerDashboard() {
   const withPlans = activeClients.filter(c => c.stats?.activePlans > 0);
   const noPlans = activeClients.filter(c => !c.stats?.activePlans || c.stats.activePlans === 0);
   const needsAttention = activeClients.filter(c => getStatusFromClient(c) === 'attention');
+  // The "Active clients" stat card and the "Active" filter tab below must
+  // agree on what "active" means — a relationship that's active but has no
+  // plan yet (or needs attention) is its own filter tab, not "Active".
+  // Bug: the stat card used to count activeClients.length (relationship
+  // status alone), which could be higher than what the Active tab actually
+  // shows, producing "3 active" on the dashboard next to "No clients yet"
+  // on the filtered list.
+  const trulyActiveClients = activeClients.filter(c => getStatusFromClient(c) === 'active');
 
   const filteredClients = clients.filter(rel => {
     const name = (rel.client?.full_name || rel.invite_email || '').toLowerCase();
@@ -318,11 +326,11 @@ export default function TrainerDashboard() {
         {/* stats grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <StatCard
-            value={activeClients.length}
+            value={trulyActiveClients.length}
             label="Active clients"
-            sub={activeClients.length > 0 ? `${pendingClients.length > 0 ? `+${pendingClients.length} pending` : 'all active'}` : 'none yet'}
-            subColor={activeClients.length > 0 ? C.green : C.sub}
-            subBg={activeClients.length > 0 ? C.greenBg : C.grayBg}
+            sub={trulyActiveClients.length > 0 ? `${pendingClients.length > 0 ? `+${pendingClients.length} pending` : 'all active'}` : 'none yet'}
+            subColor={trulyActiveClients.length > 0 ? C.green : C.sub}
+            subBg={trulyActiveClients.length > 0 ? C.greenBg : C.grayBg}
           />
           <StatCard
             value={withPlans.length + noPlans.length}
