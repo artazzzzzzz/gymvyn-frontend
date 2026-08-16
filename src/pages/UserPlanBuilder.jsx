@@ -5,7 +5,7 @@ import { apiFetch } from '../utils/api';
 import ExercisePicker from '../components/ExercisePicker';
 import {
   ArrowLeft, Save, Plus, Trash2, GripVertical,
-  ChevronRight, Dumbbell, Pencil, Check
+  ChevronRight, ChevronUp, ChevronDown, Dumbbell, Pencil, Check
 } from 'lucide-react';
 
 function newSet(n) { return { set: n, reps: '', kg: '', rest_seconds: 60 }; }
@@ -72,6 +72,22 @@ export default function UserPlanBuilder() {
     setActiveDay(p => Math.min(p, days.length - 2));
   };
   const updateDayName = (idx, val) => setDays(p => p.map((d, i) => i === idx ? { ...d, name: val } : d));
+
+  const moveDay = (idx, direction) => {
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= days.length) return;
+    setDays(p => {
+      const arr = [...p];
+      [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+      // Keep untouched "Day N" default names in sync with the new position,
+      // same rule removeDay uses — custom names are left alone.
+      return arr.map((d, i) => ({
+        ...d, day: i + 1,
+        name: d.name.startsWith('Day ') ? `Day ${i + 1}` : d.name
+      }));
+    });
+    setActiveDay(newIdx);
+  };
 
   const addExercise = (ex) => {
     setDays(p => p.map((d, i) => i === activeDay
@@ -293,16 +309,46 @@ export default function UserPlanBuilder() {
               </button>
             )}
           </div>
-          {days.length > 1 && (
-            <button
-              onClick={() => {
-                if (window.confirm(`Remove ${currentDay.name}?`)) removeDay(activeDay);
-              }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, marginLeft: 8 }}
-            >
-              <Trash2 size={18} color="var(--text-tertiary)" />
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8 }}>
+            {days.length > 1 && (
+              <>
+                <button
+                  onClick={() => moveDay(activeDay, -1)}
+                  disabled={activeDay === 0}
+                  aria-label="Move day earlier"
+                  style={{
+                    background: 'none', border: 'none', padding: 4,
+                    cursor: activeDay === 0 ? 'default' : 'pointer',
+                    opacity: activeDay === 0 ? 0.3 : 1
+                  }}
+                >
+                  <ChevronUp size={18} color="var(--text-tertiary)" />
+                </button>
+                <button
+                  onClick={() => moveDay(activeDay, 1)}
+                  disabled={activeDay === days.length - 1}
+                  aria-label="Move day later"
+                  style={{
+                    background: 'none', border: 'none', padding: 4,
+                    cursor: activeDay === days.length - 1 ? 'default' : 'pointer',
+                    opacity: activeDay === days.length - 1 ? 0.3 : 1
+                  }}
+                >
+                  <ChevronDown size={18} color="var(--text-tertiary)" />
+                </button>
+              </>
+            )}
+            {days.length > 1 && (
+              <button
+                onClick={() => {
+                  if (window.confirm(`Remove ${currentDay.name}?`)) removeDay(activeDay);
+                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+              >
+                <Trash2 size={18} color="var(--text-tertiary)" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Exercise rows */}
@@ -468,6 +514,27 @@ export default function UserPlanBuilder() {
               <Plus size={14} color="var(--text-cta)" />
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-cta)' }}>Add Set</span>
             </button>
+
+            {/* NOTES label */}
+            <p style={{
+              padding: '0 20px', marginTop: 4, marginBottom: 8,
+              fontSize: 11, fontWeight: 500, color: "var(--text-tertiary)",
+              letterSpacing: '0.08em'
+            }}>NOTES</p>
+            <div style={{ padding: '0 20px 16px' }}>
+              <textarea
+                value={editingExercise.notes || ''}
+                onChange={e => setEditingExercise(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="e.g. slow eccentric, use spotter"
+                rows={2}
+                style={{
+                  width: '100%', boxSizing: 'border-box', resize: 'vertical',
+                  background: 'var(--bg-primary)', borderRadius: 8, padding: '10px 12px',
+                  fontSize: 14, color: "var(--text-primary)",
+                  border: 'none', outline: 'none', fontFamily: 'inherit'
+                }}
+              />
+            </div>
 
             {/* Done button */}
             <div style={{ padding: '8px 20px' }}>

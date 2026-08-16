@@ -17,6 +17,36 @@
       "autoPort": true
     },
     {
+      "name": "gymvyn-qc2",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5175", "--strictPort"],
+      "port": 5175
+    },
+    {
+      "name": "gymvyn-qc3",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5176", "--strictPort"],
+      "port": 5176
+    },
+    {
+      "name": "gymvyn-qc4",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5177", "--strictPort"],
+      "port": 5177
+    },
+    {
+      "name": "gymvyn-qc5",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5178", "--strictPort"],
+      "port": 5178
+    },
+    {
+      "name": "gymvyn-qc6",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5181", "--strictPort"],
+      "port": 5181
+    },
+    {
       "name": "gymvyn-admin",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
