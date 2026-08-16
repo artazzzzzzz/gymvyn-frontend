@@ -20,6 +20,7 @@ const PERMISSION_META = [
   { key: 'view_supplements',   label: 'View Supplements',  sub: 'See supplement orders' },
   { key: 'view_announcements', label: 'Announcements',     sub: 'View and post announcements' },
   { key: 'manage_feed',        label: 'Manage Feed',       sub: 'Post announcements, pin and delete posts' },
+  { key: 'chat',                label: 'Chat',              sub: 'Message members, staff, and trainers' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
