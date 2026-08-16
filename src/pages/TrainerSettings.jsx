@@ -180,6 +180,7 @@ export default function TrainerSettings() {
 
   const openEdit = () => {
     setEditForm({
+      full_name: profile?.full_name || '',
       bio: profile?.bio || '',
       specializations: profile?.specializations || [],
       experience_years: profile?.experience_years || '',
@@ -667,6 +668,24 @@ export default function TrainerSettings() {
               onClick={() => setEditOpen(false)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: "var(--text-tertiary)", lineHeight: 1 }}
             >×</button>
+          </div>
+
+          {/* Name — trainer_profiles.full_name already existed as a column
+              (used as the display-name override for manually-added
+              trainer profiles), it just had no edit UI. */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Name</div>
+            <input
+              type="text"
+              value={editForm.full_name || ''}
+              onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+              placeholder="Your name"
+              style={{
+                width: '100%', height: 40, border: '0.5px solid var(--border)',
+                borderRadius: 8, padding: '0 12px', fontSize: 13, color: "var(--text-secondary)",
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
           </div>
 
           {/* Bio */}
