@@ -123,12 +123,18 @@ export default function SupplementCart() {
                           <Minus size={14} color="var(--text-primary)" />
                         </button>
                         <span style={{ width: 28, textAlign: 'center', fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{item.quantity}</span>
-                        <button
-                          onClick={() => updateQty(item.product_id, item.quantity + 1)}
-                          style={{ width: 36, height: 36, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <Plus size={14} color="var(--text-primary)" />
-                        </button>
+                        {(() => {
+                          const atMax = item.stock_count != null && item.quantity >= item.stock_count
+                          return (
+                            <button
+                              onClick={() => { if (!atMax) updateQty(item.product_id, item.quantity + 1) }}
+                              disabled={atMax}
+                              style={{ width: 36, height: 36, border: 'none', background: 'transparent', cursor: atMax ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: atMax ? 0.35 : 1 }}
+                            >
+                              <Plus size={14} color="var(--text-primary)" />
+                            </button>
+                          )
+                        })()}
                       </div>
 
                       <button
@@ -138,6 +144,11 @@ export default function SupplementCart() {
                         <Trash2 size={16} color="var(--error)" />
                       </button>
                     </div>
+                    {item.stock_count != null && item.quantity >= item.stock_count && (
+                      <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>
+                        Max available: {item.stock_count}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
