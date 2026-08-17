@@ -4,7 +4,7 @@ import {
   Bell, Info, Zap,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
+import { useActiveGym } from '../contexts/ActiveGymContext'
 import {
   getGymAnnouncements, postAnnouncement, deleteAnnouncement,
 } from '../utils/api'
@@ -246,6 +246,10 @@ function PostAnnouncementModal({ open, gymId, postedBy, onClose, onPosted }) {
 
 export default function GymAnnouncements() {
   const { user } = useAuth()
+  // Owner: use the already-fetched multi-gym selection instead of a raw
+  // Supabase query — an owner with 2+ gyms broke the old .maybeSingle()
+  // ("multiple rows returned"). See ActiveGymContext for selection rules.
+  const { activeGymId, activeGym, loading: activeGymLoading, needsGymSelection } = useActiveGym()
 
   const [gym, setGym] = useState(null)
   const [items, setItems] = useState([])
@@ -262,17 +266,18 @@ export default function GymAnnouncements() {
     setLoading(true)
     setError('')
     try {
-      const { data: gymRow, error: gymErr } = await supabase
-        .from('gyms')
-        .select('id, name')
-        .eq('owner_id', user.id)
-        .maybeSingle()
-      if (gymErr) throw gymErr
-      if (!gymRow) {
-        setError('No gym found for this owner.')
+      if (activeGymLoading) return
+      if (needsGymSelection) {
+        setError('Select a gym from the switcher above before viewing announcements.')
         setLoading(false)
         return
       }
+      if (!activeGymId) {
+        setError('No active gym found for this owner.')
+        setLoading(false)
+        return
+      }
+      const gymRow = { id: activeGymId, name: activeGym?.name || 'your gym' }
       setGym(gymRow)
 
       const list = await getGymAnnouncements(gymRow.id)
@@ -285,7 +290,7 @@ export default function GymAnnouncements() {
     }
   }
 
-  useEffect(() => { loadAll() }, [user])
+  useEffect(() => { loadAll() }, [user, activeGymId, activeGymLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onPosted() {
     setPostOpen(false)
