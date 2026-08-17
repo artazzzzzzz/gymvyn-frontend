@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import jsQR from 'jsqr'
 import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { getAvatarColor, getInitials } from '../../utils/avatarColor'
@@ -26,8 +27,10 @@ export default function GymCheckin() {
   const occupancyIntervalRef = useRef(null)
   const isMountedRef = useRef(true)
   const headerRef = useRef(null)
+  const qrFileRef = useRef(null)
   const [headerHeight, setHeaderHeight] = useState(0)
   const [pendingCheckins, setPendingCheckins] = useState({})
+  const [qrScanning, setQrScanning] = useState(false)
   const pendingCheckinGuardRef = useRef(createPendingActionGuard())
 
   // Measure the sticky header (title row + tab bar) so the toast can be
@@ -128,6 +131,53 @@ export default function GymCheckin() {
       fetchOccupancy()
     } catch {
       showToast('error', 'Checkout failed', 'Network error')
+    }
+  }
+
+  // ─── QR image upload check-in ────────────────────────────────────────────
+  const handleQRUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    // Reset the input so the same file can be picked again if needed
+    e.target.value = ''
+
+    setQrScanning(true)
+    try {
+      // Draw the image onto an offscreen canvas, then extract pixel data for jsQR
+      const bitmap = await createImageBitmap(file)
+      const canvas = document.createElement('canvas')
+      canvas.width = bitmap.width
+      canvas.height = bitmap.height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(bitmap, 0, 0)
+      const imageData = ctx.getImageData(0, 0, bitmap.width, bitmap.height)
+
+      const code = jsQR(imageData.data, imageData.width, imageData.height)
+      if (!code) {
+        showToast('error', 'No QR code found', 'Try a clearer or closer photo')
+        return
+      }
+
+      // The QR payload is JSON: {gym_id, user_id, member_id, ts}
+      // The backend's POST /api/checkin handles qr_payload natively.
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/checkin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ gym_id: gymId, qr_payload: code.data }),
+      })
+      const data = await res.json()
+      if (res.status === 409) { showToast('error', 'Already checked in today', data.error || ''); return }
+      if (!res.ok) { showToast('error', 'Check-in failed', data.error || ''); return }
+      showToast('success', `${data.member_name || 'Member'} checked in`, 'QR scan')
+      await fetchOccupancy()
+    } catch {
+      showToast('error', 'Check-in failed', 'Network error')
+    } finally {
+      setQrScanning(false)
     }
   }
 
@@ -255,14 +305,48 @@ export default function GymCheckin() {
           </div>
 
           {/* Helper buttons */}
+          <input
+            ref={qrFileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleQRUpload}
+          />
           <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-            {['Enter code manually', 'Upload QR image'].map((label, i) => (
-              <button key={i} style={{
-                flex: 1, height: 40, backgroundColor: "var(--bg-card)",
+            <button
+              onClick={() => setActiveTab('manual')}
+              style={{
+                flex: 1, height: 40, backgroundColor: 'var(--bg-card)',
                 border: '0.5px solid var(--text-primary)', borderRadius: 12,
                 fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', cursor: 'pointer',
-              }}>{label}</button>
-            ))}
+              }}
+            >Enter code manually</button>
+            <button
+              onClick={() => !qrScanning && qrFileRef.current?.click()}
+              disabled={qrScanning}
+              style={{
+                flex: 1, height: 40, backgroundColor: 'var(--bg-card)',
+                border: '0.5px solid var(--text-primary)', borderRadius: 12,
+                fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
+                cursor: qrScanning ? 'default' : 'pointer',
+                opacity: qrScanning ? 0.65 : 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              {qrScanning ? (
+                <>
+                  <span style={{
+                    width: 12, height: 12, borderRadius: '50%',
+                    border: '1.5px solid var(--text-primary)',
+                    borderTopColor: 'transparent',
+                    animation: 'spin 0.7s linear infinite',
+                    flexShrink: 0,
+                  }} />
+                  Scanning…
+                </>
+              ) : 'Upload QR image'}
+            </button>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
 
           {/* Today's scans */}
