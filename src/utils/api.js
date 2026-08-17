@@ -151,6 +151,21 @@ export async function inviteGymMemberByEmail({ gymId, email, fullName, planName 
   return data;
 }
 
+export async function inviteGymMemberByPhone({ gymId, phone, fullName }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch(`${BASE_URL}/api/gym-members/invite-phone`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token}`,
+    },
+    body: JSON.stringify({ gym_id: gymId, phone, full_name: fullName }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Failed to send invite (${res.status})`);
+  return data;
+}
+
 export async function getGymTrainers(gymId) {
   const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch(`${BASE_URL}/api/gym-trainers/${gymId}`, {

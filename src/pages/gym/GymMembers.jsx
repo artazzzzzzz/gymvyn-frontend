@@ -9,7 +9,7 @@ import GymBottomNav from '../../components/GymBottomNav'
 import MoreSheet from '../../components/MoreSheet'
 import { ListSkeleton } from '../../components/loading/Loading'
 import { getEffectiveMembership, getStatusPillProps } from '../../utils/membershipStatus'
-import { inviteGymMemberByEmail } from '../../utils/api'
+import { inviteGymMemberByEmail, inviteGymMemberByPhone } from '../../utils/api'
 import { GymCodeCard } from '../../components/GymCodeCard'
 
 const FILTERS = ['all', 'active', 'expiring', 'at_risk', 'inactive']
@@ -130,6 +130,12 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
   const [joinCode, setJoinCode]       = useState('')
   const [gymName, setGymName]         = useState('')
   const [smsCopied, setSmsCopied]     = useState(false)
+  const [phoneInviteSent, setPhoneInviteSent] = useState(false)
+  // A real <a href="sms:..."> click, not a location.href assignment — assigning
+  // location.href to an unregistered scheme can make some browser contexts
+  // treat it as a failed top-level navigation and reload the SPA, wiping
+  // in-memory state (members list, active gym). An anchor click doesn't.
+  const smsAnchorRef                  = useRef(null)
 
   // Email-invite state
   const [inviteEmail, setInviteEmail] = useState('')
@@ -158,7 +164,7 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
         setView('options')
         setManualName(''); setManualPhone(''); setManualPlan('')
         setCsvRows([]); setCsvFile(null); setImportResult(null)
-        setInvitePhone(''); setPhoneDupWarning(''); setSmsCopied(false)
+        setInvitePhone(''); setPhoneDupWarning(''); setSmsCopied(false); setPhoneInviteSent(false)
         setInviteEmail(''); setInviteName('')
         setSubmitting(false); setError(''); setSuccess(false)
       }, 300)
@@ -228,6 +234,25 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
     navigator.clipboard.writeText(smsMessage).catch(() => {})
     setSmsCopied(true)
     setTimeout(() => setSmsCopied(false), 2000)
+  }
+
+  // ── Phone invite submit ──────────────────────────────────────────────────
+  // Records a real DB row for the invite (see POST /api/gym-members/invite-phone)
+  // before opening the SMS deep link, so the owner has visibility that an
+  // invite was sent instead of the old pure-client sms: link with no trace.
+  async function handlePhoneInviteSubmit() {
+    if (!joinCode || invitePhone.length !== 10) return
+    setError(''); setSubmitting(true)
+    try {
+      await inviteGymMemberByPhone({ gymId, phone: invitePhone })
+      setPhoneInviteSent(true)
+      try { onAdded?.() } catch {}
+      smsAnchorRef.current?.click()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   // ── Email invite submit ──────────────────────────────────────────────────
@@ -618,10 +643,14 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
 
           {/* ── Phone invite ── */}
           {view === 'phone' && (
+            phoneInviteSent ? (
+              <SuccessSplash message={`An invite was recorded and the SMS composer opened for ${invitePhone}.`} />
+            ) : (
             <div style={{ padding: '12px 20px 32px' }}>
               <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: '0 0 16px' }}>
                 Text them your gym's join code — they enter it themselves under "Join a gym" in the app.
               </p>
+              {error && <ErrorBanner msg={error} />}
 
               <div style={{ marginBottom: 6 }}>
                 <label style={labelStyle}>Phone Number</label>
@@ -649,16 +678,27 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
                     {joinCode ? smsMessage : 'Loading your gym code…'}
                   </div>
 
+                  {/* Hidden — clicked programmatically after the invite API call
+                      succeeds. Kept as a real <a href="sms:"> so the browser
+                      handles the unregistered scheme the same way it always
+                      did for the plain SMS-link version of this button. */}
                   <a
+                    ref={smsAnchorRef}
                     href={joinCode ? `sms:+91${invitePhone}?&body=${encodeURIComponent(smsMessage)}` : undefined}
-                    aria-disabled={!joinCode}
+                    style={{ display: 'none' }}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >sms</a>
+                  <button
+                    onClick={handlePhoneInviteSubmit}
+                    disabled={!joinCode || submitting}
                     style={{
-                      ...submitBtnStyle(!joinCode),
-                      textDecoration: 'none', marginBottom: 10, pointerEvents: joinCode ? 'auto' : 'none',
+                      ...submitBtnStyle(!joinCode || submitting),
+                      marginBottom: 10,
                     }}
                   >
-                    Open SMS to {invitePhone}
-                  </a>
+                    {submitting ? 'Sending…' : `Open SMS to ${invitePhone}`}
+                  </button>
                   <button
                     onClick={copySmsMessage}
                     disabled={!joinCode}
@@ -673,6 +713,7 @@ function AddMemberSheet({ isOpen, onClose, gymId, onAdded, onImportMembers }) {
                 </>
               )}
             </div>
+            )
           )}
 
           {/* ── Email invite ── */}
