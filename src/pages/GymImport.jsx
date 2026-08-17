@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import Papa from 'papaparse'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../utils/supabase'
+import { useActiveGym } from '../contexts/ActiveGymContext'
 import { importGymMembers } from '../utils/api'
 import GymOwnerNav from '../components/GymOwnerNav'
 import NoAccessState from '../components/staff/NoAccessState'
@@ -121,6 +121,7 @@ export default function GymImport() {
   const staffContext = useOutletContext() || {}
   const navigate = useNavigate()
   const isStaff = role === 'staff'
+  const { activeGymId, activeGym, loading: activeGymLoading, needsGymSelection } = useActiveGym()
 
   const [gym, setGym] = useState(null)
   const [gymError, setGymError] = useState('')
@@ -142,33 +143,33 @@ export default function GymImport() {
     if (!user) return
     setGymError('')
     setGym(null)
-    try {
-      if (isStaff) {
-        if (staffContext.loading) return
-        if (!staffContext.permissions?.manage_members) {
-          setGymError('You need member management permission to import members.')
-          return
-        }
-        if (!staffContext.gymId) {
-          setGymError('No active gym found for this staff account.')
-          return
-        }
-        setGym({ id: staffContext.gymId, name: staffContext.gymName || 'your gym' })
+    if (isStaff) {
+      if (staffContext.loading) return
+      if (!staffContext.permissions?.manage_members) {
+        setGymError('You need member management permission to import members.')
         return
       }
-      const { data, error } = await supabase
-        .from('gyms')
-        .select('id, name')
-        .eq('owner_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle()
-      if (error) throw error
-      if (!data) setGymError('No active gym found for this owner.')
-      else setGym(data)
-    } catch (err) {
-      setGymError(err.message || 'Failed to load gym.')
+      if (!staffContext.gymId) {
+        setGymError('No active gym found for this staff account.')
+        return
+      }
+      setGym({ id: staffContext.gymId, name: staffContext.gymName || 'your gym' })
+      return
     }
-  }, [user, isStaff, staffContext.gymId, staffContext.gymName, staffContext.loading, staffContext.permissions?.manage_members])
+    // Owner: reuse the already-fetched multi-gym selection instead of a raw
+    // Supabase query — an owner with 2+ gyms broke the old .maybeSingle()
+    // query ("multiple rows returned"). See ActiveGymContext for selection rules.
+    if (activeGymLoading) return
+    if (needsGymSelection) {
+      setGymError('Select a gym from the switcher above before importing members.')
+      return
+    }
+    if (!activeGymId) {
+      setGymError('No active gym found for this owner.')
+      return
+    }
+    setGym({ id: activeGymId, name: activeGym?.name || 'your gym' })
+  }, [user, isStaff, staffContext.gymId, staffContext.gymName, staffContext.loading, staffContext.permissions?.manage_members, activeGymId, activeGym, activeGymLoading, needsGymSelection])
 
   useEffect(() => {
     loadGym()
