@@ -22,9 +22,10 @@ async function authReq(API, method, path, body) {
 }
 
 const statusConfig = {
-  active:  { label: 'Active',  bg: 'var(--success-bg)', color: 'var(--success)' },
-  invited: { label: 'Invited', bg: 'var(--warning-bg)', color: 'var(--warning)' },
-  manual:  { label: 'Manual',  bg: 'var(--bg-pill)', color: 'var(--text-secondary)' },
+  active:        { label: 'Active',        bg: 'var(--success-bg)', color: 'var(--success)' },
+  invited:       { label: 'Invited',       bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  phone_invited: { label: 'Phone Invited', bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  manual:        { label: 'Manual',        bg: 'var(--bg-pill)',    color: 'var(--text-secondary)' },
 }
 
 const formatSpecializations = (specs) => {
@@ -62,6 +63,7 @@ export default function GymTrainers() {
   const [selectedClientIds, setSelectedClientIds] = useState(new Set())
   const [assignSubmitting, setAssignSubmitting] = useState(false)
   const [assignError, setAssignError] = useState('')
+  const [phoneInviteCode, setPhoneInviteCode] = useState(null)
 
   const fetchTrainers = async () => {
     if (!gymId) return
@@ -134,10 +136,16 @@ export default function GymTrainers() {
     if (!inviteValue.trim()) return
     setSubmitting(true)
     try {
-      await authReq(API, 'POST', '/api/gym-trainers/invite', { gym_id: gymId, type: activeTab, value: inviteValue.trim() })
+      const data = await authReq(API, 'POST', '/api/gym-trainers/invite', { gym_id: gymId, type: activeTab, value: inviteValue.trim() })
       setInviteValue('')
-      setShowAddSheet(false)
-      fetchTrainers()
+      if (activeTab === 'phone' && data?.invite_code) {
+        // Stay open: show the code so the owner can share it before closing
+        setPhoneInviteCode(data.invite_code)
+        fetchTrainers()
+      } else {
+        setShowAddSheet(false)
+        fetchTrainers()
+      }
     } catch {
       alert('Failed to send invite')
     } finally {
@@ -236,7 +244,7 @@ export default function GymTrainers() {
 
   const totalCount = trainers.length
   const activeCount = trainers.filter(t => t.status === 'active').length
-  const invitedCount = trainers.filter(t => t.status === 'invited').length
+  const invitedCount = trainers.filter(t => t.status === 'invited' || t.status === 'phone_invited').length
 
   const inputStyle = {
     width: '100%', height: 52, border: '0.5px solid rgba(0,0,0,0.15)',
@@ -498,7 +506,7 @@ export default function GymTrainers() {
                 }}>{status.label}</span>
               </div>
 
-              {/* ROW 3: Manual warning */}
+              {/* ROW 3: status-specific notes */}
               {trainer.status === 'manual' && (
                 <div style={{
                   marginTop: 10, backgroundColor: 'var(--warning-bg)',
@@ -508,6 +516,25 @@ export default function GymTrainers() {
                   fontSize: 11, color: 'var(--warning)',
                 }}>
                   ⚠ Not on platform yet — invite them to claim this profile
+                </div>
+              )}
+              {trainer.status === 'phone_invited' && trainer.invite_code && (
+                <div style={{
+                  marginTop: 10, backgroundColor: 'var(--warning-bg)',
+                  borderLeft: '3px solid var(--warning)',
+                  borderRadius: '0 8px 8px 0',
+                  padding: '8px 10px',
+                  fontSize: 11, color: 'var(--warning)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                }}>
+                  <span>📲 Invite code: <strong style={{ letterSpacing: 2, fontFamily: 'monospace' }}>{trainer.invite_code}</strong></span>
+                  <button
+                    onClick={() => navigator.clipboard?.writeText(trainer.invite_code)}
+                    style={{
+                      background: 'none', border: 'none', fontSize: 11, cursor: 'pointer',
+                      color: 'var(--warning)', fontWeight: 600, flexShrink: 0,
+                    }}
+                  >Copy</button>
                 </div>
               )}
             </div>
@@ -530,7 +557,7 @@ export default function GymTrainers() {
       {showAddSheet && (
         <>
           <div
-            onClick={() => setShowAddSheet(false)}
+            onClick={() => { setShowAddSheet(false); setPhoneInviteCode(null) }}
             style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 50 }}
           />
           <div style={{
@@ -559,7 +586,7 @@ export default function GymTrainers() {
                   <button
                     key={tab.key}
                     onClick={() => {
-                      setActiveTab(tab.key); setInviteValue('')
+                      setActiveTab(tab.key); setInviteValue(''); setPhoneInviteCode(null)
                       if (tab.key === 'code' && !trainerJoinCode) fetchTrainerJoinCode()
                     }}
                     style={{
@@ -576,25 +603,67 @@ export default function GymTrainers() {
               {/* Phone tab */}
               {activeTab === 'phone' && (
                 <div>
-                  <input
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={inviteValue}
-                    onChange={e => setInviteValue(e.target.value)}
-                    style={{ ...inputStyle, marginBottom: 8 }}
-                  />
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>
-                    They'll receive an SMS with a link to join Gymvyn and get linked to your gym.
-                  </div>
-                  <button
-                    onClick={handleInvite}
-                    disabled={submitting || !inviteValue.trim()}
-                    style={{
-                      width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
-                      border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
-                      cursor: 'pointer', opacity: submitting || !inviteValue.trim() ? 0.5 : 1,
-                    }}
-                  >{submitting ? 'Sending...' : 'Send Invite'}</button>
+                  {phoneInviteCode ? (
+                    /* Success: show the invite code so the owner can share it */
+                    <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                        Invite sent!
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
+                        Share this code with the trainer so they can join your gym on Gymvyn.
+                      </div>
+                      <div style={{
+                        backgroundColor: 'var(--bg-primary)', borderRadius: 12, padding: '16px 20px',
+                        marginBottom: 20, border: '0.5px solid rgba(0,0,0,0.12)',
+                      }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Invite Code</div>
+                        <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: 4, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+                          {phoneInviteCode}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          onClick={() => navigator.clipboard?.writeText(phoneInviteCode)}
+                          style={{
+                            flex: 1, height: 48, backgroundColor: 'var(--bg-primary)',
+                            color: 'var(--text-primary)', border: '0.5px solid rgba(0,0,0,0.12)',
+                            borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                          }}
+                        >Copy Code</button>
+                        <button
+                          onClick={() => { setPhoneInviteCode(null); setShowAddSheet(false) }}
+                          style={{
+                            flex: 1, height: 48, backgroundColor: 'var(--text-primary)', color: 'var(--bg-card)',
+                            border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                          }}
+                        >Done</button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Default: phone input form */
+                    <>
+                      <input
+                        type="tel"
+                        placeholder="+91 98765 43210"
+                        value={inviteValue}
+                        onChange={e => setInviteValue(e.target.value)}
+                        style={{ ...inputStyle, marginBottom: 8 }}
+                      />
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>
+                        Share the invite code with the trainer so they can join your gym on Gymvyn.
+                      </div>
+                      <button
+                        onClick={handleInvite}
+                        disabled={submitting || !inviteValue.trim()}
+                        style={{
+                          width: '100%', height: 52, backgroundColor: 'var(--text-primary)', color: "var(--bg-card)",
+                          border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 500,
+                          cursor: 'pointer', opacity: submitting || !inviteValue.trim() ? 0.5 : 1,
+                        }}
+                      >{submitting ? 'Sending...' : 'Send Invite'}</button>
+                    </>
+                  )}
                 </div>
               )}
 
