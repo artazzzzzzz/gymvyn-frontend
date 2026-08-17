@@ -107,6 +107,7 @@ export default function TrainerSettings() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState(null);
   const [joinGymOpen, setJoinGymOpen] = useState(false);
+  const [certInput, setCertInput] = useState('');
 
   const userId = user?.id;
 
@@ -189,7 +190,10 @@ export default function TrainerSettings() {
       session_rate: profile?.session_rate || '',
       city: profile?.city || '',
       phone: profile?.phone || '',
+      instagram: profile?.instagram || '',
+      certifications: Array.isArray(profile?.certifications) ? profile.certifications : [],
     });
+    setCertInput('');
     setEditOpen(true);
   };
 
@@ -775,6 +779,63 @@ export default function TrainerSettings() {
                 style={{ width: '100%', height: 40, borderRadius: 8, border: '0.5px solid var(--border)', padding: '0 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
+          </div>
+
+          {/* Instagram */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Instagram handle (optional)</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>@</span>
+              <input
+                type="text"
+                placeholder="yourhandle"
+                value={editForm.instagram || ''}
+                onChange={e => setEditForm(f => ({ ...f, instagram: e.target.value }))}
+                style={{
+                  flex: 1, height: 40, border: '0.5px solid var(--border)',
+                  borderRadius: 8, padding: '0 12px', fontSize: 13,
+                  outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Certifications */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Certifications</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+              {(editForm.certifications || []).map((c, i) => (
+                <span key={i} style={{
+                  background: 'var(--bg-pill)', color: 'var(--text-secondary)',
+                  borderRadius: 6, padding: '4px 10px', fontSize: 12,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                }}>
+                  {c}
+                  <button
+                    onClick={() => setEditForm(f => ({ ...f, certifications: f.certifications.filter((_, idx) => idx !== i) }))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: 13, padding: 0, lineHeight: 1 }}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Type a certification and press Enter…"
+              value={certInput}
+              onChange={e => setCertInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && certInput.trim()) {
+                  e.preventDefault();
+                  setEditForm(f => ({ ...f, certifications: [...(f.certifications || []), certInput.trim()] }));
+                  setCertInput('');
+                }
+              }}
+              style={{
+                width: '100%', height: 40, border: '0.5px solid var(--border)',
+                borderRadius: 8, padding: '0 12px', fontSize: 13,
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
           </div>
 
           {/* Specializations */}
