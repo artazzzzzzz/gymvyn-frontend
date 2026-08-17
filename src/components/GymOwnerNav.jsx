@@ -1,47 +1,19 @@
-import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, Wallet, CalendarDays, UserCheck, QrCode, Sparkles, Settings } from 'lucide-react'
+import { useState } from 'react'
+import GymBottomNav from './GymBottomNav'
+import MoreSheet from './MoreSheet'
 
-const tabs = [
-  { to: '/gym/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/gym/members',   icon: Users,           label: 'Members'   },
-  { to: '/gym/payments',  icon: Wallet,          label: 'Payments'  },
-  { to: '/gym/checkin',   icon: QrCode,          label: 'Check-in'  },
-  { to: '/gym/schedule',  icon: CalendarDays,    label: 'Schedule'  },
-  { to: '/gym/trainers',  icon: UserCheck,       label: 'Trainers'  },
-  { to: '/gym/insights',  icon: Sparkles,        label: 'Insights'  },
-]
-
+/**
+ * Thin wrapper used by older owner pages (GymAnnouncements, GymImport,
+ * GymComingSoon) that haven't been migrated to inline GymBottomNav yet.
+ * Renders the same 5-tab nav every other gym-owner page uses, plus the
+ * standard MoreSheet — no more 8-item overflow on narrow screens.
+ */
 export default function GymOwnerNav() {
+  const [moreOpen, setMoreOpen] = useState(false)
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111113] border-t border-white/[0.06] backdrop-blur-md pb-safe">
-      <div className="flex items-stretch h-16 max-w-3xl mx-auto">
-        {tabs.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/gym/dashboard'}
-            className={({ isActive }) =>
-              `flex-1 flex flex-col items-center justify-center gap-1 transition-colors duration-150 ${
-                isActive ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'
-              }`
-            }
-          >
-            <Icon size={18} strokeWidth={1.8} />
-            <span className="text-[10px] font-medium tracking-wide">{label}</span>
-          </NavLink>
-        ))}
-        <NavLink
-          to="/gym/settings"
-          className={({ isActive }) =>
-            `w-14 flex flex-col items-center justify-center gap-1 transition-colors duration-150 border-l border-white/[0.06] ${
-              isActive ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'
-            }`
-          }
-        >
-          <Settings size={18} strokeWidth={1.8} />
-          <span className="text-[10px] font-medium tracking-wide">Settings</span>
-        </NavLink>
-      </div>
-    </nav>
+    <>
+      <GymBottomNav onMorePress={() => setMoreOpen(true)} />
+      <MoreSheet isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+    </>
   )
 }
