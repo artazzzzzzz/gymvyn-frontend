@@ -42,6 +42,7 @@ function PhotosTab({ userId }) {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState(null)
   const [lightbox, setLightbox]   = useState(null)
+  const [deleting, setDeleting]   = useState(false)
   const [comparing, setComparing] = useState(false)   // selection mode
   const [selected, setSelected]   = useState([])      // up to 2 photo ids
   const [compareView, setCompareView] = useState(false) // comparison view
@@ -118,6 +119,25 @@ function PhotosTab({ userId }) {
       if (next.length === 2) setCompareView(true)
       return next
     })
+  }
+
+  async function handleDeletePhoto(photoId) {
+    if (!window.confirm('Delete this photo? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/progress-photos/${photoId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+      if (!res.ok) throw new Error('Failed to delete photo')
+      setLightbox(null)
+      setPhotos(prev => prev.filter(p => p.id !== photoId))
+    } catch {
+      alert('Could not delete photo. Try again.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const selectedPhotos = selected.map(id => photos.find(p => p.id === id)).filter(Boolean)
@@ -269,6 +289,14 @@ function PhotosTab({ userId }) {
             onClick={() => setLightbox(null)}
           >
             <X size={20} />
+          </button>
+          <button
+            className="absolute top-12 left-5 text-red-400 bg-red-900/30 rounded-full p-2 disabled:opacity-50"
+            onClick={() => handleDeletePhoto(lightbox.id)}
+            disabled={deleting}
+            aria-label="Delete photo"
+          >
+            {deleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
           </button>
           <div onClick={e => e.stopPropagation()} className="max-w-sm w-full">
             <img src={lightbox.photo_url} alt="progress" className="w-full rounded-2xl" />
