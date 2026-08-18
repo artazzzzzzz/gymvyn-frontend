@@ -1,13 +1,55 @@
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { apiFetch } from '../utils/api'
+
+/**
+ * Poll /api/chat/conversations every 30 s and return the total unread count.
+ * Returns 0 while loading or on error — never blocks rendering.
+ */
+function useChatUnreadCount() {
+  const [unread, setUnread] = useState(0)
+  const intervalRef = useRef(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function poll() {
+      try {
+        const convos = await apiFetch('/api/chat/conversations')
+        if (!cancelled && Array.isArray(convos)) {
+          const total = convos.reduce((sum, c) => sum + (c.unread || 0), 0)
+          setUnread(total)
+        }
+      } catch {
+        // Silently keep the previous count on network failure
+      }
+    }
+
+    poll()
+    intervalRef.current = setInterval(poll, 30_000)
+
+    return () => {
+      cancelled = true
+      clearInterval(intervalRef.current)
+    }
+  }, [])
+
+  return unread
+}
 
 export default function TrainerBottomNav({ onMorePress }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const chatUnread = useChatUnreadCount()
 
   const isActive = (path, exact = false) => {
     if (exact) return pathname === path
     return pathname.startsWith(path)
   }
+
+  // When the trainer is on the chat page, mark as read locally
+  const isChatActive = isActive('/trainer/chat')
+  const displayUnread = isChatActive ? 0 : chatUnread
 
   const NAV_ITEMS = [
     {
@@ -77,12 +119,27 @@ export default function TrainerBottomNav({ onMorePress }) {
 
         {NAV_ITEMS.map(item => {
           const active = isActive(item.path, item.exact)
+          const isChatItem = item.id === 'chat'
+          const badgeCount = isChatItem ? displayUnread : 0
+
           return (
             <button
               key={item.id}
               onClick={() => navigate(item.navigateTo ?? item.path)}
               className="flex flex-col items-center justify-center gap-0.5 relative">
-              {item.icon(active)}
+              {/* Icon wrapper — position:relative so badge can anchor to it */}
+              <span className="relative inline-flex">
+                {item.icon(active)}
+                {badgeCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 flex items-center justify-center
+                      min-w-[16px] h-[16px] px-[3px] rounded-full
+                      bg-red-500 text-white text-[9px] font-bold leading-none"
+                  >
+                    {badgeCount > 99 ? '99+' : badgeCount}
+                  </span>
+                )}
+              </span>
               <span className={`text-[10px] transition-colors ${
                 active ? 'font-semibold text-[var(--text-primary)]' : 'font-normal text-[var(--text-tertiary)]'
               }`}>
