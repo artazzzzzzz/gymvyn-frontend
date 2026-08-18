@@ -121,6 +121,7 @@ export default function GymSettings() {
   const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS)
   const [logoUrl, setLogoUrl] = useState(null)
   const [logoUploading, setLogoUploading] = useState(false)
+  const [logoRemoving, setLogoRemoving] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showPlanSheet, setShowPlanSheet] = useState(false)
@@ -244,6 +245,30 @@ export default function GymSettings() {
       showToastMsg('Failed to save settings', 'error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  // ─── Logo remove ─────────────────────────────────────────────────────────
+  async function handleRemoveLogo() {
+    if (logoRemoving || !gymId) return
+    setLogoRemoving(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/gyms/${gymId}/settings`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ logo_url: null }),
+      })
+      if (!res.ok) throw new Error('Remove failed')
+      setLogoUrl(null)
+      showToastMsg('Logo removed')
+    } catch {
+      showToastMsg('Failed to remove logo', 'error')
+    } finally {
+      setLogoRemoving(false)
     }
   }
 
@@ -511,9 +536,10 @@ export default function GymSettings() {
                 >{logoUploading ? 'Uploading...' : 'Upload Photo'}</button>
                 {logoUrl && (
                   <button
-                    onClick={() => setLogoUrl(null)}
-                    style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--error)', cursor: 'pointer' }}
-                  >Remove</button>
+                    onClick={handleRemoveLogo}
+                    disabled={logoRemoving}
+                    style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--error)', cursor: logoRemoving ? 'default' : 'pointer', opacity: logoRemoving ? 0.6 : 1 }}
+                  >{logoRemoving ? 'Removing…' : 'Remove'}</button>
                 )}
               </div>
             </div>
