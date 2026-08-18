@@ -594,6 +594,22 @@ export const submitGymReview = (rating, reviewText) =>
 // current gym yet — callers should catch and treat that as "no review".
 export const getMyGymReview = () => apiFetch('/api/gym-reviews/mine');
 
+// Trainer reviews — a member with an active trainer-client relationship can
+// leave/edit a rating + text review for their trainer. Upserts on
+// (trainer_id, user_id) — re-submitting edits the existing review rather than
+// creating a second one. trainerId is the trainer's user id (trainer.id in
+// MyTrainer.jsx — the users table PK, same as trainer_clients.trainer_id).
+export const submitTrainerReview = (trainerId, rating, reviewText) =>
+  apiFetch('/api/trainer-reviews', {
+    method: 'POST',
+    body: JSON.stringify({ trainerId, rating, review_text: reviewText }),
+  });
+
+// Returns the caller's own review for a given trainer. 404s (as a thrown
+// Error) when no review exists yet — callers should catch and treat as "none".
+export const getMyTrainerReview = (trainerId) =>
+  apiFetch(`/api/trainer-reviews/mine?trainerId=${encodeURIComponent(trainerId)}`);
+
 export const unlinkTrainer = () => apiFetch('/api/trainer/unlink', { method: 'PATCH' });
 
 // Trainer-side gym linkage. Trainers are linked via trainer_profiles.gym_id,

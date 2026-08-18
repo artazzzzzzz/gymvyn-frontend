@@ -4,7 +4,7 @@ import { MoreVertical } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 import { useAssignedDietPlan } from '../hooks/useAssignedDietPlan';
 import AssignedDietPlanView from '../components/diet/AssignedDietPlanView';
-import { unlinkTrainer } from '../utils/api';
+import { unlinkTrainer, submitTrainerReview, getMyTrainerReview } from '../utils/api';
 
 const BASE = import.meta.env.VITE_API_URL || '';
 
@@ -87,6 +87,15 @@ export default function MyTrainer() {
   const [unlinking,         setUnlinking]          = useState(false);
   const [unlinkError,       setUnlinkError]        = useState('');
 
+  // ── Review state ─────────────────────────────────────────────────────────────
+  const [review,            setReview]            = useState(null);   // existing review or null
+  const [showReviewSheet,   setShowReviewSheet]   = useState(false);
+  const [reviewRating,      setReviewRating]      = useState(0);
+  const [reviewText,        setReviewText]        = useState('');
+  const [reviewSaving,      setReviewSaving]      = useState(false);
+  const [reviewError,       setReviewError]       = useState('');
+  const [reviewSuccess,     setReviewSuccess]     = useState(false);
+
   useEffect(() => { load() }, []);
 
   async function load() {
@@ -98,6 +107,24 @@ export default function MyTrainer() {
       setPlan(data.plan);
       setConversation(data.conversation || null);
       setNoTrainer(false);
+
+      // Fetch any existing review so the form can pre-fill for editing.
+      // Fire-and-forget — 404 = no review yet (normal), 503 = migration pending
+      // (silently disable the review section), any other error = skip pre-fill.
+      if (data.trainer?.id) {
+        getMyTrainerReview(data.trainer.id)
+          .then(r => {
+            setReview(r);
+            setReviewRating(r.rating);
+            setReviewText(r.review_text || '');
+          })
+          .catch((err) => {
+            // 503 = migration not yet applied — set null, section stays hidden
+            // 404 = no review yet — set null, section shows "Write Review"
+            // Other = silently skip
+            setReview(null);
+          });
+      }
     } catch (err) {
       if (err.status === 404) {
         setNoTrainer(true);
@@ -144,6 +171,25 @@ export default function MyTrainer() {
       setUnlinkError(err.message || 'Could not unlink from trainer.');
     } finally {
       setUnlinking(false);
+    }
+  }
+
+  // ── Submit trainer review ─────────────────────────────────────────────────────
+  async function handleReviewSubmit() {
+    if (!reviewRating || reviewSaving) return;
+    if (!reviewText.trim()) { setReviewError('Please write a short review.'); return; }
+    setReviewSaving(true);
+    setReviewError('');
+    try {
+      const saved = await submitTrainerReview(trainer.id, reviewRating, reviewText.trim());
+      setReview(saved);
+      setReviewSuccess(true);
+      setShowReviewSheet(false);
+      setTimeout(() => setReviewSuccess(false), 3000);
+    } catch (err) {
+      setReviewError(err.message || 'Failed to save review. Please try again.');
+    } finally {
+      setReviewSaving(false);
     }
   }
 
@@ -614,8 +660,157 @@ export default function MyTrainer() {
           </div>
         </div>
 
+        {/* ── RATE YOUR TRAINER ──────────────────────────────────────── */}
+        <div className="mx-5 mt-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">Your Review</p>
+            {review && (
+              <button
+                onClick={() => {
+                  setReviewRating(review.rating);
+                  setReviewText(review.review_text || '');
+                  setReviewError('');
+                  setShowReviewSheet(true);
+                }}
+                className="text-[13px] font-medium text-[var(--text-cta)]"
+              >
+                Edit →
+              </button>
+            )}
+          </div>
+
+          {/* Review success banner */}
+          {reviewSuccess && (
+            <div className="mb-3 bg-[var(--success-bg)] border border-[var(--success)]/20 rounded-xl px-4 py-3 flex items-center gap-3">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <p className="text-[var(--success)] text-sm font-medium">Review saved!</p>
+            </div>
+          )}
+
+          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-4">
+            {review ? (
+              // Existing review — show read-only summary
+              <div>
+                <div className="flex items-center gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <svg key={s} width="18" height="18" viewBox="0 0 24 24" fill={s <= review.rating ? 'var(--success)' : 'none'} stroke="var(--success)" strokeWidth="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  ))}
+                  <span className="text-[12px] text-[var(--text-tertiary)] ml-1">{review.rating}/5</span>
+                </div>
+                <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">{review.review_text}</p>
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-2">
+                  {review.updated_at !== review.created_at ? 'Updated' : 'Posted'}{' '}
+                  {timeAgo(review.updated_at || review.created_at)}
+                </p>
+              </div>
+            ) : (
+              // No review yet
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[14px] font-semibold text-[var(--text-primary)]">Rate your trainer</p>
+                  <p className="text-[12px] text-[var(--text-tertiary)] mt-0.5">Share your experience</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setReviewRating(0);
+                    setReviewText('');
+                    setReviewError('');
+                    setShowReviewSheet(true);
+                  }}
+                  className="h-9 px-4 rounded-xl text-[13px] font-semibold border"
+                  style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)', color: 'var(--cta-text)' }}
+                >
+                  Write Review
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="h-6" />
       </div>
+
+      {/* ── REVIEW SHEET ─────────────────────────────────────────────────── */}
+      {showReviewSheet && (
+        <>
+          <div
+            className="fixed inset-0 z-[90] bg-black/50"
+            onClick={() => !reviewSaving && setShowReviewSheet(false)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 z-[91] bg-[var(--bg-card)] rounded-t-3xl px-5 pt-3 pb-10">
+            <div className="w-10 h-1 bg-[var(--border)] rounded-full mx-auto mb-5" />
+            <p className="text-[18px] font-bold text-[var(--text-primary)] mb-1">
+              {review ? 'Edit your review' : 'Rate your trainer'}
+            </p>
+            <p className="text-[13px] text-[var(--text-tertiary)] mb-5">for {trainer?.full_name}</p>
+
+            {/* Star picker */}
+            <div className="flex items-center justify-center gap-3 mb-5">
+              {[1, 2, 3, 4, 5].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setReviewRating(s)}
+                  className="transition-transform active:scale-90"
+                >
+                  <svg width="40" height="40" viewBox="0 0 24 24"
+                    fill={s <= reviewRating ? 'var(--success)' : 'none'}
+                    stroke={s <= reviewRating ? 'var(--success)' : 'var(--border)'}
+                    strokeWidth="1.5"
+                    style={{ transition: 'fill 0.15s, stroke 0.15s' }}
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </button>
+              ))}
+            </div>
+
+            {/* Rating label */}
+            {reviewRating > 0 && (
+              <p className="text-center text-[13px] font-semibold text-[var(--success)] mb-4">
+                {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][reviewRating]}
+              </p>
+            )}
+
+            {/* Review text */}
+            <textarea
+              value={reviewText}
+              onChange={e => { setReviewText(e.target.value); setReviewError(''); }}
+              placeholder="What did you like? What could be better?"
+              maxLength={2000}
+              rows={4}
+              className="w-full rounded-xl p-4 text-[14px] text-[var(--text-primary)] resize-none focus:outline-none"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-strong)' }}
+            />
+            <p className="text-[11px] text-[var(--text-tertiary)] text-right mt-1 mb-4">
+              {reviewText.length}/2000
+            </p>
+
+            {reviewError && (
+              <p className="text-[12px] text-[var(--error)] mb-3">{reviewError}</p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowReviewSheet(false)}
+                disabled={reviewSaving}
+                className="flex-1 h-12 rounded-xl font-medium text-[13px] text-[var(--text-secondary)] border border-[var(--border)] bg-[var(--bg-elevated)] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReviewSubmit}
+                disabled={!reviewRating || reviewSaving}
+                className="flex-1 h-12 rounded-xl font-semibold text-[13px] border disabled:opacity-40"
+                style={{ background: 'var(--cta-bg)', borderColor: 'var(--cta-border)', color: 'var(--cta-text)' }}
+              >
+                {reviewSaving ? 'Saving…' : review ? 'Update Review' : 'Submit Review'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {unlinkConfirmOpen && (
         <div
