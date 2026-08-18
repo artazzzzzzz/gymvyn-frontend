@@ -156,6 +156,16 @@ export default function Settings() {
 
   const [shareAchievements, setShareAchievements] = useState(false)
 
+  // Default all categories ON — a null/missing column means all-enabled
+  // (same rationale as share_achievements default = false being explicit in DB).
+  const DEFAULT_NOTIF_PREFS = {
+    chat:               true,
+    class_bookings:     true,
+    gym_announcements:  true,
+    trainer_plan:       true,
+  }
+  const [notifPrefs, setNotifPrefs] = useState(DEFAULT_NOTIF_PREFS)
+
   // ─── Load user ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const loadUser = async () => {
@@ -175,6 +185,14 @@ export default function Settings() {
         const data = await res.json()
         setUser(data)
         setShareAchievements(data.share_achievements ?? false)
+        // Load notification preferences from dedicated endpoint (separate from
+        // main user fetch so a pending migration never breaks Settings load)
+        fetch(`${API}/api/users/${authUser.id}/notification-preferences`, {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(prefs => { if (prefs) setNotifPrefs({ ...DEFAULT_NOTIF_PREFS, ...prefs }) })
+          .catch(() => {}); // non-fatal — defaults remain
         setForm({
           full_name: data.full_name || '',
           age: data.age ? String(data.age) : '',
@@ -293,6 +311,29 @@ export default function Settings() {
       })
     } catch {
       setShareAchievements(!val)
+    }
+  }
+
+  // ─── Notification preferences toggle ─────────────────────────────────────────
+  // Optimistically updates state then persists the whole prefs object. On
+  // failure, reverts the single key that changed — same pattern as share_achievements.
+  const handleNotifPrefToggle = async (key, val) => {
+    const next = { ...notifPrefs, [key]: val }
+    setNotifPrefs(next)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${API}/api/users/${userId}/notification-preferences`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ [key]: val }),
+      })
+      if (!res.ok) throw new Error('Failed')
+    } catch {
+      // Revert on network/server failure
+      setNotifPrefs(prev => ({ ...prev, [key]: !val }))
     }
   }
 
@@ -710,6 +751,60 @@ export default function Settings() {
               </div>
             </div>
           )}
+
+          {/* ── NOTIFICATIONS ────────────────────────────────────────────────── */}
+          <div>
+            <SectionLabel>NOTIFICATIONS</SectionLabel>
+            <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 12, border: '0.5px solid var(--border)', overflow: 'hidden' }}>
+              {[
+                {
+                  key: 'chat',
+                  label: 'New Messages',
+                  desc: 'When someone sends you a chat message',
+                },
+                {
+                  key: 'class_bookings',
+                  label: 'Class Bookings',
+                  desc: 'Booking confirmations and waitlist updates',
+                },
+                {
+                  key: 'gym_announcements',
+                  label: 'Gym Announcements',
+                  desc: 'Important updates from your gym',
+                },
+                {
+                  key: 'trainer_plan',
+                  label: 'Trainer Plan Updates',
+                  desc: 'When your trainer assigns or updates your plan',
+                },
+              ].map((item, i, arr) => (
+                <div
+                  key={item.key}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '14px 20px',
+                    borderBottom: i < arr.length - 1 ? '0.5px solid var(--border)' : 'none',
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                      {item.label}
+                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '3px 0 0' }}>
+                      {item.desc}
+                    </p>
+                  </div>
+                  <Toggle
+                    value={notifPrefs[item.key] !== false}
+                    onChange={val => handleNotifPrefToggle(item.key, val)}
+                  />
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 8, paddingLeft: 4 }}>
+              Controls in-app and push notification delivery where available.
+            </p>
+          </div>
 
           {/* ── SECTION 4: ACCOUNT ──────────────────────────────────────────────── */}
           <div style={{ paddingBottom: 20 }}>
